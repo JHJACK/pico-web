@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0d0d0d">
+<title>PICO — 마스터 기획서 v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0d0d; --bg2:#141414; --bg3:#1c1c1c; --bg4:#242424;
+  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.12);
+  --text:#e8e0d0;        /* 크리미 파스텔 화이트 */
+  --text2:#a09688;       /* 중간 뮤트 */
+  --text3:#5c5448;       /* 희미한 힌트 */
+  --gold:#FACA3E;
+  --gold-dim:rgba(250,202,62,0.12); --gold-dim2:rgba(250,202,62,0.05);
+  --blue:#7eb8f7; --blue-dim:rgba(126,184,247,0.10);
+  --red:#f07878; --red-dim:rgba(240,120,120,0.10);
+  --green:#7ed4a0; --green-dim:rgba(126,212,160,0.10);
+  --purple:#c4b0fc; --purple-dim:rgba(196,176,252,0.10);
+  --amber:#f5c842;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+  --mono:'Instrument Sans',sans-serif;  /* 본문 산세리프 */
+  --serif:'DM Serif Display',serif;     /* 로고·대제목만 */
+  --sans:'Noto Sans KR',sans-serif;     /* 한글 본문 */
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(13,13,13,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:0.5px solid var(--border);padding:0 20px;display:flex;align-items:center;height:50px}
+.nav-logo{font-family:var(--serif);font-size:18px;color:var(--gold);margin-right:22px;flex-shrink:0;letter-spacing:.01em}
+.nav-links{display:flex;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-family:'Instrument Sans',sans-serif;font-size:11px;font-weight:500;color:var(--text3);text-decoration:none;padding:0 10px;height:50px;display:flex;align-items:center;white-space:nowrap;transition:color .15s;letter-spacing:.01em}
+.nav-links a:hover{color:var(--text2)}
+.nav-links a.active{color:var(--gold)}
+.nav-ver{font-family:'Instrument Sans',sans-serif;font-size:9px;color:var(--text3);border:0.5px solid var(--border);border-radius:3px;padding:2px 7px;margin-left:auto;flex-shrink:0;letter-spacing:.06em}
+@media(max-width:600px){.nav-ver{display:none}}
+
+/* ── LAYOUT ── */
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+@media(max-width:400px){.wrap{padding:0 14px}}
+section{padding:44px 0 0}
+
+/* ── SEPARATOR ── */
+.sep{display:flex;align-items:center;gap:10px;margin:48px 0 0;color:var(--text3);font-family:'Instrument Sans',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.sep::before,.sep::after{content:'';flex:1;height:.5px;background:var(--border)}
+
+/* ── HERO ── */
+.hero{padding:56px 0 40px}
+.hero-eyebrow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.chip{font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;padding:3px 9px;border-radius:4px;border:.5px solid;text-transform:uppercase}
+.chip-gold{color:var(--gold);border-color:rgba(250,202,62,.28);background:var(--gold-dim2)}
+.chip-blue{color:var(--blue);border-color:rgba(126,184,247,.28);background:var(--blue-dim)}
+.chip-green{color:var(--green);border-color:rgba(126,212,160,.28);background:var(--green-dim)}
+.chip-mute{color:var(--text3);border-color:var(--border);background:transparent}
+.hero h1{font-family:var(--serif);font-size:clamp(28px,7vw,50px);font-weight:400;line-height:1.08;margin-bottom:12px;color:var(--text)}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero-sub{font-size:14px;color:var(--text2);line-height:1.8;max-width:500px;margin-bottom:24px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:14px 24px}
+.hmi{font-size:11px;color:var(--text3);font-family:'Instrument Sans',sans-serif}
+.hmi strong{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:1px;letter-spacing:.01em}
+
+/* ── SECTION TITLES ── */
+.sec-label{font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:5px}
+.sec-title{font-family:var(--serif);font-size:clamp(20px,5vw,27px);font-weight:400;color:var(--text);margin-bottom:6px;line-height:1.15}
+.sec-desc{font-size:13px;color:var(--text2);line-height:1.8;max-width:520px;margin-bottom:24px}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.card-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px;font-family:'Instrument Sans',sans-serif;letter-spacing:.01em}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dot-gold{background:var(--gold)}.dot-blue{background:var(--blue)}.dot-red{background:var(--red)}
+.dot-green{background:var(--green)}.dot-purple{background:var(--purple)}.dot-amber{background:var(--amber)}
+.card p{font-size:13px;color:var(--text2);line-height:1.75}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px}
+
+/* ── METRICS ── */
+.metric{background:var(--bg3);border:.5px solid var(--border);border-radius:var(--r-md);padding:16px;text-align:center}
+.metric-val{font-family:var(--serif);font-size:26px;line-height:1;margin-bottom:4px}
+.metric-label{font-size:11px;color:var(--text3);line-height:1.5;font-family:'Instrument Sans',sans-serif}
+
+/* ── FEATURE ROW ── */
+.frow{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:.5px solid var(--border);font-size:13px;color:var(--text2);line-height:1.7}
+.frow:last-child{border-bottom:none;padding-bottom:0}
+.frow strong{color:var(--text);font-weight:500;display:block;margin-bottom:1px}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:460px}
+th{font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.07em;color:var(--text3);text-align:left;padding:8px 10px;border-bottom:.5px solid var(--border);text-transform:uppercase}
+td{padding:11px 10px;color:var(--text2);border-bottom:.5px solid var(--border);vertical-align:top;line-height:1.55}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--text);font-weight:500;white-space:nowrap}
+
+/* ── VERDICT ── */
+.verdict{background:var(--gold-dim);border:.5px solid rgba(250,202,62,.2);border-radius:var(--r-lg);padding:18px 20px;margin-top:16px}
+.verdict-label{font-family:'Instrument Sans',sans-serif;font-size:9px;letter-spacing:.12em;color:var(--gold);margin-bottom:6px;font-weight:600;text-transform:uppercase}
+.verdict p{font-size:13px;color:var(--text);line-height:1.75}
+.verdict strong{color:var(--gold);font-weight:500}
+
+/* ── PHASE ── */
+.phase-item{display:flex;gap:14px;margin-bottom:20px;position:relative}
+.phase-item::before{content:'';position:absolute;left:13px;top:30px;width:.5px;height:calc(100% + 4px);background:var(--border)}
+.phase-item:last-child::before{display:none}
+.pnum{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:11px;font-weight:600;flex-shrink:0;border:.5px solid}
+.p1{background:var(--gold-dim);color:var(--gold);border-color:rgba(250,202,62,.3)}
+.p2{background:var(--blue-dim);color:var(--blue);border-color:rgba(126,184,247,.3)}
+.p3{background:rgba(245,200,66,.08);color:var(--amber);border-color:rgba(245,200,66,.3)}
+.p4{background:var(--purple-dim);color:var(--purple);border-color:rgba(196,176,252,.3)}
+.phase-body{flex:1}
+.phase-body h4{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;font-family:'Instrument Sans',sans-serif}
+.phase-body p{font-size:12px;color:var(--text2);line-height:1.7}
+
+/* ── TAGS ── */
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:600;padding:2px 7px;border-radius:3px;border:.5px solid var(--border2);color:var(--text3);letter-spacing:.02em}
+
+/* ── RISK ── */
+.risk{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border-radius:var(--r-md);border:.5px solid;margin-bottom:7px;font-size:13px;line-height:1.7}
+.risk.warn{background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.18);color:var(--amber)}
+.risk.danger{background:var(--red-dim);border-color:rgba(240,120,120,.18);color:var(--red)}
+.risk.info{background:var(--blue-dim);border-color:rgba(126,184,247,.18);color:var(--blue)}
+.risk.ok{background:var(--green-dim);border-color:rgba(126,212,160,.18);color:var(--green)}
+.risk strong{display:block;margin-bottom:2px}
+
+/* ── CHECKLIST ── */
+.checklist{list-style:none}
+.checklist li{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:.5px solid var(--border);font-size:13px;color:var(--text2);cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.checklist li:last-child{border-bottom:none}
+.checklist li.done{color:var(--text3);text-decoration:line-through}
+.cbox{width:15px;height:15px;border-radius:4px;border:.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:3px;transition:all .15s;font-size:9px;color:var(--bg)}
+.done .cbox{background:var(--gold);border-color:var(--gold)}
+
+/* ── STACK CHIPS ── */
+.sc-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sc{font-family:'Instrument Sans',sans-serif;font-size:10px;font-weight:500;padding:4px 10px;border-radius:var(--r-sm);border:.5px solid var(--border);color:var(--text2);background:var(--bg3);letter-spacing:.01em}
+
+/* ── VS SECTION ── */
+.vs-wrap{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-xl);padding:22px 20px;text-align:center}
+.vs-pair{display:flex;align-items:center;gap:12px;justify-content:center;margin:14px 0}
+.vs-box{flex:1;max-width:185px;background:var(--bg3);border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px 10px;cursor:pointer;transition:all .2s;text-align:center;-webkit-tap-highlight-color:transparent}
+.vs-box:hover{border-color:var(--border2)}
+.vs-box.sel-a{border-color:rgba(250,202,62,.4);background:rgba(250,202,62,.04)}
+.vs-box.sel-b{border-color:rgba(126,184,247,.4);background:rgba(126,184,247,.04)}
+.vs-tick{font-family:var(--serif);font-size:20px;color:var(--text);display:block;margin-bottom:3px}
+.vs-cname{font-size:10px;color:var(--text3);display:block;margin-bottom:6px;font-family:'Instrument Sans',sans-serif}
+.vs-price{font-size:11px;font-weight:600;display:block;font-family:'Instrument Sans',sans-serif}
+.vs-pickbtn{display:inline-block;margin-top:8px;font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:600;padding:4px 11px;border-radius:4px;border:.5px solid var(--border2);color:var(--text3);letter-spacing:.04em;text-transform:uppercase}
+.vs-pickbtn.pa{background:var(--gold-dim);border-color:rgba(250,202,62,.3);color:var(--gold)}
+.vs-pickbtn.pb{background:var(--blue-dim);border-color:rgba(126,184,247,.3);color:var(--blue)}
+.vs-mid{font-family:var(--serif);font-size:16px;color:var(--text3);flex-shrink:0}
+.vbar-track{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:5px}
+.vbar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.vlabels{display:flex;justify-content:space-between;font-family:'Instrument Sans',sans-serif;font-size:9px;color:var(--text3);font-weight:500}
+
+/* ── QUIZ ── */
+.quiz-shell{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-xl);overflow:hidden}
+.quiz-top{padding:22px 22px 0;text-align:center}
+.q-eyebrow{font-family:'Instrument Sans',sans-serif;font-size:9px;letter-spacing:.14em;color:var(--gold);margin-bottom:6px;font-weight:600;text-transform:uppercase}
+.q-title{font-family:var(--serif);font-size:clamp(18px,5vw,23px);color:var(--text);line-height:1.15;margin-bottom:5px}
+.q-sub{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.q-prog-bar{height:2px;background:var(--bg4);border-radius:1px;overflow:hidden;margin-bottom:20px}
+.q-prog-fill{height:100%;background:var(--gold);border-radius:1px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.q-step{display:none;padding:0 20px 22px}
+.q-step.active{display:block}
+.q-num{font-family:'Instrument Sans',sans-serif;font-size:9px;color:var(--text3);margin-bottom:7px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.q-text{font-size:clamp(14px,3.5vw,17px);color:var(--text);line-height:1.45;margin-bottom:14px;font-weight:500}
+.q-options{display:flex;flex-direction:column;gap:7px}
+.q-opt{display:flex;align-items:flex-start;gap:12px;background:var(--bg3);border:.5px solid var(--border);border-radius:var(--r-lg);padding:13px 15px;cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.q-opt:hover{border-color:var(--border2)}
+.q-opt.chosen{border-color:rgba(250,202,62,.45);background:rgba(250,202,62,.06)}
+.q-opt-letter{width:24px;height:24px;border-radius:5px;background:var(--bg4);border:.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:10px;font-weight:600;color:var(--text3);flex-shrink:0;transition:all .18s;margin-top:1px}
+.q-opt.chosen .q-opt-letter{background:var(--gold);border-color:var(--gold);color:var(--bg)}
+.q-opt-body{}
+.q-opt-text{font-size:13px;color:var(--text);line-height:1.4;font-weight:500}
+.q-opt-sub{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.5}
+.q-result{display:none;padding:0 20px 26px;text-align:center}
+.q-result.show{display:block}
+.result-icon{width:54px;height:54px;border-radius:50%;background:var(--gold-dim);border:.5px solid rgba(250,202,62,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px}
+.result-type{font-family:var(--serif);font-size:22px;color:var(--gold);margin-bottom:4px}
+.result-tagline{font-family:'Instrument Sans',sans-serif;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.result-desc{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:14px;max-width:310px;margin-left:auto;margin-right:auto}
+.result-recs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px}
+.result-rec{font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:600;padding:3px 9px;border-radius:4px;background:var(--gold-dim);border:.5px solid rgba(250,202,62,.22);color:var(--gold);letter-spacing:.04em}
+.q-cta-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.btn-gold{padding:11px 22px;border-radius:var(--r-md);background:var(--gold);color:#0d0d0d;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:var(--sans);transition:opacity .15s}
+.btn-gold:hover{opacity:.85}
+.btn-outline{padding:11px 22px;border-radius:var(--r-md);background:transparent;color:var(--text2);font-size:13px;border:.5px solid var(--border2);cursor:pointer;font-family:var(--sans);transition:border-color .15s}
+.btn-outline:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── PERSONA GRID ── */
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:9px}
+.pc{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;transition:border-color .2s}
+.pc:hover{border-color:var(--border2)}
+.pc-emoji{font-size:20px;margin-bottom:7px;display:block}
+.pc-name{font-family:var(--serif);font-size:16px;color:var(--text);margin-bottom:2px}
+.pc-tagline{font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.pc-desc{font-size:12px;color:var(--text2);line-height:1.65}
+.pc-stocks{font-family:'Instrument Sans',sans-serif;font-size:9px;color:var(--text3);margin-top:8px;border-top:.5px solid var(--border);padding-top:8px;font-weight:500;letter-spacing:.02em}
+
+/* ── PICO PLAY DEMO ── */
+.pp-demo{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-xl);overflow:hidden}
+.pp-top{padding:18px 20px 14px;border-bottom:.5px solid var(--border)}
+.pp-bal-label{font-family:'Instrument Sans',sans-serif;font-size:9px;letter-spacing:.12em;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase}
+.pp-bal{font-family:var(--serif);font-size:28px;color:var(--gold);letter-spacing:-.02em}
+.pp-bal-sub{font-size:11px;color:var(--green);margin-top:2px;font-family:'Instrument Sans',sans-serif;font-weight:500}
+.pp-rows{padding:12px 20px}
+.pp-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border)}
+.pp-row:last-child{border-bottom:none}
+.pp-logo{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;font-family:'Instrument Sans',sans-serif}
+.pp-name{font-size:13px;font-weight:500;color:var(--text);font-family:'Instrument Sans',sans-serif}
+.pp-sub{font-size:10px;color:var(--text3);font-family:'Instrument Sans',sans-serif}
+.pp-right{text-align:right;flex-shrink:0}
+.pp-val{font-size:13px;font-weight:600;color:var(--text);font-family:'Instrument Sans',sans-serif}
+.pp-chg{font-size:10px;font-weight:600;margin-top:1px;font-family:'Instrument Sans',sans-serif}
+.c-pos{color:var(--green)}.c-neg{color:var(--red)}
+.pp-insight{margin:0 20px 16px;background:var(--bg3);border:.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px}
+.pp-il{font-family:'Instrument Sans',sans-serif;font-size:9px;letter-spacing:.1em;color:var(--gold);margin-bottom:5px;font-weight:600;text-transform:uppercase}
+.pp-it{font-size:12px;color:var(--text2);line-height:1.7}
+
+/* ── ATTENDANCE / CALENDAR ── */
+.cal-demo{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-xl);overflow:hidden}
+.cal-top{padding:16px 20px 12px;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cal-title{font-family:var(--serif);font-size:16px;color:var(--text)}
+.cal-streak{font-family:'Instrument Sans',sans-serif;font-size:11px;font-weight:600;color:var(--gold);display:flex;align-items:center;gap:5px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:14px 16px}
+.cal-day-label{font-family:'Instrument Sans',sans-serif;font-size:9px;color:var(--text3);text-align:center;font-weight:600;letter-spacing:.04em;padding:4px 0;text-transform:uppercase}
+.cal-day{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:11px;font-weight:500;background:var(--bg3);border:.5px solid var(--border)}
+.cal-day.hit{background:rgba(250,202,62,.15);border-color:rgba(250,202,62,.3);color:var(--gold)}
+.cal-day.miss{background:var(--red-dim);border-color:rgba(240,120,120,.18);color:var(--red)}
+.cal-day.today{background:var(--gold);color:#0d0d0d;font-weight:700;border-color:var(--gold)}
+.cal-day.future{opacity:.25}
+.cal-bonus{padding:10px 16px 16px;display:flex;gap:8px;flex-wrap:wrap}
+.bonus-chip{flex:1;min-width:100px;background:var(--bg3);border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;text-align:center}
+.bonus-days{font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:2px}
+.bonus-label{font-family:'Instrument Sans',sans-serif;font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.bonus-reward{font-family:'Instrument Sans',sans-serif;font-size:10px;color:var(--gold);font-weight:600;margin-top:3px}
+
+/* ── POINT SYSTEM ── */
+.point-table{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.pt-row{display:flex;align-items:center;padding:12px 16px;border-bottom:.5px solid var(--border);gap:12px}
+.pt-row:last-child{border-bottom:none}
+.pt-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.pt-action{flex:1}
+.pt-name{font-size:13px;font-weight:500;color:var(--text);font-family:'Instrument Sans',sans-serif}
+.pt-desc{font-size:11px;color:var(--text3);margin-top:1px}
+.pt-pts{font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0}
+
+/* ── FLOW ── */
+.flow-wrap{display:flex;flex-direction:column}
+.flow-step{display:flex;gap:12px;align-items:flex-start}
+.flow-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.flow-circle{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:700;flex-shrink:0;border:.5px solid}
+.flow-conn{width:.5px;height:18px;background:var(--border);margin:3px 0}
+.flow-step:last-child .flow-conn{display:none}
+.flow-content{flex:1;padding-bottom:18px}
+.flow-content h5{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;font-family:'Instrument Sans',sans-serif}
+.flow-content p{font-size:12px;color:var(--text2);line-height:1.65}
+.flow-opts{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.fopt{font-size:11px;padding:3px 9px;border-radius:4px;border:.5px solid;font-family:'Instrument Sans',sans-serif;font-weight:500}
+.fopt-a{color:var(--gold);border-color:rgba(250,202,62,.28);background:var(--gold-dim2)}
+.fopt-b{color:var(--blue);border-color:rgba(126,184,247,.28);background:var(--blue-dim)}
+
+/* ── TIMELINE ── */
+.tl{position:relative;padding-left:18px}
+.tl::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:.5px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:20px;padding-left:16px}
+.tl-dot{position:absolute;left:-22px;top:6px;width:7px;height:7px;border-radius:50%;border:.5px solid}
+.tl-dot.gold{background:var(--gold-dim);border-color:var(--gold)}
+.tl-dot.blue{background:var(--blue-dim);border-color:var(--blue)}
+.tl-dot.amber{background:rgba(245,200,66,.12);border-color:var(--amber)}
+.tl-dot.purple{background:var(--purple-dim);border-color:var(--purple)}
+.tl-week{font-family:'Instrument Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--text3);margin-bottom:2px;text-transform:uppercase}
+.tl-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;font-family:'Instrument Sans',sans-serif}
+.tl-desc{font-size:12px;color:var(--text2);line-height:1.65}
+
+footer{margin-top:80px;padding:26px 0;border-top:.5px solid var(--border);text-align:center;font-size:11px;color:var(--text3);font-family:'Instrument Sans',sans-serif;letter-spacing:.04em}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">PICO</div>
+  <div class="nav-links">
+    <a href="#three">3대 기능</a>
+    <a href="#vs">VS 이벤트</a>
+    <a href="#quiz-plan">투자 DNA</a>
+    <a href="#picoplay">PICO Play</a>
+    <a href="#attendance">출석·포인트</a>
+    <a href="#timeline">타임라인</a>
+    <a href="#tech">기술 선택</a>
+    <a href="#risks">리스크</a>
+    <a href="#checklist">체크리스트</a>
+  </div>
+  <div class="nav-ver">v3.0</div>
+</nav>
+
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <span class="chip chip-gold">사이드 프로젝트</span>
+    <span class="chip chip-blue">마스터 기획서 v3</span>
+    <span class="chip chip-green">모바일 완전 대응</span>
+    <span class="chip chip-mute">WEB FIRST</span>
+  </div>
+  <h1>투자, 이제<br><em>흐름을 읽어</em></h1>
+  <p class="hero-sub">VS 이벤트로 사람을 모으고, 투자 DNA 퀴즈로 나를 알고, PICO Play로 리스크 없이 연습한다. 매일 접속하고 싶어지는 세 가지 경험.</p>
+  <div class="hero-meta">
+    <div class="hmi"><strong>PICO</strong>서비스명 (가안)</div>
+    <div class="hmi"><strong>웹 → 앱</strong>플랫폼 전략</div>
+    <div class="hmi"><strong>Next.js + FastAPI</strong>추천 스택</div>
+    <div class="hmi"><strong>2030 입문자</strong>핵심 타겟</div>
+    <div class="hmi"><strong>MVP 6~8주</strong>첫 배포 목표</div>
+  </div>
+</div>
+
+<!-- ── 00. 3대 핵심 기능 ── -->
+<div class="sep" id="three">00 — 3대 핵심 기능</div>
+<section>
+  <div class="sec-label">Core Three</div>
+  <div class="sec-title">PICO를 만드는<br>세 가지 경험</div>
+  <div class="g3">
+    <div class="card" style="border-color:rgba(250,202,62,.18)">
+      <div style="font-size:24px;margin-bottom:8px">⚔️</div>
+      <div class="card-title" style="color:var(--gold)">VS 이벤트</div>
+      <p>같은 카테고리 종목 대결. 하루 1번 예측 → 익일 결과. 맞추면 포인트. 연속 출석 보너스. <strong style="color:var(--text)">매일 오게 만드는 루틴.</strong></p>
+      <div class="tags"><span class="tag">DAILY</span><span class="tag">포인트</span><span class="tag">연속 출석</span><span class="tag">카테고리 매치</span></div>
+    </div>
+    <div class="card" style="border-color:rgba(126,184,247,.18)">
+      <div style="font-size:24px;margin-bottom:8px">🧬</div>
+      <div class="card-title" style="color:var(--blue)">투자 DNA 찾기</div>
+      <p>12문항 A/B로 8가지 동물 투자 유형 도출. 개성 있는 결과 카드 공유 → 재유입. <strong style="color:var(--text)">온보딩과 바이럴 동시에.</strong></p>
+      <div class="tags"><span class="tag">12문항</span><span class="tag">8가지 유형</span><span class="tag">공유 카드</span><span class="tag">개인화 씨앗</span></div>
+    </div>
+    <div class="card" style="border-color:rgba(126,212,160,.18)">
+      <div style="font-size:24px;margin-bottom:8px">🎮</div>
+      <div class="card-title" style="color:var(--green)">PICO Play</div>
+      <p>가상 10만원으로 실제 주가 추종 모의투자. 소수점 매수. 매일 AI 한 줄 인사이트. <strong style="color:var(--text)">법적으로 완전 무제한.</strong></p>
+      <div class="tags"><span class="tag">가상 자금</span><span class="tag">소수점 투자</span><span class="tag">AI 인사이트</span><span class="tag">법적 문제 없음</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 01. VS 이벤트 ── -->
+<div class="sep" id="vs">01 — VS 이벤트 상세 기획</div>
+<section>
+  <div class="sec-label">Feature 1 — VS Battle</div>
+  <div class="sec-title">하루 1번 예측,<br>내일 결과 확인</div>
+  <div class="sec-desc">같은 카테고리끼리만 붙여. 매일 새 대결이 올라오고, 어제 결과가 공개돼. 맞추면 포인트, 연속이면 보너스. 이게 매일 오게 만드는 구조야.</div>
+
+  <div class="vs-wrap">
+    <div style="font-family:'Instrument Sans',sans-serif;font-size:9px;letter-spacing:.1em;color:var(--text3);margin-bottom:3px;font-weight:600;text-transform:uppercase">오늘의 배틀 — 숙박업 대결</div>
+    <div style="font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:3px">오늘 장 마감까지 어느 쪽이 오를까?</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px;font-family:'Instrument Sans',sans-serif">내일 오전 결과 공개 · 정답 시 100 포인트</div>
+    <div class="vs-pair">
+      <div class="vs-box" id="boxA" onclick="castVote('a')">
+        <span class="vs-tick">ABNB</span>
+        <span class="vs-cname">에어비앤비</span>
+        <span class="vs-price" style="color:var(--gold)">$156.40 ▲ 1.2%</span>
+        <span class="vs-pickbtn" id="btnA">선택하기</span>
+      </div>
+      <div class="vs-mid">VS</div>
+      <div class="vs-box" id="boxB" onclick="castVote('b')">
+        <span class="vs-tick">HLT</span>
+        <span class="vs-cname">힐튼 호텔</span>
+        <span class="vs-price" style="color:var(--red)">$218.30 ▼ 0.4%</span>
+        <span class="vs-pickbtn" id="btnB">선택하기</span>
+      </div>
+    </div>
+    <div style="max-width:340px;margin:0 auto">
+      <div class="vbar-track"><div class="vbar-fill" id="vFill" style="width:58%"></div></div>
+      <div class="vlabels"><span id="vLA">ABNB 58%</span><span id="vLB">HLT 42%</span></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:6px;font-family:'Instrument Sans',sans-serif" id="vCnt">총 2,841명 참여 중</div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-top:12px">
+    <div class="card">
+      <div class="card-title"><span class="dot dot-gold"></span>카테고리별 매치업 예시</div>
+      <div class="frow"><div><strong>🏨 숙박</strong>에어비앤비 vs 힐튼 / 메리어트 vs 하얏트</div></div>
+      <div class="frow"><div><strong>⚡ 전기차</strong>테슬라 vs 리비안 / BYD vs 니오</div></div>
+      <div class="frow"><div><strong>☕ 소비재</strong>스타벅스 vs 맥도날드 / 나이키 vs 아디다스</div></div>
+      <div class="frow"><div><strong>🔋 2차전지</strong>LG에너지 vs 삼성SDI / POSCO vs 에코프로</div></div>
+      <div class="frow"><div><strong>🤖 AI·반도체</strong>엔비디아 vs AMD / 삼성전자 vs SK하이닉스</div></div>
+      <div class="frow"><div><strong>💊 바이오</strong>삼성바이오 vs 셀트리온 / 유한양행 vs 한미약품</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot dot-amber"></span>운영 구조</div>
+      <div class="frow"><div><strong>매일 오전 9시</strong>새 배틀 오픈. 어제 배틀 결과 동시 공개.</div></div>
+      <div class="frow"><div><strong>마감</strong>당일 오후 3시 30분 (장 마감 기준).</div></div>
+      <div class="frow"><div><strong>결과 판정</strong>종가 기준 오른 쪽이 승자. 동점이면 무효 처리.</div></div>
+      <div class="frow"><div><strong>기본 포인트</strong>정답 시 100P 즉시 지급.</div></div>
+      <div class="frow"><div><strong>공유 유도</strong>결과 카드 이미지 → 카톡·인스타 공유 버튼.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 02. 출석·포인트 시스템 ── -->
+<div class="sep" id="attendance">02 — 출석 체크 & 포인트 시스템</div>
+<section>
+  <div class="sec-label">Attendance & Points</div>
+  <div class="sec-title">연속으로 올수록<br>보상이 커진다</div>
+  <div class="sec-desc">VS 이벤트가 매일 오는 이유가 되려면 포인트만으로는 부족해. 연속 출석 보너스와 시각적인 캘린더가 있어야 "오늘도 깨면 안 되는데" 심리가 생겨.</div>
+
+  <!-- 포인트 구조 -->
+  <div style="margin-bottom:14px">
+    <div class="card-title" style="margin-bottom:10px;font-size:12px"><span class="dot dot-gold"></span>포인트 적립 구조</div>
+    <div class="point-table">
+      <div class="pt-row">
+        <div class="pt-icon" style="background:rgba(250,202,62,.12)">🎯</div>
+        <div class="pt-action"><div class="pt-name">VS 배틀 정답</div><div class="pt-desc">당일 예측이 맞았을 때 익일 오전 지급</div></div>
+        <div class="pt-pts">+100P</div>
+      </div>
+      <div class="pt-row">
+        <div class="pt-icon" style="background:rgba(126,212,160,.1)">📅</div>
+        <div class="pt-action"><div class="pt-name">7일 연속 참여 보너스</div><div class="pt-desc">정답 여부와 관계없이 참여만 해도 적립</div></div>
+        <div class="pt-pts">+200P</div>
+      </div>
+      <div class="pt-row">
+        <div class="pt-icon" style="background:rgba(126,184,247,.1)">🔥</div>
+        <div class="pt-action"><div class="pt-name">14일 연속 참여 보너스</div><div class="pt-desc">7일 보너스와 별도로 추가 지급</div></div>
+        <div class="pt-pts">+500P</div>
+      </div>
+      <div class="pt-row">
+        <div class="pt-icon" style="background:rgba(196,176,252,.1)">🏆</div>
+        <div class="pt-action"><div class="pt-name">30일 연속 참여 보너스</div><div class="pt-desc">한 달 개근 달성 시 특별 배지 + 포인트</div></div>
+        <div class="pt-pts">+1500P</div>
+      </div>
+      <div class="pt-row">
+        <div class="pt-icon" style="background:rgba(250,202,62,.08)">🧬</div>
+        <div class="pt-action"><div class="pt-name">투자 DNA 퀴즈 완료</div><div class="pt-desc">최초 1회 지급</div></div>
+        <div class="pt-pts">+300P</div>
+      </div>
+      <div class="pt-row">
+        <div class="pt-icon" style="background:rgba(126,212,160,.08)">🎮</div>
+        <div class="pt-action"><div class="pt-name">PICO Play 첫 투자</div><div class="pt-desc">모의투자 첫 종목 매수 시</div></div>
+        <div class="pt-pts">+200P</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 캘린더 데모 -->
+  <div class="cal-demo">
+    <div class="cal-top">
+      <div class="cal-title">4월 출석 캘린더</div>
+      <div class="cal-streak">🔥 12일 연속 중</div>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-day-label">MON</div><div class="cal-day-label">TUE</div><div class="cal-day-label">WED</div>
+      <div class="cal-day-label">THU</div><div class="cal-day-label">FRI</div><div class="cal-day-label">SAT</div><div class="cal-day-label">SUN</div>
+      <div class="cal-day future">-</div><div class="cal-day hit">1</div><div class="cal-day hit">2</div>
+      <div class="cal-day hit">3</div><div class="cal-day hit">4</div><div class="cal-day miss">5</div><div class="cal-day future">-</div>
+      <div class="cal-day hit">7</div><div class="cal-day hit">8</div><div class="cal-day hit">9</div>
+      <div class="cal-day hit">10</div><div class="cal-day hit">11</div><div class="cal-day hit">12</div><div class="cal-day hit">13</div>
+      <div class="cal-day hit">14</div><div class="cal-day hit">15</div><div class="cal-day hit">16</div>
+      <div class="cal-day hit">17</div><div class="cal-day hit">18</div><div class="cal-day hit">19</div><div class="cal-day hit">20</div>
+      <div class="cal-day hit">21</div><div class="cal-day hit">22</div><div class="cal-day hit">23</div>
+      <div class="cal-day hit">24</div><div class="cal-day hit">25</div><div class="cal-day hit">26</div><div class="cal-day hit">27</div>
+      <div class="cal-day hit">28</div><div class="cal-day hit">29</div><div class="cal-day today">30</div>
+      <div class="cal-day future">-</div><div class="cal-day future">-</div><div class="cal-day future">-</div><div class="cal-day future">-</div>
+    </div>
+    <div class="cal-bonus">
+      <div class="bonus-chip"><div class="bonus-days" style="color:var(--green)">✓</div><div class="bonus-label">7일 달성</div><div class="bonus-reward">+200P 지급 완료</div></div>
+      <div class="bonus-chip"><div class="bonus-days" style="color:var(--green)">✓</div><div class="bonus-label">14일 달성</div><div class="bonus-reward">+500P 지급 완료</div></div>
+      <div class="bonus-chip"><div class="bonus-days" style="color:var(--gold)">30</div><div class="bonus-label">30일 목표</div><div class="bonus-reward">+1500P · 18일 남음</div></div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-top:12px">
+    <div class="card">
+      <div class="card-title"><span class="dot dot-blue"></span>추가 아이디어 — 더 좋은 참여 유도</div>
+      <div class="frow"><div><strong>🎰 포인트 복불복</strong>연속 7일 보너스 수령 시 "오늘의 운세 뽑기" — 50P~500P 랜덤 추가. 뽑기 결과 공유 유도.</div></div>
+      <div class="frow"><div><strong>👥 친구 연속 배틀</strong>친구와 같은 종목 선택 시 "같은 편!" 표시. 둘 다 맞으면 보너스 10% 추가.</div></div>
+      <div class="frow"><div><strong>📊 이번 주 내 정답률</strong>마이 페이지에 "이번 주 정답률 68% · 상위 24%"처럼 표시. 경쟁심 자극.</div></div>
+      <div class="frow"><div><strong>🏅 카테고리 전문가 배지</strong>특정 카테고리(전기차·반도체 등) 10연속 정답 시 "전기차 전문가" 배지 지급.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot dot-gold"></span>포인트 활용 방향 (Phase 2+)</div>
+      <div class="frow"><div><strong>PICO Play 추가 시드머니</strong>1000P = 가상 투자금 1만원 추가. 포인트를 투자로 연결.</div></div>
+      <div class="frow"><div><strong>프리미엄 기능 잠금 해제</strong>AI 심층 분석 리포트를 포인트로 열람.</div></div>
+      <div class="frow"><div><strong>리더보드 노출</strong>월간 포인트 순위 공개. 상위 10명 프로필 메인에 노출.</div></div>
+      <div class="frow"><div><strong>포인트 → 기프티콘 (Phase 4)</strong>충분한 유저 확보 후 실물 교환 기능 검토. 법적 검토 필요.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 03. 투자 DNA 찾기 ── -->
+<div class="sep" id="quiz-plan">03 — 투자 DNA 찾기 상세 기획</div>
+<section>
+  <div class="sec-label">Feature 2 — Investor DNA Quiz</div>
+  <div class="sec-title">투자 DNA 찾기</div>
+  <div class="sec-desc">12문항 A/B 선택 → 8가지 동물 유형. 쉽게 시작하지만 마지막엔 진짜 고민하게 되는 질문들로 구성했어. 결과 공유 → "너는 뭐야?" → 재유입 루프.</div>
+
+  <!-- 라이브 퀴즈 데모 먼저 -->
+  <div class="quiz-shell" style="margin-bottom:24px">
+    <div class="quiz-top">
+      <div class="q-eyebrow">PICO — 투자 DNA 찾기</div>
+      <div class="q-title">나는 어떤 투자자일까?</div>
+      <div class="q-sub">A 또는 B 선택 · 12문항 (데모 5문항) · 약 2분</div>
+      <div class="q-prog-bar"><div class="q-prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="q-step active" id="q1">
+      <div class="q-num">01 / 12 — 리스크 성향</div>
+      <div class="q-text">지금 갖고 있는 투자금의 30%가 한 달 만에 사라질 수도 있어. 그래도 기대 수익이 200%라면?</div>
+      <div class="q-options">
+        <div class="q-opt" onclick="pick(1,'A',this)"><div class="q-opt-letter">A</div><div class="q-opt-body"><div class="q-opt-text">못 한다. 30% 날리는 순간을 상상하면 잠이 안 와</div><div class="q-opt-sub">손실이 수익보다 두 배 크게 느껴져</div></div></div>
+        <div class="q-opt" onclick="pick(1,'B',this)"><div class="q-opt-letter">B</div><div class="q-opt-body"><div class="q-opt-text">한다. 200%면 충분히 감수할 만한 리스크야</div><div class="q-opt-sub">기회비용이 더 두렵다</div></div></div>
+      </div>
+    </div>
+
+    <div class="q-step" id="q2">
+      <div class="q-num">02 / 12 — 손실 대응</div>
+      <div class="q-text">3개월 전에 산 주식이 -25%야. 기업 펀더멘탈은 변한 게 없어. 넌 어떻게 해?</div>
+      <div class="q-options">
+        <div class="q-opt" onclick="pick(2,'A',this)"><div class="q-opt-letter">A</div><div class="q-opt-body"><div class="q-opt-text">손절하고 다른 기회를 찾는다</div><div class="q-opt-sub">시간이 곧 돈이야. 기회비용을 생각해야지</div></div></div>
+        <div class="q-opt" onclick="pick(2,'B',this)"><div class="q-opt-letter">B</div><div class="q-opt-body"><div class="q-opt-text">오히려 더 담는다. 같은 값에 더 많이 사는 거잖아</div><div class="q-opt-sub">펀더멘탈이 괜찮으면 가격은 결국 돌아와</div></div></div>
+      </div>
+    </div>
+
+    <div class="q-step" id="q3">
+      <div class="q-num">03 / 12 — 투자 스타일</div>
+      <div class="q-text">주변 친구가 "이 종목 진짜 오를 것 같아, 나는 이미 샀어"라고 하면?</div>
+      <div class="q-options">
+        <div class="q-opt" onclick="pick(3,'A',this)"><div class="q-opt-letter">A</div><div class="q-opt-body"><div class="q-opt-text">일단 내가 직접 찾아보고 판단한다</div><div class="q-opt-sub">남의 말만 믿고 투자하는 건 도박이지</div></div></div>
+        <div class="q-opt" onclick="pick(3,'B',this)"><div class="q-opt-letter">B</div><div class="q-opt-body"><div class="q-opt-text">조금은 믿고 소액이라도 따라간다</div><div class="q-opt-sub">이미 들어간 사람이 있다는 건 뭔가 있는 거야</div></div></div>
+      </div>
+    </div>
+
+    <div class="q-step" id="q4">
+      <div class="q-num">04 / 12 — 가치관</div>
+      <div class="q-text">두 가지 시나리오 중 하나를 골라야 해. 어느 쪽을 선택해?</div>
+      <div class="q-options">
+        <div class="q-opt" onclick="pick(4,'A',this)"><div class="q-opt-letter">A</div><div class="q-opt-body"><div class="q-opt-text">확실하게 +20% 수익</div><div class="q-opt-sub">안전하게 확보하는 게 낫지</div></div></div>
+        <div class="q-opt" onclick="pick(4,'B',this)"><div class="q-opt-letter">B</div><div class="q-opt-body"><div class="q-opt-text">50% 확률로 +60%, 50% 확률로 -10%</div><div class="q-opt-sub">기댓값이 더 높잖아</div></div></div>
+      </div>
+    </div>
+
+    <div class="q-step" id="q5">
+      <div class="q-num">05 / 12 — 마인드셋</div>
+      <div class="q-text">주식 시장이 급락해서 전 세계 뉴스가 난리야. 솔직히 지금 기분이 어때?</div>
+      <div class="q-options">
+        <div class="q-opt" onclick="pick(5,'A',this)"><div class="q-opt-letter">A</div><div class="q-opt-body"><div class="q-opt-text">불안하고 걱정돼. 지금 팔아야 하나 고민 중</div><div class="q-opt-sub">나쁜 뉴스가 계속 나오면 더 내려갈 것 같아</div></div></div>
+        <div class="q-opt" onclick="pick(5,'B',this)"><div class="q-opt-letter">B</div><div class="q-opt-body"><div class="q-opt-text">드디어 살 타이밍이 왔다 싶어</div><div class="q-opt-sub">공포에 사고 환희에 파는 게 맞지</div></div></div>
+      </div>
+    </div>
+
+    <div class="q-result" id="qResult">
+      <div class="result-icon" id="resIcon">🐯</div>
+      <div class="result-type" id="resType">호랑이</div>
+      <div class="result-tagline" id="resTagline">공격형 성장 투자자</div>
+      <div class="result-desc" id="resDesc">변동성을 두려워하지 않고 수익 극대화에 집중하는 타입.</div>
+      <div class="result-recs" id="resRecs"></div>
+      <div class="q-cta-row">
+        <button class="btn-gold" onclick="shareResult()">결과 공유하기 →</button>
+        <button class="btn-outline" onclick="resetQuiz()">다시 하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 전체 12문항 목록 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title"><span class="dot dot-blue"></span>전체 12문항 구성표</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>파트</th><th>질문 요약</th><th>A 성향</th><th>B 성향</th></tr></thead>
+        <tbody>
+          <tr><td>Q1</td><td>리스크</td><td>30% 손실 가능성 감수할 수 있어?</td><td>안정형</td><td>공격형</td></tr>
+          <tr><td>Q2</td><td>손실 대응</td><td>-25% 됐을 때 손절 vs 추가 매수</td><td>손절형</td><td>역발상형</td></tr>
+          <tr><td>Q3</td><td>정보 수집</td><td>친구 추천 종목 — 직접 분석 vs 소액 따라가기</td><td>분석형</td><td>소셜형</td></tr>
+          <tr><td>Q4</td><td>의사결정</td><td>확실한 +20% vs 50%로 +60% or -10%</td><td>확실성 선호</td><td>기댓값형</td></tr>
+          <tr><td>Q5</td><td>마인드셋</td><td>시장 급락 시 불안 vs 기회로 인식</td><td>안정 추구</td><td>역발상형</td></tr>
+          <tr><td>Q6</td><td>집중 vs 분산</td><td>확신 종목 1개 집중 vs 10개 분산</td><td>집중형</td><td>분산형</td></tr>
+          <tr><td>Q7</td><td>투자 기간</td><td>1년 안 수익 실현 vs 5년 이상 장기</td><td>단기형</td><td>장기형</td></tr>
+          <tr><td>Q8</td><td>분석 방법</td><td>차트·기술적 분석 vs 재무제표·뉴스</td><td>기술적 분석</td><td>펀더멘탈</td></tr>
+          <tr><td>Q9</td><td>종목 선택</td><td>이미 오른 주도주 vs 아직 안 오른 저평가주</td><td>모멘텀형</td><td>가치투자형</td></tr>
+          <tr><td>Q10</td><td>수익 실현</td><td>목표가 도달 즉시 매도 vs 더 오를 것 같으면 홀드</td><td>계획형</td><td>탐욕형</td></tr>
+          <tr><td>Q11</td><td>외부 요인</td><td>환율·금리·뉴스 매일 체크 vs 분기에 한 번 리뷰</td><td>정보 민감형</td><td>장기 무관형</td></tr>
+          <tr><td>Q12</td><td>투자 목적</td><td>노후 대비 안정적 자산 축적 vs 최대한 빠른 자산 증식</td><td>안정형</td><td>성장 추구형</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 8가지 유형 -->
+  <div class="sec-label" style="margin-bottom:12px">8가지 투자자 유형</div>
+  <div class="pg">
+    <div class="pc">
+      <span class="pc-emoji">🐯</span>
+      <div class="pc-name">호랑이</div>
+      <div class="pc-tagline">공격적 성장 투자자</div>
+      <div class="pc-desc">변동성을 두려워하지 않아. 고위험 고수익 종목에 집중하고, 손실도 과감하게 감수해. 빠른 결단력이 강점.</div>
+      <div class="pc-stocks">테슬라 · 엔비디아 · 리비안 · 성장주</div>
+    </div>
+    <div class="pc">
+      <span class="pc-emoji">🦅</span>
+      <div class="pc-name">독수리</div>
+      <div class="pc-tagline">타이밍 포착형 투자자</div>
+      <div class="pc-desc">멀리서 지켜보다 결정적 순간에 빠르게 진입·이탈. 정보 수집과 타이밍이 생명. 기다림의 미학을 알아.</div>
+      <div class="pc-stocks">섹터 ETF · 모멘텀 성장주 · 테마주</div>
+    </div>
+    <div class="pc">
+      <span class="pc-emoji">🐺</span>
+      <div class="pc-name">늑대</div>
+      <div class="pc-tagline">집중 역발상 투자자</div>
+      <div class="pc-desc">남들이 공포에 떨 때 과감하게 담아. 하락장을 기회로 보는 역발상 마인드. 확신이 생기면 집중 투자.</div>
+      <div class="pc-stocks">저PER주 · 가치주 · 낙폭과대주</div>
+    </div>
+    <div class="pc">
+      <span class="pc-emoji">🦊</span>
+      <div class="pc-name">여우</div>
+      <div class="pc-tagline">정보 수집형 투자자</div>
+      <div class="pc-desc">뉴스·커뮤니티·유튜브를 누구보다 빠르게 읽어. 트렌드를 빠르게 포착하고 소셜 신호에 민감하게 반응해.</div>
+      <div class="pc-stocks">테마주 · AI · 바이오 · 핫이슈 종목</div>
+    </div>
+    <div class="pc">
+      <span class="pc-emoji">🐘</span>
+      <div class="pc-name">코끼리</div>
+      <div class="pc-tagline">장기 우직 투자자</div>
+      <div class="pc-desc">느리지만 흔들리지 않아. 한번 들어가면 오래 가져가. 단기 변동에 휘둘리지 않고 펀더멘탈만 봐.</div>
+      <div class="pc-stocks">삼성전자 · 대형 우량주 · 배당주</div>
+    </div>
+    <div class="pc">
+      <span class="pc-emoji">🦔</span>
+      <div class="pc-name">고슴도치</div>
+      <div class="pc-tagline">분산 방어형 투자자</div>
+      <div class="pc-desc">절대 한 곳에 몰지 않아. 리스크 관리가 최우선. 조금씩 여러 곳에 나눠 담아 시장 변동을 부드럽게 흡수.</div>
+      <div class="pc-stocks">S&amp;P500 ETF · 채권 혼합 · 리츠 · 금 ETF</div>
+    </div>
+    <div class="pc">
+      <span class="pc-emoji">🐢</span>
+      <div class="pc-name">거북이</div>
+      <div class="pc-tagline">안정 배당 투자자</div>
+      <div class="pc-desc">느리지만 확실하게. 배당금이 나오는 걸 좋아하고, 원금 손실이 가장 두려워. 복리의 힘을 믿어.</div>
+      <div class="pc-stocks">KT&amp;G · 배당 ETF · 리츠 · 국채</div>
+    </div>
+    <div class="pc">
+      <span class="pc-emoji">🦋</span>
+      <div class="pc-name">나비</div>
+      <div class="pc-tagline">미래 가치 투자자</div>
+      <div class="pc-desc">단순한 수익보다 의미 있는 곳에 투자해. 환경·AI·미래 산업 등 장기적으로 세상을 바꿀 테마를 좋아해.</div>
+      <div class="pc-stocks">친환경 ETF · 태양광 · 전기차 · AI 인프라</div>
+    </div>
+  </div>
+
+  <!-- 결과 → CTA 플로우 -->
+  <div class="card" style="margin-top:14px">
+    <div class="card-title"><span class="dot dot-gold"></span>결과 → 공유 → 재유입 플로우</div>
+    <div class="flow-wrap">
+      <div class="flow-step"><div class="flow-line"><div class="flow-circle p1">1</div><div class="flow-conn"></div></div><div class="flow-content"><h5>12문항 응답 완료</h5><p>3개 파트 점수 집계 → 8개 유형 중 가장 가까운 유형 매핑</p></div></div>
+      <div class="flow-step"><div class="flow-line"><div class="flow-circle p2">2</div><div class="flow-conn"></div></div><div class="flow-content"><h5>"나는 호랑이🐯" 결과 카드 표시</h5><p>유형명 + 한 줄 설명 + 잘 맞는 종목 + 공유 버튼 + 300P 지급</p></div></div>
+      <div class="flow-step"><div class="flow-line"><div class="flow-circle p3">3</div><div class="flow-conn"></div></div><div class="flow-content"><h5>카카오톡·인스타 공유</h5><p>"나는 호랑이래 ㅋㅋ 너는 뭐야?" → 링크 클릭 → 친구도 퀴즈 → 신규 유저 유입</p></div></div>
+      <div class="flow-step"><div class="flow-line"><div class="flow-circle p4">4</div></div><div class="flow-content"><h5>회원가입 CTA</h5><p>"내 유형 저장 + VS 배틀 매일 알림 받기 + 오늘 배틀 참여" → 가입 전환</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 04. PICO Play ── -->
+<div class="sep" id="picoplay">04 — PICO Play 상세 기획</div>
+<section>
+  <div class="sec-label">Feature 3 — PICO Play (모의투자)</div>
+  <div class="sec-title">가상 10만원으로<br>진짜처럼 투자해봐</div>
+
+  <div class="risk ok" style="margin-bottom:16px">
+    <span>✓</span>
+    <div><strong>법적으로 완전 문제 없어</strong>가상 포인트로 실제 주가를 추종하는 모의투자는 자본시장법 적용 대상이 아니야. 실제 금전 거래·매매가 없으니까. 증권사들이 모의투자 대회를 수십 년째 운영하는 이유야. "이 서비스는 모의투자입니다" 한 줄만 넣으면 충분.</div>
+  </div>
+
+  <div class="pp-demo">
+    <div class="pp-top">
+      <div class="pp-bal-label">PICO Play — 내 가상 포트폴리오</div>
+      <div class="pp-bal">₩102,840</div>
+      <div class="pp-bal-sub">▲ +2,840원 (+2.84%) 시작 대비</div>
+    </div>
+    <div class="pp-rows">
+      <div class="pp-row">
+        <div class="pp-logo" style="background:rgba(250,202,62,.12);color:var(--gold)">T</div>
+        <div style="flex:1"><div class="pp-name">테슬라</div><div class="pp-sub">TSLA · 0.14주 (₩40,000 투자)</div></div>
+        <div class="pp-right"><div class="pp-val">₩43,120</div><div class="pp-chg c-pos">▲ +7.8%</div></div>
+      </div>
+      <div class="pp-row">
+        <div class="pp-logo" style="background:rgba(126,184,247,.12);color:var(--blue)">S</div>
+        <div style="flex:1"><div class="pp-name">삼성전자</div><div class="pp-sub">005930 · 0.8주 (₩40,000 투자)</div></div>
+        <div class="pp-right"><div class="pp-val">₩38,240</div><div class="pp-chg c-neg">▼ -4.4%</div></div>
+      </div>
+      <div class="pp-row">
+        <div class="pp-logo" style="background:rgba(126,212,160,.12);color:var(--green)">금</div>
+        <div style="flex:1"><div class="pp-name">금 ETF</div><div class="pp-sub">GLD · 0.1주 (₩20,000 투자)</div></div>
+        <div class="pp-right"><div class="pp-val">₩21,480</div><div class="pp-chg c-pos">▲ +7.4%</div></div>
+      </div>
+    </div>
+    <div class="pp-insight">
+      <div class="pp-il">오늘의 AI 인사이트</div>
+      <div class="pp-it">테슬라가 오늘 +3.2% 상승했어요 🔥 에너지 사업 실적이 예상을 크게 웃돌았거든요. 삼성전자는 메모리 수요 우려로 약세. 아쉽지만 장기 보유 관점에서는 아직 괜찮아요 🤔</div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-top:12px">
+    <div class="card">
+      <div class="card-title"><span class="dot dot-green"></span>핵심 기능</div>
+      <div class="frow"><div><strong>시작 자금</strong>가상 포인트 10만원. 회원가입 즉시 지급.</div></div>
+      <div class="frow"><div><strong>소수점 투자</strong>테슬라 1주=60만원이어도 1만원어치 매수 가능. 비율 계산.</div></div>
+      <div class="frow"><div><strong>실제 주가 추종</strong>15분 지연 주가 기반. 실제 % 변동 그대로 반영.</div></div>
+      <div class="frow"><div><strong>AI 일일 인사이트</strong>보유 종목 기반 매일 1~2줄 코멘트. 쉽고 친근한 톤.</div></div>
+      <div class="frow"><div><strong>주간 성과 리포트</strong>수익률 + 잘한 점 + 개선 포인트 심플하게.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot dot-gold"></span>AI 인사이트 톤 예시</div>
+      <div class="frow"><div><strong>상승 시 🔥</strong>"테슬라가 오늘도 달렸어요! FSD 소식에 투자자들이 몰렸거든요."</div></div>
+      <div class="frow"><div><strong>하락 시 😅</strong>"아쉽지만 삼성전자 오늘 -1.8%. 반도체 업황 우려 때문이에요. 장기 보유라면 괜찮아요."</div></div>
+      <div class="frow"><div><strong>보합 시 🌊</strong>"오늘은 잔잔한 날. 시장 전체가 눈치 보는 분위기예요. 내일을 기대해봐요."</div></div>
+      <div class="frow"><div><strong>주간 요약 🎉</strong>"이번 주 +3.2% 달성! 테슬라 덕분이에요. 삼성전자가 약간 발목 잡았지만 다음 주 실적 발표 주목해요."</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 05. 타임라인 ── -->
+<div class="sep" id="timeline">05 — 개발 타임라인</div>
+<section>
+  <div class="sec-label">Timeline</div>
+  <div class="sec-title">언제 뭘 만드나</div>
+  <div class="sec-desc">완벽하게 다 만들고 배포하지 말고, 기능 하나씩 배포하면서 반응 봐. Week 3~4 첫 배포가 목표야.</div>
+  <div class="g2">
+    <div class="card" style="border-color:rgba(250,202,62,.16)">
+      <div class="card-title" style="color:var(--gold)">Phase 1 — MVP (6~8주)</div>
+      <div class="tl">
+        <div class="tl-item"><div class="tl-dot gold"></div><div class="tl-week">Week 1~2</div><div class="tl-title">환경 세팅</div><div class="tl-desc">Next.js 초기 세팅, Vercel 연결, 공통 컴포넌트, 디자인 시스템</div></div>
+        <div class="tl-item"><div class="tl-dot gold"></div><div class="tl-week">Week 3~4</div><div class="tl-title">VS 이벤트 첫 배포 🚀</div><div class="tl-desc">투표 UI, 결과 바, 공유 버튼. 이것만으로 첫 배포 + 반응 확인</div></div>
+        <div class="tl-item"><div class="tl-dot gold"></div><div class="tl-week">Week 5~6</div><div class="tl-title">투자 DNA 퀴즈</div><div class="tl-desc">12문항 플로우, 8가지 결과 카드, 카카오 공유 연동, 출석 캘린더</div></div>
+        <div class="tl-item"><div class="tl-dot gold"></div><div class="tl-week">Week 7~8</div><div class="tl-title">PICO Play MVP + 회원가입</div><div class="tl-desc">가상 자금, 종목 매수·매도, 수익률 확인, AI 코멘트, 포인트 시스템</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(126,184,247,.16)">
+      <div class="card-title" style="color:var(--blue)">Phase 2~4 (3개월~)</div>
+      <div class="tl">
+        <div class="tl-item"><div class="tl-dot blue"></div><div class="tl-week">Month 3</div><div class="tl-title">포인트 고도화 + 랭킹</div><div class="tl-desc">포인트 복불복, 친구 배틀, 주간 정답률, 카테고리 배지</div></div>
+        <div class="tl-item"><div class="tl-dot blue"></div><div class="tl-week">Month 4~5</div><div class="tl-title">AI 분석 + 뉴스</div><div class="tl-desc">"요즘 테슬라 어때?" 자연어 질문, 뉴스 감성 분석, 알림</div></div>
+        <div class="tl-item"><div class="tl-dot amber"></div><div class="tl-week">Month 7~9</div><div class="tl-title">React Native 앱 출시</div><div class="tl-desc">iOS/Android 동시, 홈 위젯, 생체 인증, 푸시 알림</div></div>
+        <div class="tl-item"><div class="tl-dot purple"></div><div class="tl-week">Month 10~</div><div class="tl-title">수익화</div><div class="tl-desc">프리미엄 구독, 증권사 제휴 링크(CPA), API 판매</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 06. 기술 선택 ── -->
+<div class="sep" id="tech">06 — 기술 스택 선택</div>
+<section>
+  <div class="sec-label">Tech Stack</div>
+  <div class="sec-title">무슨 언어로 시작할까</div>
+  <div class="sec-desc">결론: Next.js로 시작해. HTML 단독은 이 서비스 규모에서 6개월 안에 반드시 벽에 부딪혀.</div>
+  <div class="g3">
+    <div style="background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;position:relative">
+      <div style="font-family:var(--serif);font-size:18px;margin-bottom:3px;color:var(--amber)">순수 HTML/JS</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px;font-family:'Instrument Sans',sans-serif">Vanilla · GitHub Pages</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px">
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ 시작 장벽 없음</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--red);background:var(--red-dim);border:.5px solid rgba(240,120,120,.14)">- 상태 관리 불가</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ 무료 배포</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--red);background:var(--red-dim);border:.5px solid rgba(240,120,120,.14)">- 규모 커지면 재작성</div>
+      </div>
+      <div style="margin-top:10px;padding:8px 10px;background:var(--red-dim);border:.5px solid rgba(240,120,120,.18);border-radius:7px;font-size:11px;color:var(--red)">✗ 비추천 — Phase 1 완성 전 한계 도달</div>
+    </div>
+    <div style="background:var(--bg2);border:.5px solid rgba(250,202,62,.3);border-radius:var(--r-lg);padding:18px 20px;position:relative">
+      <div style="position:absolute;top:-9px;right:14px;font-family:'Instrument Sans',sans-serif;font-size:8px;font-weight:700;letter-spacing:.08em;color:#0d0d0d;background:var(--gold);padding:2px 9px;border-radius:3px;text-transform:uppercase">추천</div>
+      <div style="font-family:var(--serif);font-size:18px;margin-bottom:3px;color:var(--gold)">Next.js (React)</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px;font-family:'Instrument Sans',sans-serif">Vercel · TypeScript</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px">
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ 컴포넌트 재사용</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--red);background:var(--red-dim);border:.5px solid rgba(240,120,120,.14)">- 초기 세팅 2~3h</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ Vercel 자동 배포</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ 앱 전환 수월</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ SEO 완벽 지원</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ 초보도 가능</div>
+      </div>
+      <div style="margin-top:10px;padding:8px 10px;background:var(--gold-dim);border:.5px solid rgba(250,202,62,.22);border-radius:7px;font-size:11px;color:var(--gold)">✓ 최우선 추천 — 나랑 같이하면 초보도 OK</div>
+    </div>
+    <div style="background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r-lg);padding:18px 20px">
+      <div style="font-family:var(--serif);font-size:18px;margin-bottom:3px;color:var(--blue)">Flutter</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px;font-family:'Instrument Sans',sans-serif">Dart · iOS/Android</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px">
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ 앱 품질 최고</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--red);background:var(--red-dim);border:.5px solid rgba(240,120,120,.14)">- 웹 SEO 취약</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--gold);background:var(--gold-dim);border:.5px solid rgba(250,202,62,.14)">+ iOS/Android 동시</div>
+        <div style="border-radius:7px;padding:7px 9px;font-size:11px;line-height:1.5;color:var(--red);background:var(--red-dim);border:.5px solid rgba(240,120,120,.14)">- Dart 새로 배워야</div>
+      </div>
+      <div style="margin-top:10px;padding:8px 10px;background:var(--blue-dim);border:.5px solid rgba(126,184,247,.18);border-radius:7px;font-size:11px;color:var(--blue)">→ Phase 3 이후, 웹 검증 후 고려</div>
+    </div>
+  </div>
+  <div class="verdict">
+    <div class="verdict-label">최종 결론</div>
+    <p><strong>Next.js + TypeScript + Vercel + FastAPI</strong> 조합. HTML로 시작하면 6개월 안에 전부 다시 짜야 해. 나랑 같이하면 코드는 내가 짜고 넌 복붙·배포만 해도 돼. <strong>초보자도 충분히 가능해.</strong></p>
+  </div>
+  <div class="g2" style="margin-top:12px">
+    <div class="card"><div class="card-title" style="font-size:12px;color:var(--gold)">프론트엔드</div><div class="sc-wrap"><span class="sc">Next.js 14</span><span class="sc">TypeScript</span><span class="sc">Tailwind CSS</span><span class="sc">Recharts</span><span class="sc">TradingView</span></div></div>
+    <div class="card"><div class="card-title" style="font-size:12px;color:var(--blue)">백엔드 & AI</div><div class="sc-wrap"><span class="sc">FastAPI</span><span class="sc">PostgreSQL</span><span class="sc">Redis</span><span class="sc">OpenAI API</span><span class="sc">Celery</span></div></div>
+    <div class="card"><div class="card-title" style="font-size:12px;color:var(--amber)">데이터 API</div><div class="sc-wrap"><span class="sc">Alpha Vantage</span><span class="sc">한국투자증권 API</span><span class="sc">Yahoo Finance</span><span class="sc">NewsAPI</span></div></div>
+    <div class="card"><div class="card-title" style="font-size:12px;color:var(--purple)">인프라</div><div class="sc-wrap"><span class="sc">Vercel</span><span class="sc">Railway</span><span class="sc">Supabase</span><span class="sc">GitHub Actions</span></div></div>
+  </div>
+</section>
+
+<!-- ── 07. 리스크 ── -->
+<div class="sep" id="risks">07 — 리스크 & 주의사항</div>
+<section>
+  <div class="sec-label">Risks</div>
+  <div class="sec-title">꼭 알아야 할 것들</div>
+  <div class="risk danger"><span>⚠</span><div><strong>투자 자문 법적 주의</strong>"투자 추천"이 아닌 "정보 제공"으로 포지셔닝 필수. 자본시장법상 라이선스 없이 투자 자문은 불법. 모든 화면에 면책 조항 한 줄 필수.</div></div>
+  <div class="risk ok"><span>✓</span><div><strong>PICO Play — 법적 완전 무제한</strong>가상 자금 모의투자는 자본시장법 적용 대상 아님. "모의투자임을 알립니다" 한 줄이면 충분.</div></div>
+  <div class="risk warn"><span>!</span><div><strong>포인트 → 실물 교환 시 주의</strong>포인트를 현금·기프티콘으로 교환하면 전자금융거래법 적용 가능. Phase 4에서 법적 검토 후 진행.</div></div>
+  <div class="risk warn"><span>!</span><div><strong>데이터 비용</strong>Alpha Vantage 무료 티어 일 500콜 제한. MVP에서는 Redis 캐싱 필수. 유저 늘면 유료 플랜 필요.</div></div>
+  <div class="risk info"><span>→</span><div><strong>수익화</strong>종목 분석 후 "직접 매수하기" → 증권사 제휴 링크(CPA). 키움·미래에셋·토스증권 제휴 문의 가능.</div></div>
+</section>
+
+<!-- ── 08. 체크리스트 ── -->
+<div class="sep" id="checklist">08 — 실행 체크리스트</div>
+<section>
+  <div class="sec-label">Action Items</div>
+  <div class="sec-title">지금 당장 할 것들</div>
+  <div class="sec-desc">탭하면 체크돼. 위에서부터 순서대로 진행해.</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px"><span class="dot dot-gold"></span>이번 주 (환경 세팅)</div>
+      <ul class="checklist">
+        <li onclick="ck(this)"><span class="cbox"></span>pico.kr 도메인 확보</li>
+        <li onclick="ck(this)"><span class="cbox"></span>GitHub 계정 + 레포 생성 (pico-web)</li>
+        <li onclick="ck(this)"><span class="cbox"></span>Vercel 연결 → 자동 배포 설정</li>
+        <li onclick="ck(this)"><span class="cbox"></span>Alpha Vantage 무료 API 키 발급</li>
+        <li onclick="ck(this)"><span class="cbox"></span>OpenAI API 키 셋업</li>
+        <li onclick="ck(this)"><span class="cbox"></span>Supabase 프로젝트 생성</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px"><span class="dot dot-blue"></span>Week 3~4 (VS 이벤트 첫 배포)</div>
+      <ul class="checklist">
+        <li onclick="ck(this)"><span class="cbox"></span>Next.js 초기 세팅</li>
+        <li onclick="ck(this)"><span class="cbox"></span>VS 배틀 투표 UI 개발</li>
+        <li onclick="ck(this)"><span class="cbox"></span>투표 결과 실시간 반영</li>
+        <li onclick="ck(this)"><span class="cbox"></span>카카오 공유 og:image 설정</li>
+        <li onclick="ck(this)"><span class="cbox"></span>모바일 반응형 확인</li>
+        <li onclick="ck(this)"><span class="cbox"></span>첫 배포 → 지인 10명 피드백</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px"><span class="dot dot-amber"></span>Week 5~6 (투자 DNA 퀴즈)</div>
+      <ul class="checklist">
+        <li onclick="ck(this)"><span class="cbox"></span>12문항 플로우 개발</li>
+        <li onclick="ck(this)"><span class="cbox"></span>8가지 유형 결과 카드 디자인</li>
+        <li onclick="ck(this)"><span class="cbox"></span>카카오톡 공유 연동</li>
+        <li onclick="ck(this)"><span class="cbox"></span>출석 캘린더 UI 개발</li>
+        <li onclick="ck(this)"><span class="cbox"></span>포인트 적립 로직 구현</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px"><span class="dot dot-green"></span>Week 7~8 (PICO Play)</div>
+      <ul class="checklist">
+        <li onclick="ck(this)"><span class="cbox"></span>가상 자금 지급 로직</li>
+        <li onclick="ck(this)"><span class="cbox"></span>Alpha Vantage 주가 연동</li>
+        <li onclick="ck(this)"><span class="cbox"></span>소수점 매수 계산</li>
+        <li onclick="ck(this)"><span class="cbox"></span>AI 일일 인사이트 (GPT)</li>
+        <li onclick="ck(this)"><span class="cbox"></span>면책 조항 전 페이지 삽입</li>
+        <li onclick="ck(this)"><span class="cbox"></span>MVP 완성 → 오픈카톡 홍보 🚀</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div style="height:64px"></div>
+</div>
+
+<footer>
+  <div class="wrap">
+    PICO — 마스터 기획서 v3.0 · 내부 기획 문서 · 투자 자문이 아닙니다
+  </div>
+</footer>
+
+<script>
+/* ── QUIZ ── */
+var answers={};
+var scores=[
+  null,
+  {A:0,B:3},{A:0,B:2},{A:1,B:2},{A:0,B:2},{A:0,B:2}
+];
+var types=[
+  {icon:'🐢',name:'거북이',tagline:'안정 배당 투자자',desc:'느리지만 확실하게. 손실이 가장 두렵고 배당과 복리를 믿어. 안정적인 우량주·배당주가 잘 맞아.',recs:['배당 ETF','KT&G','국채','리츠']},
+  {icon:'🦔',name:'고슴도치',tagline:'분산 방어형 투자자',desc:'절대 한 곳에 몰지 않아. 리스크 관리가 최우선. ETF 포트폴리오로 시장 변동을 부드럽게 흡수해.',recs:['S&P500 ETF','채권 혼합','리츠','금 ETF']},
+  {icon:'🦅',name:'독수리',tagline:'타이밍 포착형 투자자',desc:'지켜보다가 결정적 순간에 빠르게 진입. 정보 수집과 타이밍이 생명. 섹터 ETF와 모멘텀 주식이 잘 맞아.',recs:['섹터 ETF','나스닥100','모멘텀주']},
+  {icon:'🐯',name:'호랑이',tagline:'공격적 성장 투자자',desc:'변동성을 두려워하지 않아. 고위험 고수익에 집중. 빠른 결단력과 강한 배짱이 무기야.',recs:['테슬라','엔비디아','리비안','성장주']}
+];
+
+function pick(q,letter,el){
+  document.querySelectorAll('#q'+q+' .q-opt').forEach(function(o){o.classList.remove('chosen')});
+  el.classList.add('chosen');
+  answers[q]=letter;
+  setTimeout(function(){nextQ(q)},360);
+}
+function nextQ(cur){
+  var s=document.getElementById('q'+cur);
+  if(s)s.style.display='none';
+  document.getElementById('progFill').style.width=Math.round((cur/5)*100)+'%';
+  var nxt=document.getElementById('q'+(cur+1));
+  if(nxt){nxt.style.display='block'}
+  else{document.getElementById('progFill').style.width='100%';showResult()}
+}
+function showResult(){
+  var score=0;
+  for(var q in answers){var d=scores[parseInt(q)];if(d)score+=d[answers[q]]||0}
+  var idx=score<=1?0:score<=4?1:score<=7?2:3;
+  var r=types[idx];
+  document.getElementById('resIcon').textContent=r.icon;
+  document.getElementById('resType').textContent=r.name;
+  document.getElementById('resTagline').textContent=r.tagline;
+  document.getElementById('resDesc').textContent=r.desc;
+  var el=document.getElementById('resRecs');el.innerHTML='';
+  r.recs.forEach(function(t){var s=document.createElement('span');s.className='result-rec';s.textContent=t;el.appendChild(s)});
+  document.getElementById('qResult').classList.add('show');
+}
+function resetQuiz(){
+  answers={};
+  document.getElementById('qResult').classList.remove('show');
+  document.getElementById('progFill').style.width='0%';
+  for(var i=1;i<=5;i++){
+    var s=document.getElementById('q'+i);
+    if(s){s.style.display=i===1?'block':'none';s.querySelectorAll('.q-opt').forEach(function(o){o.classList.remove('chosen')})}
+  }
+}
+function shareResult(){
+  var name=document.getElementById('resType').textContent;
+  var icon=document.getElementById('resIcon').textContent;
+  var txt='나의 투자 DNA는 '+icon+' '+name+'! 너는 어때?\npico.kr에서 2분 만에 알아봐';
+  if(navigator.share){navigator.share({title:'PICO 투자 DNA 결과',text:txt,url:'https://pico.kr'})}
+  else if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){alert('복사됐어! 카톡에 붙여넣기 해봐 🎉')})}
+  else{alert(txt)}
+}
+
+/* ── VS VOTE ── */
+function castVote(side){
+  var bA=document.getElementById('boxA'),bB=document.getElementById('boxB');
+  bA.className='vs-box'+(side==='a'?' sel-a':'');
+  bB.className='vs-box'+(side==='b'?' sel-b':'');
+  var pA=side==='a'?59:57;
+  document.getElementById('vFill').style.width=pA+'%';
+  document.getElementById('vLA').textContent='ABNB '+pA+'%';
+  document.getElementById('vLB').textContent='HLT '+(100-pA)+'%';
+  document.getElementById('vCnt').textContent='총 2,842명 참여 중';
+  var btnA=document.getElementById('btnA'),btnB=document.getElementById('btnB');
+  btnA.className='vs-pickbtn'+(side==='a'?' pa':'');
+  btnB.className='vs-pickbtn'+(side==='b'?' pb':'');
+  btnA.textContent=side==='a'?'내 선택 ✓':'선택하기';
+  btnB.textContent=side==='b'?'내 선택 ✓':'선택하기';
+}
+
+/* ── CHECKLIST ── */
+function ck(li){
+  li.classList.toggle('done');
+  li.querySelector('.cbox').textContent=li.classList.contains('done')?'✓':'';
+}
+
+/* ── NAV ── */
+var seps=document.querySelectorAll('.sep'),navAs=document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll',function(){
+  var sy=window.scrollY+70,cur='';
+  seps.forEach(function(s){if(s.offsetTop<=sy)cur=s.id});
+  navAs.forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+cur)});
+},{passive:true});
+
+/* ── QUIZ INIT ── */
+for(var i=2;i<=5;i++){var s=document.getElementById('q'+i);if(s)s.style.display='none'}
+</script>
+</body>
+</html>
