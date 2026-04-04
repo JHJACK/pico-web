@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/app/lib/authContext";
+import { saveQuizResult } from "@/app/lib/supabase";
 
 // ── 8가지 동물 유형 ──
 const TYPES = {
@@ -161,10 +163,12 @@ function calcType(scores: number[]): TypeKey {
 }
 
 export default function QuizPage() {
-  const [step, setStep] = useState<number>(0); // 0 = 시작 전, 1~12 = 문항, 13 = 결과
+  const { user, refreshUserRow } = useAuth();
+  const [step, setStep] = useState<number>(0);
   const [scores, setScores] = useState<number[]>([0, 0, 0, 0, 0, 0, 0, 0]);
   const [animating, setAnimating] = useState(false);
   const [result, setResult] = useState<TypeKey | null>(null);
+  const [quizBonus, setQuizBonus] = useState(0);
 
   const progress = step === 0 ? 0 : step <= 12 ? (step / 12) * 100 : 100;
   const currentQ = step >= 1 && step <= 12 ? QUESTIONS[step - 1] : null;
@@ -182,6 +186,15 @@ export default function QuizPage() {
         setResult(typeKey);
         setStep(13);
         localStorage.setItem("pico_quiz_done", JSON.stringify({ done: true, type: typeKey }));
+        // Supabase 저장 (로그인 상태일 때만)
+        if (user) {
+          saveQuizResult(user.id, typeKey).then(({ pointsAdded }) => {
+            if (pointsAdded > 0) {
+              setQuizBonus(pointsAdded);
+              refreshUserRow();
+            }
+          });
+        }
       } else {
         setStep(step + 1);
       }
@@ -376,6 +389,11 @@ export default function QuizPage() {
         {/* ── 결과 화면 ── */}
         {step === 13 && typeData && (
           <div className="fade-up text-center pt-6">
+            {quizBonus > 0 && (
+              <div className="inline-block mb-4 rounded-xl px-4 py-2" style={{ background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.3)" }}>
+                <span style={{ fontSize: 13, color: "#FACA3E", fontWeight: 500 }}>🎉 첫 퀴즈 완료! +{quizBonus}P 지급</span>
+              </div>
+            )}
             {/* 결과 아이콘 */}
             <div
               className="flex items-center justify-center mx-auto mb-4 rounded-full text-4xl"

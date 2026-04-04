@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
 import { fetchNews, NEWS_FALLBACK, type NewsItem, type NewsCat } from "@/app/lib/news";
 import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory } from "@/app/lib/stockNames";
+import { supabase, getTodayVote, submitVoteAndAttendance } from "@/app/lib/supabase";
+import { useAuth } from "@/app/lib/authContext";
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
@@ -184,6 +186,7 @@ function StockCard({ ticker, korName, stocks, stocksLoading }: {
 // ═══════════════════════════════════════════════
 export default function Home() {
   const router = useRouter();
+  const { user, userRow, refreshUserRow, signOut } = useAuth();
 
   const [quizDone,   setQuizDone]   = useState(false);
   const [battleDone, setBattleDone] = useState(false);
@@ -196,7 +199,15 @@ export default function Home() {
   const [authTab,   setAuthTab]  = useState<AuthTab>("login");
   const [authEmail, setAuthEmail]= useState("");
   const [authPw,    setAuthPw]   = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError,   setAuthError]   = useState("");
   const [mounted,   setMounted]  = useState(false);
+
+  // 프로필 드롭다운
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  // 출석/보너스 토스트
+  const [toast, setToast] = useState<string | null>(null);
 
   const [mainTab, setMainTab] = useState<MainTab>("event");
   const [prevTab, setPrevTab] = useState<MainTab>("event");
@@ -245,6 +256,19 @@ export default function Home() {
       setShowResultMsg(true);
     }
 
+    // 로그인 사용자: Supabase에서 오늘 투표 확인
+    supabase.auth.getUser().then(({ data: { user: u } }) => {
+      if (!u) return;
+      getTodayVote(u.id).then((vote) => {
+        if (vote) {
+          setBattleDone(true);
+          setBattleVote(vote.voted_for === "ABNB" ? "a" : "b");
+          setShowBarAnim(true);
+          setShowResultMsg(true);
+        }
+      });
+    });
+
     if (!qDone && !bDone) setModal("onboarding");
     else if (qDone && !bDone) setModal("followup_battle");
     else if (!qDone && bDone) setModal("followup_quiz");
@@ -283,21 +307,58 @@ export default function Home() {
 
   const handleVote = useCallback((choice: "a"|"b") => {
     if (battleVote || battleDone) return;
+    // 비로그인 시 로그인 모달 오픈
+    if (!user) { openLogin("login"); return; }
+
     const newA = choice === "a" ? votesA + 1 : votesA;
     const newB = choice === "b" ? votesB + 1 : votesB;
     setJustVoted(choice);
     if (choice === "a") setShowParticlesA(true); else setShowParticlesB(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       setBattleVote(choice); setBattleDone(true);
       setVotesA(newA); setVotesB(newB); setShowBarAnim(true);
       localStorage.setItem(BATTLE_KEY, JSON.stringify({ choice, votesA: newA, votesB: newB }));
       localStorage.setItem("pico_battle_done", "true");
+
+      // Supabase 저장
+      const votedTicker = choice === "a" ? "ABNB" : "HLT";
+      submitVoteAndAttendance(user.id, votedTicker, "ABNB", "HLT").then(({ bonusDays, bonusPoints }) => {
+        refreshUserRow();
+        if (bonusPoints > 0) {
+          showToast(`🎉 ${bonusDays}일 연속 출석! +${bonusPoints}P 추가 지급`);
+        } else {
+          showToast("✅ 출석 완료 +50P");
+        }
+      });
+
       setTimeout(() => setShowResultMsg(true), 700);
     }, 300);
     setTimeout(() => { setShowParticlesA(false); setShowParticlesB(false); setJustVoted(null); }, 1000);
-  }, [battleVote, battleDone, votesA, votesB]);
+  }, [battleVote, battleDone, votesA, votesB, user]);
 
-  function openLogin(tab: AuthTab = "login") { setAuthTab(tab); setModal("login"); }
+  function openLogin(tab: AuthTab = "login") { setAuthTab(tab); setAuthError(""); setModal("login"); }
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3500);
+  }
+
+  async function handleAuth() {
+    if (!authEmail || !authPw) { setAuthError("이메일과 비밀번호를 입력해줘"); return; }
+    setAuthLoading(true); setAuthError("");
+    if (authTab === "signup") {
+      const { error } = await supabase.auth.signUp({ email: authEmail, password: authPw });
+      if (error) { setAuthError(error.message); setAuthLoading(false); return; }
+      showToast("🎉 가입 완료! 이메일 인증 후 로그인해줘");
+      setModal(null);
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPw });
+      if (error) { setAuthError("이메일 또는 비밀번호가 틀렸어"); setAuthLoading(false); return; }
+      setModal(null);
+    }
+    setAuthLoading(false);
+    setAuthEmail(""); setAuthPw("");
+  }
 
   const animalInfo = quizType ? ANIMAL_NAMES[quizType] : null;
   const term = TERMS[termIdx];
@@ -333,6 +394,14 @@ export default function Home() {
   return (
     <div className="min-h-screen" style={{ background: "#0d0d0d" }}>
 
+      {/* ── 토스트 ── */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 fade-in-up"
+          style={{ transform: "translateX(-50%)", background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.4)", borderRadius: 12, padding: "12px 20px", fontSize: 14, color: "#e8e0d0", fontWeight: 500, whiteSpace: "nowrap", boxShadow: "0 4px 24px rgba(0,0,0,0.4)" }}>
+          {toast}
+        </div>
+      )}
+
       {isBlurred && (
         <div className="fixed inset-0 z-40" style={{ backdropFilter: "blur(8px)", background: "rgba(13,13,13,0.55)" }} />
       )}
@@ -355,16 +424,52 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
-            <button onClick={() => openLogin("login")} className="pico-btn px-4 py-2 rounded-lg"
-              style={{ fontSize: 13, fontWeight: 500, color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", background: "transparent" }}>
-              로그인
-            </button>
-            <button onClick={() => openLogin("signup")} className="pico-btn px-4 py-2 rounded-lg"
-              style={{ fontSize: 13, fontWeight: 500, color: "#0d0d0d", background: "#FACA3E" }}>
-              회원가입
-            </button>
-          </div>
+          {user && userRow ? (
+            /* ── 로그인 후: 프로필 드롭다운 ── */
+            <div className="relative">
+              <button onClick={() => setProfileOpen((p) => !p)} className="pico-btn flex items-center gap-2 px-3 py-2 rounded-xl"
+                style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                <span style={{ fontSize: 16 }}>
+                  {userRow.investor_type ? (
+                    { tiger:"🐯", eagle:"🦅", wolf:"🐺", fox:"🦊", elephant:"🐘", hedgehog:"🦔", turtle:"🐢", butterfly:"🦋" }[userRow.investor_type] ?? "👤"
+                  ) : "👤"}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</span>
+                <span style={{ fontSize: 10, color: "#5c5448" }}>▾</span>
+              </button>
+              {profileOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                  <div className="absolute right-0 top-12 z-50 rounded-2xl border py-2 w-52"
+                    style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                    <div className="px-4 py-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: "#e8e0d0" }}>{userRow.nickname}</div>
+                      <div style={{ fontFamily: "var(--font-dm-mono)", fontSize: 13, color: "#FACA3E", marginTop: 2 }}>
+                        ⭐ {userRow.total_points.toLocaleString()} P
+                      </div>
+                    </div>
+                    <button onClick={() => { setProfileOpen(false); router.push("/mypage"); }} className="pico-btn w-full px-4 py-2.5 text-left"
+                      style={{ fontSize: 13, color: "#a09688", background: "none", border: "none" }}>내 정보</button>
+                    <div style={{ height: "0.5px", background: "rgba(255,255,255,0.06)", margin: "4px 0" }} />
+                    <button onClick={async () => { setProfileOpen(false); await signOut(); }} className="pico-btn w-full px-4 py-2.5 text-left"
+                      style={{ fontSize: 13, color: "#f07878", background: "none", border: "none" }}>로그아웃</button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            /* ── 비로그인: 로그인/회원가입 버튼 ── */
+            <div className="flex items-center gap-2">
+              <button onClick={() => openLogin("login")} className="pico-btn px-4 py-2 rounded-lg"
+                style={{ fontSize: 13, fontWeight: 500, color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", background: "transparent" }}>
+                로그인
+              </button>
+              <button onClick={() => openLogin("signup")} className="pico-btn px-4 py-2 rounded-lg"
+                style={{ fontSize: 13, fontWeight: 500, color: "#0d0d0d", background: "#FACA3E" }}>
+                회원가입
+              </button>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -985,8 +1090,12 @@ export default function Home() {
                   onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
                 />
               </div>
-              <button className="pico-btn w-full rounded-xl py-3 mb-4" style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
-                {authTab === "login" ? "로그인" : "회원가입"} →
+              {authError && (
+                <p style={{ fontSize: 12, color: "#f07878", marginBottom: 10 }}>{authError}</p>
+              )}
+              <button onClick={handleAuth} disabled={authLoading} className="pico-btn w-full rounded-xl py-3 mb-4"
+                style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500, opacity: authLoading ? 0.7 : 1 }}>
+                {authLoading ? "처리 중..." : authTab === "login" ? "로그인 →" : "회원가입 →"}
               </button>
 
               <div className="flex items-center gap-3 mb-4">

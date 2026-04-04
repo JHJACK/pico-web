@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR, DM_Serif_Display, Instrument_Sans, DM_Mono } from "next/font/google";
+import { AuthProvider } from "@/app/lib/authContext";
 import "./globals.css";
 
 const notoSansKR = Noto_Sans_KR({
@@ -40,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${notoSansKR.variable} ${dmSerifDisplay.variable} ${instrumentSans.variable} ${dmMono.variable}`}>
       <body className="min-h-screen" style={{ fontFamily: "var(--font-sans), var(--font-noto), sans-serif", fontWeight: 300, lineHeight: 1.65 }}>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
