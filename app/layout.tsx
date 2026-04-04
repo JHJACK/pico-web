@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR, DM_Serif_Display, Instrument_Sans, DM_Mono } from "next/font/google";
+import { Noto_Sans_KR, DM_Serif_Display, Instrument_Sans, Inter } from "next/font/google";
 import { AuthProvider } from "@/app/lib/authContext";
 import "./globals.css";
 
@@ -22,10 +22,10 @@ const instrumentSans = Instrument_Sans({
   variable: "--font-sans",
 });
 
-const dmMono = DM_Mono({
+const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400"],
-  variable: "--font-dm-mono",
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -39,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={`${notoSansKR.variable} ${dmSerifDisplay.variable} ${instrumentSans.variable} ${dmMono.variable}`}>
+    <html lang="ko" className={`${notoSansKR.variable} ${dmSerifDisplay.variable} ${instrumentSans.variable} ${inter.variable}`}>
       <body className="min-h-screen" style={{ fontFamily: "var(--font-sans), var(--font-noto), sans-serif", fontWeight: 300, lineHeight: 1.65 }}>
         <AuthProvider>{children}</AuthProvider>
       </body>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
 import { fetchNews, NEWS_FALLBACK, type NewsItem, type NewsCat } from "@/app/lib/news";
 import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory } from "@/app/lib/stockNames";
@@ -67,7 +68,7 @@ const PICO_EYE_CARDS = [
 
 // DM Mono 숫자 스타일 헬퍼 (주가·등락률·퍼센트·타이머·포인트 등 모든 숫자)
 const NUM: CSSProperties = {
-  fontFamily: "var(--font-dm-mono), monospace",
+  fontFamily: "var(--font-inter), monospace",
   fontWeight: 300,
   letterSpacing: "-0.02em",
 };
@@ -146,7 +147,7 @@ function Skeleton({ w = "100%", h = 18 }: { w?: string | number; h?: number }) {
 
 // 종목 카드 (PICO Play 그리드용)
 const NUM_MONO: CSSProperties = {
-  fontFamily: "var(--font-dm-mono), monospace",
+  fontFamily: "var(--font-inter), monospace",
   fontWeight: 300,
   letterSpacing: "-0.02em",
 };
@@ -202,9 +203,6 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError,   setAuthError]   = useState("");
   const [mounted,   setMounted]  = useState(false);
-
-  // 프로필 드롭다운
-  const [profileOpen, setProfileOpen] = useState(false);
 
   // 출석/보너스 토스트
   const [toast, setToast] = useState<string | null>(null);
@@ -410,9 +408,9 @@ export default function Home() {
       <nav className="sticky top-0 z-30 border-b" style={{ height: 64, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
         <div className="h-full flex items-center justify-between mx-auto px-5 lg:px-10" style={{ maxWidth: 1280 }}>
           {/* 로고 — DM Serif Display 유일하게 사용 */}
-          <span style={{ fontFamily: "var(--font-serif)", fontSize: 24, color: "#FACA3E", letterSpacing: "0.01em", flexShrink: 0 }}>
+          <Link href="/" style={{ fontFamily: "var(--font-serif)", fontSize: 24, color: "#FACA3E", letterSpacing: "0.01em", flexShrink: 0, textDecoration: "none" }}>
             PICO
-          </span>
+          </Link>
 
           <div className="hidden sm:flex items-center gap-10">
             {(["event","play"] as MainTab[]).map((tab) => (
@@ -425,9 +423,9 @@ export default function Home() {
           </div>
 
           {user && userRow ? (
-            /* ── 로그인 후: 프로필 드롭다운 ── */
-            <div className="relative">
-              <button onClick={() => setProfileOpen((p) => !p)} className="pico-btn flex items-center gap-2 px-3 py-2 rounded-xl"
+            /* ── 로그인 후: 프로필 버튼 ── */
+            <div className="flex items-center gap-2">
+              <button onClick={() => router.push("/mypage")} className="pico-btn flex items-center gap-2 px-3 py-2 rounded-xl"
                 style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)" }}>
                 <span style={{ fontSize: 16 }}>
                   {userRow.investor_type ? (
@@ -435,27 +433,7 @@ export default function Home() {
                   ) : "👤"}
                 </span>
                 <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</span>
-                <span style={{ fontSize: 10, color: "#5c5448" }}>▾</span>
               </button>
-              {profileOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                  <div className="absolute right-0 top-12 z-50 rounded-2xl border py-2 w-52"
-                    style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
-                    <div className="px-4 py-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: "#e8e0d0" }}>{userRow.nickname}</div>
-                      <div style={{ fontFamily: "var(--font-dm-mono)", fontSize: 13, color: "#FACA3E", marginTop: 2 }}>
-                        ⭐ {userRow.total_points.toLocaleString()} P
-                      </div>
-                    </div>
-                    <button onClick={() => { setProfileOpen(false); router.push("/mypage"); }} className="pico-btn w-full px-4 py-2.5 text-left"
-                      style={{ fontSize: 13, color: "#a09688", background: "none", border: "none" }}>내 정보</button>
-                    <div style={{ height: "0.5px", background: "rgba(255,255,255,0.06)", margin: "4px 0" }} />
-                    <button onClick={async () => { setProfileOpen(false); await signOut(); }} className="pico-btn w-full px-4 py-2.5 text-left"
-                      style={{ fontSize: 13, color: "#f07878", background: "none", border: "none" }}>로그아웃</button>
-                  </div>
-                </>
-              )}
             </div>
           ) : (
             /* ── 비로그인: 로그인/회원가입 버튼 ── */

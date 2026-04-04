@@ -31,14 +31,14 @@ h1, h2, h3, h4, h5 {
 }
 
 
-/* ── 숫자 전용 폰트 (DM Mono) ── */
+/* ── 숫자 전용 폰트 (Inter) ── */
 .num,
 [class*="price"],
 [class*="rate"],
 [class*="percent"],
 [class*="timer"],
 [class*="count"] {
-  font-family: var(--font-dm-mono), monospace;
+  font-family: var(--font-inter), sans-serif;
   font-weight: 300;
   letter-spacing: -0.02em;
 }
