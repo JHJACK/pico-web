@@ -89,6 +89,11 @@ export default function MyPage() {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("이미지는 2MB 이하만 업로드할 수 있어.");
+      e.target.value = "";
+      return;
+    }
     setPendingFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   }
