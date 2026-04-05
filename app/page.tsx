@@ -424,17 +424,17 @@ export default function Home() {
 
           {user && userRow ? (
             /* ── 로그인 후: 프로필 버튼 ── */
-            <div className="flex items-center gap-2">
-              <button onClick={() => router.push("/mypage")} className="pico-btn flex items-center gap-2 px-3 py-2 rounded-xl"
-                style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)" }}>
-                <span style={{ fontSize: 16 }}>
-                  {userRow.investor_type ? (
-                    { tiger:"🐯", eagle:"🦅", wolf:"🐺", fox:"🦊", elephant:"🐘", hedgehog:"🦔", turtle:"🐢", butterfly:"🦋" }[userRow.investor_type] ?? "👤"
-                  ) : "👤"}
-                </span>
-                <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</span>
-              </button>
-            </div>
+            <button onClick={() => router.push("/mypage")} className="pico-btn flex items-center gap-2"
+              style={{ background: "none", border: "none", padding: "4px 0" }}>
+              {userRow.avatar_url ? (
+                <img src={userRow.avatar_url} alt="프로필" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1.5px solid rgba(255,255,255,0.12)" }} />
+              ) : (
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#242424", border: "1.5px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#a09688", flexShrink: 0 }}>
+                  {userRow.nickname[0]?.toUpperCase() ?? "?"}
+                </div>
+              )}
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</span>
+            </button>
           ) : (
             /* ── 비로그인: 로그인/회원가입 버튼 ── */
             <div className="flex items-center gap-2">
@@ -488,18 +488,18 @@ export default function Home() {
             </div>
 
             {/* 통계 카드 */}
-            <div className="flex flex-row lg:flex-col gap-4 w-full lg:w-auto">
+            <div className="grid grid-cols-3 lg:flex lg:flex-col gap-3 w-full lg:w-auto">
               {[
                 { num: "2,841", unit: "명",  sub: "오늘 VS 배틀 참여",    cls: "float-1", accent: "#FACA3E" },
                 { num: "8",     unit: "가지", sub: "투자자 DNA 유형",      cls: "float-2", accent: "#7eb8f7" },
                 { num: "매일",  unit: "",     sub: "AI 인사이트 업데이트", cls: "float-3", accent: "#7ed4a0" },
               ].map((stat) => (
-                <div key={stat.num} className={`${stat.cls} rounded-2xl px-5 py-4 border`}
-                  style={{ background: "rgba(20,20,20,0.88)", borderColor: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", minWidth: 138 }}>
-                  <div style={{ ...NUM, fontSize: 26, color: stat.accent, marginBottom: 4 }}>
-                    {stat.num}<span style={{ fontSize: 14 }}>{stat.unit}</span>
+                <div key={stat.num} className={`${stat.cls} rounded-2xl px-3 py-3 lg:px-5 lg:py-4 border`}
+                  style={{ background: "rgba(20,20,20,0.88)", borderColor: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
+                  <div style={{ ...NUM, fontSize: "clamp(16px, 4vw, 26px)", color: stat.accent, marginBottom: 4 }}>
+                    {stat.num}<span style={{ fontSize: "clamp(10px, 2.5vw, 14px)" }}>{stat.unit}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>{stat.sub}</div>
+                  <div style={{ fontSize: "clamp(9px, 2vw, 12px)", color: "#5c5448", fontWeight: 300 }}>{stat.sub}</div>
                 </div>
               ))}
             </div>
@@ -543,14 +543,14 @@ export default function Home() {
             {/* ── VS 배틀 + DNA 그리드 ── */}
             <div className="pb-10 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
               <div className="mb-5 mt-6">
-                <p style={{ fontSize: 28, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>오늘, 누가 오를까</p>
-                <p style={{ fontSize: 14, color: "#a09688", fontWeight: 300 }}>하루 1번 예측 → 익일 결과 · 정답 시 100 포인트</p>
+                <p style={{ fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>오늘, 누가 오를까</p>
+                <p style={{ fontSize: "clamp(12px, 3vw, 14px)", color: "#a09688", fontWeight: 300 }}>하루 1번 예측 → 익일 결과 · 정답 시 100 포인트</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
                 {/* 배틀 카드 (2/3) */}
-                <div className="lg:col-span-2 rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.18)" }}>
+                <div className="lg:col-span-2 rounded-2xl p-4 sm:p-6 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.18)" }}>
                   <div className="flex items-center justify-between mb-2">
                     <SectionLabel text="오늘의 VS 배틀 — 숙박업" />
                     {battleDone && (
@@ -585,7 +585,7 @@ export default function Home() {
                         <div className="flex justify-center mb-2">
                           <TickerLogo src="https://logo.clearbit.com/airbnb.com" ticker="ABNB" size={32} />
                         </div>
-                        <div style={{ ...NUM, fontSize: 22, color: battleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 2 }}>ABNB</div>
+                        <div style={{ ...NUM, fontSize: "clamp(16px, 4vw, 22px)", color: battleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 2 }}>ABNB</div>
                         <div style={{ fontSize: 12, color: "#5c5448", marginBottom: 6, fontWeight: 300 }}>에어비앤비</div>
                         {stocksLoading
                           ? <Skeleton w={80} h={14} />
@@ -618,7 +618,7 @@ export default function Home() {
                         <div className="flex justify-center mb-2">
                           <TickerLogo src="https://logo.clearbit.com/hilton.com" ticker="HLT" size={32} />
                         </div>
-                        <div style={{ ...NUM, fontSize: 22, color: battleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 2 }}>HLT</div>
+                        <div style={{ ...NUM, fontSize: "clamp(16px, 4vw, 22px)", color: battleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 2 }}>HLT</div>
                         <div style={{ fontSize: 12, color: "#5c5448", marginBottom: 6, fontWeight: 300 }}>힐튼 호텔</div>
                         {stocksLoading
                           ? <Skeleton w={80} h={14} />

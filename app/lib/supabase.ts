@@ -12,7 +12,22 @@ export type UserRow = {
   investor_type: string | null;
   total_points: number;
   created_at: string;
+  avatar_url: string | null;
 };
+
+// ── 프로필 이미지 업로드 ──────────────────────────
+export async function uploadAvatar(uid: string, file: File): Promise<string | null> {
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${uid}/avatar.${ext}`;
+  const { error } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) return null;
+  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  const url = `${data.publicUrl}?t=${Date.now()}`;
+  await supabase.from("users").update({ avatar_url: url }).eq("id", uid);
+  return url;
+}
 
 export type AttendanceRow = {
   id: number;
