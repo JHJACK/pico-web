@@ -22,10 +22,17 @@ export async function uploadAvatar(uid: string, file: File): Promise<string | nu
   const { error } = await supabase.storage
     .from("avatars")
     .upload(path, file, { upsert: true, contentType: file.type });
-  if (error) return null;
+  if (error) {
+    console.error("[uploadAvatar] storage error:", error.message);
+    return null;
+  }
   const { data } = supabase.storage.from("avatars").getPublicUrl(path);
   const url = `${data.publicUrl}?t=${Date.now()}`;
-  await supabase.from("users").update({ avatar_url: url }).eq("id", uid);
+  const { error: dbError } = await supabase.from("users").update({ avatar_url: url }).eq("id", uid);
+  if (dbError) {
+    console.error("[uploadAvatar] db update error:", dbError.message);
+    return null;
+  }
   return url;
 }
 

@@ -110,7 +110,13 @@ export default function MyPage() {
 
     // 이미지 업로드
     if (pendingFile) {
-      await uploadAvatar(user.id, pendingFile);
+      const result = await uploadAvatar(user.id, pendingFile);
+      if (!result) {
+        alert("이미지 업로드에 실패했어. 브라우저 콘솔에서 에러를 확인해줘.");
+        setUploadLoading(false);
+        setSaving(false);
+        return;
+      }
     }
 
     await refreshUserRow();
