@@ -17,13 +17,13 @@ type AuthTab   = "login" | "signup";
 type MainTab   = "event" | "play";
 
 const ANIMAL_NAMES: Record<string, { emoji: string; modifier: string; name: string }> = {
-  tiger:     { emoji: "🐯", modifier: "공격적 개척자",  name: "호랑이"   },
-  eagle:     { emoji: "🦅", modifier: "정확한 사냥꾼",  name: "독수리"   },
-  wolf:      { emoji: "🐺", modifier: "역발상 철학자",  name: "늑대"     },
-  fox:       { emoji: "🦊", modifier: "정보 연금술사",  name: "여우"     },
-  elephant:  { emoji: "🐘", modifier: "복리 설계사",    name: "코끼리"   },
-  hedgehog:  { emoji: "🦔", modifier: "철벽 방어",      name: "고슴도치" },
-  turtle:    { emoji: "🐢", modifier: "신중한 수호자",  name: "거북이"   },
+  tiger:     { emoji: "🐯", modifier: "공격적 개척자",   name: "호랑이"   },
+  eagle:     { emoji: "🦅", modifier: "집중 돌파의",     name: "독수리"   },
+  wolf:      { emoji: "🐺", modifier: "역발상의 철학자", name: "늑대"     },
+  fox:       { emoji: "🦊", modifier: "정보의 연금술사", name: "여우"     },
+  elephant:  { emoji: "🐘", modifier: "복리의 설계자",   name: "코끼리"   },
+  hedgehog:  { emoji: "🦔", modifier: "방어의 전략가",   name: "고슴도치" },
+  turtle:    { emoji: "🐢", modifier: "안전 제일 수호자", name: "거북이"  },
   butterfly: { emoji: "🦋", modifier: "예술가적 직관가", name: "나비"     },
 };
 
@@ -667,35 +667,37 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* DNA 카드 (1/3) */}
-                <div className="rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(126,184,247,0.18)" }}>
-                  <div className="flex items-center justify-between mb-4">
-                    <SectionLabel text="투자 DNA" />
-                    {quizDone && <span style={{ fontSize: 11, fontWeight: 500, padding: "3px 8px", borderRadius: 4, background: "rgba(126,212,160,0.12)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.25)" }}>완료</span>}
+                {/* DNA 카드 (1/3) — 로그인 사용자만 표시 */}
+                {user && (
+                  <div className="rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(126,184,247,0.18)" }}>
+                    <div className="flex items-center justify-between mb-4">
+                      <SectionLabel text="투자 DNA" />
+                      {quizDone && <span style={{ fontSize: 11, fontWeight: 500, padding: "3px 8px", borderRadius: 4, background: "rgba(126,212,160,0.12)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.25)" }}>완료</span>}
+                    </div>
+                    <p style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", marginBottom: 14, lineHeight: 1.2 }}>내 투자 성향은?</p>
+                    {quizDone && animalInfo ? (
+                      <>
+                        <div className="rounded-xl px-4 py-4 mb-4" style={{ background: "rgba(250,202,62,0.06)", border: "0.5px solid rgba(250,202,62,0.2)" }}>
+                          <div style={{ fontSize: 36, marginBottom: 6 }}>{animalInfo.emoji}</div>
+                          <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 2 }}>{animalInfo.modifier}</div>
+                          <div style={{ fontSize: 20, fontWeight: 500, color: "#FACA3E" }}>{animalInfo.name}</div>
+                          <div style={{ fontSize: 13, color: "#a09688", marginTop: 2, fontWeight: 300 }}>내 투자 유형</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => router.push("/mypage/dna")} className="pico-btn flex-1 rounded-xl py-2.5" style={{ background: "rgba(250,202,62,0.08)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.25)", fontSize: 13, fontWeight: 500 }}>상세 리포트</button>
+                          <button onClick={() => router.push("/quiz")} className="pico-btn px-4 rounded-xl py-2.5" style={{ background: "transparent", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 13 }}>다시하기</button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.75, marginBottom: 16, fontWeight: 300 }}>18문항으로 4가지 축을 측정해 8가지 유형 중 나를 찾아봐.</p>
+                        <button onClick={() => router.push("/quiz")} className="pico-btn w-full rounded-xl py-3" style={{ background: "rgba(126,184,247,0.1)", color: "#7eb8f7", border: "0.5px solid rgba(126,184,247,0.3)", fontSize: 14, fontWeight: 500 }}>
+                          🧬 DNA 확인하러 가기
+                        </button>
+                      </>
+                    )}
                   </div>
-                  <p style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", marginBottom: 14, lineHeight: 1.2 }}>내 투자 성향은?</p>
-                  {quizDone && animalInfo ? (
-                    <>
-                      <div className="rounded-xl px-4 py-4 mb-4" style={{ background: "rgba(250,202,62,0.06)", border: "0.5px solid rgba(250,202,62,0.2)" }}>
-                        <div style={{ fontSize: 36, marginBottom: 6 }}>{animalInfo.emoji}</div>
-                        <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 2 }}>{animalInfo.modifier}</div>
-                        <div style={{ fontSize: 20, fontWeight: 500, color: "#FACA3E" }}>{animalInfo.name}</div>
-                        <div style={{ fontSize: 13, color: "#a09688", marginTop: 2, fontWeight: 300 }}>내 투자 유형</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => router.push("/mypage/dna")} className="pico-btn flex-1 rounded-xl py-2.5" style={{ background: "rgba(250,202,62,0.08)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.25)", fontSize: 13, fontWeight: 500 }}>상세 리포트</button>
-                        <button onClick={() => router.push("/quiz")} className="pico-btn px-4 rounded-xl py-2.5" style={{ background: "transparent", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 13 }}>다시하기</button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.75, marginBottom: 16, fontWeight: 300 }}>18문항으로 4가지 축을 측정해 8가지 유형 중 나를 찾아봐.</p>
-                      <button onClick={() => router.push("/quiz")} className="pico-btn w-full rounded-xl py-3" style={{ background: "rgba(126,184,247,0.1)", color: "#7eb8f7", border: "0.5px solid rgba(126,184,247,0.3)", fontSize: 14, fontWeight: 500 }}>
-                        🧬 DNA 확인하러 가기
-                      </button>
-                    </>
-                  )}
-                </div>
+                )}
               </div>
             </div>
 
