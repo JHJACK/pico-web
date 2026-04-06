@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase, uploadAvatar } from "@/app/lib/supabase";
@@ -31,12 +31,14 @@ function calcStreak(dates: string[]): number {
   return streak;
 }
 
-export default function MyPage() {
+function MyPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, userRow, loading, refreshUserRow, signOut } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [tab, setTab]                     = useState<"info" | "dna">("info");
+  const initialTab = searchParams.get("tab") === "dna" ? "dna" : "info";
+  const [tab, setTab]                     = useState<"info" | "dna">(initialTab);
   const [showAllTypes, setShowAllTypes]   = useState(false);
   const [nickname, setNickname]           = useState("");
   const [editOpen, setEditOpen]           = useState(false);
@@ -195,7 +197,7 @@ export default function MyPage() {
         </div>
       )}
 
-      <div className="mx-auto px-4 py-8" style={{ maxWidth: 480 }}>
+      <div className="mx-auto px-4 py-8" style={{ maxWidth: tab === "dna" ? 900 : 520 }}>
 
         {/* ── 프로필 카드 ── */}
         <div className="rounded-2xl p-6 border mb-5 flex items-center gap-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
@@ -358,85 +360,76 @@ export default function MyPage() {
             {dnaType ? (
               <>
                 {/* 타입 헤더 */}
-                <div className="rounded-2xl p-6 border mb-4" style={{ background: `${dnaType.color}12`, borderColor: `${dnaType.color}35` }}>
-                  <div className="flex items-start gap-4">
-                    <span style={{ fontSize: 52, lineHeight: 1 }}>{dnaType.emoji}</span>
-                    <div className="flex-1">
-                      <p style={{ fontSize: 11, letterSpacing: "0.14em", color: dnaType.color, textTransform: "uppercase", marginBottom: 4 }}>{dnaType.modifier}</p>
-                      <p style={{ fontSize: 26, fontWeight: 600, color: "#e8e0d0", marginBottom: 6 }}>{dnaType.name}</p>
-                      <p style={{ fontSize: 13, color: "#a09688", lineHeight: 1.5 }}>{dnaType.tagline}</p>
+                <div className="rounded-2xl px-7 py-6 border mb-5 flex items-center justify-between flex-wrap gap-4"
+                  style={{ background: `${dnaType.color}0e`, borderColor: `${dnaType.color}30` }}>
+                  <div className="flex items-center gap-4">
+                    <span style={{ fontSize: "clamp(44px, 8vw, 64px)", lineHeight: 1 }}>{dnaType.emoji}</span>
+                    <div>
+                      <p style={{ fontSize: "clamp(13px, 2.5vw, 16px)", letterSpacing: "0.1em", color: dnaType.color, fontWeight: 600, marginBottom: 4 }}>{dnaType.modifier}</p>
+                      <p style={{ fontSize: "clamp(24px, 5vw, 36px)", fontWeight: 700, color: "#e8e0d0", lineHeight: 1.1 }}>{dnaType.name}</p>
+                      <p style={{ fontSize: "clamp(13px, 2.5vw, 15px)", color: "#a09688", marginTop: 6, lineHeight: 1.55, maxWidth: 420 }}>{dnaType.tagline}</p>
                     </div>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <span style={{ fontSize: 12, padding: "3px 10px", borderRadius: 5, background: "rgba(240,120,120,0.12)", color: "#f07878", border: "0.5px solid rgba(240,120,120,0.3)" }}>R: {dnaType.axisR}</span>
+                    <span style={{ fontSize: 12, padding: "3px 10px", borderRadius: 5, background: "rgba(126,212,160,0.12)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.3)" }}>T: {dnaType.axisT}</span>
+                    <span style={{ fontSize: 12, padding: "3px 10px", borderRadius: 5, background: "rgba(250,202,62,0.12)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.3)" }}>Y: {dnaType.axisY}</span>
                   </div>
                 </div>
 
                 {/* 성향 */}
-                <div className="rounded-2xl p-5 border mb-3" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                  <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10 }}>투자 성향</p>
-                  <p style={{ fontSize: 14, color: "#c8c0b0", lineHeight: 1.7 }}>{dnaType.desc}</p>
+                <div className="rounded-2xl px-7 py-5 border mb-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                  <p style={{ fontSize: 11, letterSpacing: "0.14em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10 }}>투자 성향</p>
+                  <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", color: "#c8c0b0", lineHeight: 1.8 }}>{dnaType.desc}</p>
                 </div>
 
-                {/* 자산 배분 */}
-                <div className="rounded-2xl p-5 border mb-3" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                  <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 12 }}>추천 자산 배분</p>
-                  <div className="flex flex-col gap-2.5">
-                    {dnaType.allocation.map((item, i) => (
-                      <div key={i}>
-                        <div className="flex justify-between mb-1">
-                          <span style={{ fontSize: 13, color: "#a09688" }}>{item.label}</span>
-                          <span style={{ fontFamily: "var(--font-inter)", fontSize: 13, fontWeight: 500, color: dnaType.color }}>{item.pct}%</span>
+                {/* 자산배분 + 추천종목 — 2열 그리드 (desktop) */}
+                <div className="grid gap-4 mb-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
+                  {/* 자산 배분 */}
+                  <div className="rounded-2xl px-6 py-5 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                    <p style={{ fontSize: 11, letterSpacing: "0.14em", color: "#5c5448", textTransform: "uppercase", marginBottom: 14 }}>적정 자산 배분</p>
+                    <div className="flex flex-col gap-4">
+                      {dnaType.allocation.map((item, i) => (
+                        <div key={i}>
+                          <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", fontWeight: 600, color: "#e8e0d0", marginBottom: 2 }}>{item.label}</p>
+                          <p style={{ fontFamily: "var(--font-inter)", fontSize: "clamp(14px, 2.5vw, 16px)", color: dnaType.color }}>{item.pct}</p>
                         </div>
-                        <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${item.pct}%`, background: dnaType.color, borderRadius: 2, opacity: 0.7 }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 추천 종목 */}
-                <div className="rounded-2xl p-5 border mb-3" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                  <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10 }}>추천 ETF · 종목</p>
-                  <div className="flex flex-wrap gap-2">
-                    {dnaType.recommended.map((s, i) => (
-                      <span key={i} style={{ fontSize: 13, color: dnaType.color, background: `${dnaType.color}15`, padding: "4px 10px", borderRadius: 8, border: `0.5px solid ${dnaType.color}30` }}>
-                        {s.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 경계 경고 */}
-                <div className="rounded-2xl p-5 border mb-3" style={{ background: "rgba(240,120,120,0.05)", borderColor: "rgba(240,120,120,0.2)" }}>
-                  <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#f07878", textTransform: "uppercase", marginBottom: 10 }}>주의 · 경계</p>
-                  <div className="flex flex-col gap-2">
-                    {dnaType.guards.map((g, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <span style={{ fontSize: 12, color: "#f07878", marginTop: 1 }}>⚠</span>
-                        <div>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0" }}>{g.title} </span>
-                          <span style={{ fontSize: 13, color: "#c8c0b0", lineHeight: 1.5 }}>{g.desc}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 궁합 타입 */}
-                {(() => {
-                  const compat = INVESTOR_TYPES[dnaType.compatible as TypeKey];
-                  return compat ? (
-                    <div className="rounded-2xl p-5 border mb-5" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                      <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10 }}>찰떡 궁합 유형</p>
-                      <div className="flex items-center gap-3">
-                        <span style={{ fontSize: 32 }}>{compat.emoji}</span>
-                        <div>
-                          <p style={{ fontSize: 11, color: compat.color, marginBottom: 2 }}>{compat.modifier}</p>
-                          <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>{compat.name}</p>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  ) : null;
-                })()}
+                  </div>
+
+                  {/* 추천 종목 */}
+                  <div className="rounded-2xl px-6 py-5 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                    <p style={{ fontSize: 11, letterSpacing: "0.14em", color: "#5c5448", textTransform: "uppercase", marginBottom: 14 }}>추천 종목 스타일</p>
+                    <div className="flex flex-col gap-3">
+                      {dnaType.recommended.map((r, i) => (
+                        <div key={i} className="flex gap-3 pb-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                          <span style={{ fontSize: "clamp(11px, 2vw, 13px)", color: dnaType.color, fontWeight: 600, minWidth: 36, flexShrink: 0, paddingTop: 2 }}>{r.label}</span>
+                          <span style={{ fontSize: "clamp(13px, 2.3vw, 15px)", color: "#c8c0b0", lineHeight: 1.55 }}>{r.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 위험 경고 */}
+                <div className="flex flex-col gap-3 mb-4">
+                  {dnaType.guards.map((g, i) => (
+                    <div key={i} className="rounded-2xl px-6 py-4 border" style={{ background: "rgba(240,120,120,0.06)", borderColor: "rgba(240,120,120,0.22)" }}>
+                      <p style={{ fontSize: "clamp(13px, 2.5vw, 15px)", fontWeight: 600, color: "#f07878", marginBottom: 6 }}>
+                        🚨 위험 신호 — {g.title}
+                      </p>
+                      <p style={{ fontSize: "clamp(12px, 2.2vw, 14px)", color: "#c8c0b0", lineHeight: 1.7 }}>{g.desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 궁합 */}
+                <div className="rounded-2xl px-6 py-4 border mb-5"
+                  style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.1)" }}>
+                  <p style={{ fontSize: 11, letterSpacing: "0.14em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>찰떡 궁합 유형</p>
+                  <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", color: "#e8e0d0", lineHeight: 1.6 }}>{dnaType.compatible}</p>
+                </div>
 
                 {/* 모든 유형 보기 */}
                 <button onClick={() => setShowAllTypes((v) => !v)} className="pico-btn w-full rounded-xl py-3 mb-4"
@@ -445,17 +438,17 @@ export default function MyPage() {
                 </button>
 
                 {showAllTypes && (
-                  <div className="flex flex-col gap-3 mb-6">
+                  <div className="grid gap-3 mb-6" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
                     {TYPE_KEYS.map((key) => {
                       const t = INVESTOR_TYPES[key];
                       const isMe = key === userRow.investor_type;
                       return (
                         <div key={key} className="rounded-2xl p-4 border flex items-center gap-4"
                           style={{ background: isMe ? `${t.color}10` : "#141414", borderColor: isMe ? `${t.color}40` : "rgba(255,255,255,0.06)" }}>
-                          <span style={{ fontSize: 32, flexShrink: 0 }}>{t.emoji}</span>
+                          <span style={{ fontSize: 36, flexShrink: 0 }}>{t.emoji}</span>
                           <div className="flex-1 min-w-0">
-                            <p style={{ fontSize: 10, color: t.color, marginBottom: 2, letterSpacing: "0.1em", textTransform: "uppercase" }}>{t.modifier}</p>
-                            <p style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0" }}>{t.name}</p>
+                            <p style={{ fontSize: 11, color: t.color, marginBottom: 2, letterSpacing: "0.1em", textTransform: "uppercase" }}>{t.modifier}</p>
+                            <p style={{ fontSize: 16, fontWeight: 600, color: "#e8e0d0" }}>{t.name}</p>
                             <p style={{ fontSize: 12, color: "#5c5448", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.tagline}</p>
                           </div>
                           {isMe && (
@@ -482,5 +475,13 @@ export default function MyPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function MyPage() {
+  return (
+    <Suspense fallback={null}>
+      <MyPageInner />
+    </Suspense>
   );
 }

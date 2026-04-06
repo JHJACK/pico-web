@@ -76,7 +76,8 @@ export default function QuizPage() {
           setStep(19);
           if (user) {
             saveQuizResult(user.id, typeKey).then(({ pointsAdded }) => {
-              if (pointsAdded > 0) { setQuizBonus(pointsAdded); refreshUserRow(); }
+              if (pointsAdded > 0) setQuizBonus(pointsAdded);
+              refreshUserRow();
             });
             localStorage.setItem("pico_quiz_done", JSON.stringify({ done: true, type: typeKey }));
             setShowFull(true);
@@ -273,13 +274,13 @@ export default function QuizPage() {
 
             <div className={animating ? "slide-out" : "slide-in"}>
               {currentQ.scenario && (
-                <div className="rounded-xl px-4 py-3 mb-4 border-l-2" style={{ background: "rgba(255,255,255,0.03)", borderLeftColor: axisColors[currentQ.axis] }}>
-                  <p style={{ fontSize: 12, color: "#a09688", lineHeight: 1.65, fontStyle: "italic" }}>
+                <div className="rounded-xl px-4 py-3.5 mb-5 border-l-2" style={{ background: "rgba(255,255,255,0.03)", borderLeftColor: axisColors[currentQ.axis] }}>
+                  <p style={{ fontSize: "clamp(13px, 3vw, 15px)", color: "#a09688", lineHeight: 1.7, fontStyle: "italic" }}>
                     {currentQ.scenario}
                   </p>
                 </div>
               )}
-              <p style={{ fontSize: "clamp(15px, 3.5vw, 18px)", color: "#e8e0d0", fontWeight: 500, lineHeight: 1.5, marginBottom: 20 }}>
+              <p style={{ fontSize: "clamp(18px, 4vw, 22px)", color: "#e8e0d0", fontWeight: 500, lineHeight: 1.5, marginBottom: 24 }}>
                 {currentQ.text}
               </p>
               <div className="flex flex-col gap-3">
@@ -289,12 +290,12 @@ export default function QuizPage() {
                     style={{ background: "#1c1c1c", borderColor: "rgba(255,255,255,0.06)" }}
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${axisColors[currentQ.axis]}50`; e.currentTarget.style.background = `${axisColors[currentQ.axis]}06`; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.background = "#1c1c1c"; }}>
-                    <div style={{ width: 26, height: 26, borderRadius: 6, background: "#242424", border: "0.5px solid rgba(255,255,255,0.1)", color: "#a09688", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontFamily: "var(--font-inter)", fontWeight: 500, marginTop: 1 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 6, background: "#242424", border: "0.5px solid rgba(255,255,255,0.1)", color: "#a09688", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontFamily: "var(--font-inter)", fontWeight: 500, marginTop: 1 }}>
                       {String.fromCharCode(65 + idx)}
                     </div>
                     <div>
-                      <div style={{ fontSize: 14, color: "#e8e0d0", fontWeight: 500, lineHeight: 1.45 }}>{opt.text}</div>
-                      {opt.sub && <div style={{ fontSize: 11, color: "#5c5448", marginTop: 3 }}>{opt.sub}</div>}
+                      <div style={{ fontSize: "clamp(14px, 3.5vw, 17px)", color: "#e8e0d0", fontWeight: 500, lineHeight: 1.5 }}>{opt.text}</div>
+                      {opt.sub && <div style={{ fontSize: "clamp(11px, 2.5vw, 13px)", color: "#5c5448", marginTop: 4 }}>{opt.sub}</div>}
                     </div>
                   </button>
                 ))}
@@ -314,14 +315,14 @@ export default function QuizPage() {
 
             {/* 유형 헤더 */}
             <div className="rounded-2xl p-6 border mb-4 text-center" style={{ background: "#141414", borderColor: `${typeData.color}35` }}>
-              <div style={{ fontSize: 52, marginBottom: 10 }}>{typeData.emoji}</div>
-              <div style={{ fontSize: 11, letterSpacing: "0.12em", color: typeData.color, textTransform: "uppercase", marginBottom: 6, fontWeight: 500 }}>
+              <div style={{ fontSize: "clamp(52px, 12vw, 72px)", marginBottom: 12 }}>{typeData.emoji}</div>
+              <div style={{ fontSize: "clamp(13px, 3vw, 16px)", letterSpacing: "0.12em", color: typeData.color, textTransform: "uppercase", marginBottom: 6, fontWeight: 600 }}>
                 {typeData.modifier}
               </div>
-              <div style={{ fontFamily: "var(--font-serif)", fontSize: 28, color: typeData.color, marginBottom: 6 }}>
+              <div style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(28px, 7vw, 40px)", color: typeData.color, marginBottom: 8 }}>
                 {typeData.name}
               </div>
-              <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.75, maxWidth: 300, margin: "0 auto 14px" }}>
+              <p style={{ fontSize: "clamp(14px, 3.2vw, 17px)", color: "#a09688", lineHeight: 1.75, maxWidth: 340, margin: "0 auto 16px" }}>
                 {typeData.tagline}
               </p>
               {/* 축 배지 */}
