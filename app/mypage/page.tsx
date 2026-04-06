@@ -5,17 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase, uploadAvatar } from "@/app/lib/supabase";
-
-const ANIMAL_NAMES: Record<string, { emoji: string; name: string }> = {
-  tiger:     { emoji: "🐯", name: "호랑이"   },
-  eagle:     { emoji: "🦅", name: "독수리"   },
-  wolf:      { emoji: "🐺", name: "늑대"     },
-  fox:       { emoji: "🦊", name: "여우"     },
-  elephant:  { emoji: "🐘", name: "코끼리"   },
-  hedgehog:  { emoji: "🦔", name: "고슴도치" },
-  turtle:    { emoji: "🐢", name: "거북이"   },
-  butterfly: { emoji: "🦋", name: "나비"     },
-};
+import { INVESTOR_TYPES, TYPE_KEYS, type TypeKey } from "@/app/lib/quizTypes";
 
 const MILESTONES = [
   { days: 7,  label: "7일 연속",  bonus: 200,  color: "#7eb8f7" },
@@ -46,14 +36,16 @@ export default function MyPage() {
   const { user, userRow, loading, refreshUserRow, signOut } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [nickname, setNickname]         = useState("");
-  const [editOpen, setEditOpen]         = useState(false);
-  const [saving, setSaving]             = useState(false);
+  const [tab, setTab]                     = useState<"info" | "dna">("info");
+  const [showAllTypes, setShowAllTypes]   = useState(false);
+  const [nickname, setNickname]           = useState("");
+  const [editOpen, setEditOpen]           = useState(false);
+  const [saving, setSaving]               = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
-  const [previewUrl, setPreviewUrl]     = useState<string | null>(null);
-  const [pendingFile, setPendingFile]   = useState<File | null>(null);
-  const [attendCount, setAttendCount]   = useState(0);
-  const [attendDates, setAttendDates]   = useState<string[]>([]);
+  const [previewUrl, setPreviewUrl]       = useState<string | null>(null);
+  const [pendingFile, setPendingFile]     = useState<File | null>(null);
+  const [attendCount, setAttendCount]     = useState(0);
+  const [attendDates, setAttendDates]     = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading]         = useState(false);
 
@@ -103,12 +95,10 @@ export default function MyPage() {
     setSaving(true);
     setUploadLoading(true);
 
-    // 닉네임 저장
     if (nickname.trim() && nickname.trim() !== userRow.nickname) {
       await supabase.from("users").update({ nickname: nickname.trim() }).eq("id", user.id);
     }
 
-    // 이미지 업로드
     if (pendingFile) {
       const result = await uploadAvatar(user.id, pendingFile);
       if (!result) {
@@ -137,14 +127,14 @@ export default function MyPage() {
     router.replace("/");
   }
 
-  const animalInfo = userRow?.investor_type ? ANIMAL_NAMES[userRow.investor_type] : null;
-  const now = new Date();
+  const dnaType   = userRow?.investor_type ? INVESTOR_TYPES[userRow.investor_type as TypeKey] : null;
+  const now       = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const attendRate = Math.round((attendCount / daysInMonth) * 100);
-  const streak = calcStreak(attendDates);
+  const attendRate  = Math.round((attendCount / daysInMonth) * 100);
+  const streak      = calcStreak(attendDates);
 
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  const year     = now.getFullYear();
+  const month    = now.getMonth();
   const firstDow = new Date(year, month, 1).getDay();
   const todayDay = now.getDate();
   const attendSet = new Set(attendDates);
@@ -167,7 +157,6 @@ export default function MyPage() {
           <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)" }}>
             <p style={{ fontSize: 17, fontWeight: 500, color: "#e8e0d0", marginBottom: 24 }}>프로필 수정</p>
 
-            {/* 이미지 선택 */}
             <div className="flex justify-center mb-6">
               <button onClick={() => fileInputRef.current?.click()} className="pico-btn relative" style={{ background: "none", border: "none" }}>
                 {avatarSrc ? (
@@ -184,7 +173,6 @@ export default function MyPage() {
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
             </div>
 
-            {/* 닉네임 */}
             <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>닉네임</p>
             <input
               value={nickname}
@@ -210,7 +198,7 @@ export default function MyPage() {
       <div className="mx-auto px-4 py-8" style={{ maxWidth: 480 }}>
 
         {/* ── 프로필 카드 ── */}
-        <div className="rounded-2xl p-6 border mb-4 flex items-center gap-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+        <div className="rounded-2xl p-6 border mb-5 flex items-center gap-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
           {userRow.avatar_url ? (
             <img src={userRow.avatar_url} alt="프로필" style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid rgba(255,255,255,0.1)" }} />
           ) : (
@@ -228,141 +216,269 @@ export default function MyPage() {
           </button>
         </div>
 
-        {/* ── 투자 DNA ── */}
-        <div className="rounded-2xl p-5 border mb-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-          <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10 }}>투자 DNA</p>
-          {animalInfo ? (
-            <div className="flex items-center gap-3">
-              <span style={{ fontSize: 32 }}>{animalInfo.emoji}</span>
-              <span style={{ fontSize: 18, fontWeight: 500, color: "#FACA3E" }}>{animalInfo.name}</span>
-            </div>
-          ) : (
-            <div>
-              <p style={{ fontSize: 14, color: "#5c5448", marginBottom: 10 }}>아직 퀴즈를 완료하지 않았어</p>
-              <Link href="/quiz" style={{ fontSize: 13, color: "#7eb8f7", fontWeight: 500, textDecoration: "none" }}>
-                투자 DNA 찾기 →
-              </Link>
-            </div>
-          )}
+        {/* ── 탭 ── */}
+        <div className="flex mb-6 rounded-xl p-1" style={{ background: "#1a1a1a", border: "0.5px solid rgba(255,255,255,0.06)" }}>
+          {(["info", "dna"] as const).map((t) => (
+            <button key={t} onClick={() => setTab(t)} className="pico-btn flex-1 py-2.5 rounded-lg"
+              style={{
+                fontSize: 13, fontWeight: tab === t ? 500 : 400,
+                background: tab === t ? "#242424" : "transparent",
+                color: tab === t ? "#e8e0d0" : "#5c5448",
+                border: "none", transition: "all 0.15s",
+              }}>
+              {t === "info" ? "내 정보" : "투자 DNA"}
+            </button>
+          ))}
         </div>
 
-        {/* ── 포인트 + 출석률 ── */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
-            <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>누적 포인트</p>
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: 26, fontWeight: 300, color: "#FACA3E", letterSpacing: "-0.02em" }}>
-              {userRow.total_points.toLocaleString()}P
-            </p>
-          </div>
-          <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(126,212,160,0.2)" }}>
-            <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>이번 달 출석</p>
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: 26, fontWeight: 300, color: "#7ed4a0", letterSpacing: "-0.02em" }}>
-              {attendRate}%
-            </p>
-            <p style={{ fontSize: 11, color: "#5c5448", marginTop: 4 }}>{attendCount}일 / {daysInMonth}일</p>
-          </div>
-        </div>
-
-        {/* ── 출석 캘린더 ── */}
-        <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 12 }}>출석 캘린더</p>
-
-        {/* 스트릭 */}
-        <div className="rounded-2xl px-5 py-4 border mb-3 flex items-center justify-between" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
-          <div>
-            <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 4 }}>현재 연속 출석</p>
-            <div className="flex items-baseline gap-1.5">
-              <span style={{ fontFamily: "var(--font-inter)", fontSize: 34, fontWeight: 300, color: "#FACA3E", letterSpacing: "-0.03em" }}>{streak}</span>
-              <span style={{ fontSize: 15, color: "#a09688" }}>일 연속</span>
-            </div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <p style={{ fontSize: 12, color: "#5c5448" }}>
-              {streak === 0 ? "오늘 배틀 투표로 시작!" : "VS 배틀 투표 → +50P"}
-            </p>
-          </div>
-        </div>
-
-        {/* 월간 그리드 */}
-        <div className="rounded-2xl p-5 border mb-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-          <p style={{ fontSize: 12, color: "#a09688", fontWeight: 500, marginBottom: 14 }}>
-            {now.toLocaleDateString("ko-KR", { year: "numeric", month: "long" })}
-          </p>
-          <div className="grid grid-cols-7 mb-2">
-            {["일","월","화","수","목","금","토"].map((d) => (
-              <div key={d} style={{ textAlign: "center", fontSize: 11, color: "#5c5448" }}>{d}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-y-1">
-            {Array.from({ length: firstDow }).map((_, i) => <div key={`e${i}`} />)}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-              const attended = attendSet.has(dateStr);
-              const isToday = day === todayDay;
-              const isFuture = day > todayDay;
-              return (
-                <div key={day} className="flex flex-col items-center gap-1 py-1">
-                  <span style={{ fontFamily: "var(--font-inter)", fontSize: 12, fontWeight: isToday ? 500 : 300, color: isToday ? "#e8e0d0" : isFuture ? "#2a2a2a" : attended ? "#FACA3E" : "#3a3a3a" }}>
-                    {day}
-                  </span>
-                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: attended ? "#FACA3E" : isToday ? "rgba(255,255,255,0.12)" : "transparent", boxShadow: attended ? "0 0 5px rgba(250,202,62,0.55)" : "none" }} />
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex items-center gap-2 mt-4 pt-3" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#FACA3E", boxShadow: "0 0 5px rgba(250,202,62,0.55)" }} />
-            <span style={{ fontSize: 11, color: "#5c5448" }}>출석</span>
-            <span style={{ fontSize: 11, color: "#3a3a3a", marginLeft: 10 }}>{attendCount} / {daysInMonth}일</span>
-          </div>
-        </div>
-
-        {/* 연속 출석 보너스 */}
-        <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 12 }}>연속 출석 보너스</p>
-        <div className="flex flex-col gap-2 mb-8">
-          {MILESTONES.map((m) => {
-            const achieved = streak >= m.days;
-            return (
-              <div key={m.days} className="rounded-xl px-4 py-3.5 border flex items-center justify-between"
-                style={{ background: achieved ? "rgba(255,255,255,0.03)" : "#141414", borderColor: achieved ? `${m.color}35` : "rgba(255,255,255,0.06)", opacity: achieved ? 1 : 0.45 }}>
-                <div className="flex items-center gap-2">
-                  <span style={{ fontSize: 13, fontWeight: 500, color: achieved ? m.color : "#5c5448" }}>{m.label}</span>
-                  {achieved && <span style={{ fontSize: 10, color: m.color, background: `${m.color}18`, padding: "1px 6px", borderRadius: 4 }}>달성</span>}
-                </div>
-                <span style={{ fontFamily: "var(--font-inter)", fontSize: 18, fontWeight: 300, color: achieved ? m.color : "#2a2a2a", letterSpacing: "-0.02em" }}>
-                  +{m.bonus.toLocaleString()}P
-                </span>
+        {/* ── 내 정보 탭 ── */}
+        {tab === "info" && (
+          <>
+            {/* 포인트 + 출석률 */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
+                <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>누적 포인트</p>
+                <p style={{ fontFamily: "var(--font-inter)", fontSize: 26, fontWeight: 300, color: "#FACA3E", letterSpacing: "-0.02em" }}>
+                  {userRow.total_points.toLocaleString()}P
+                </p>
               </div>
-            );
-          })}
-        </div>
-
-        {/* 로그아웃 */}
-        <button onClick={signOut} className="pico-btn w-full rounded-xl py-3 mb-3"
-          style={{ background: "transparent", color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 500 }}>
-          로그아웃
-        </button>
-
-        {/* 회원 탈퇴 */}
-        {!showDeleteConfirm ? (
-          <button onClick={() => setShowDeleteConfirm(true)} className="pico-btn w-full py-2"
-            style={{ background: "transparent", color: "#5c5448", fontSize: 13, border: "none" }}>
-            회원 탈퇴
-          </button>
-        ) : (
-          <div className="rounded-2xl p-5 border" style={{ background: "rgba(240,120,120,0.06)", borderColor: "rgba(240,120,120,0.25)" }}>
-            <p style={{ fontSize: 14, color: "#f07878", marginBottom: 12, fontWeight: 500 }}>정말 탈퇴할까? 모든 포인트와 기록이 삭제돼.</p>
-            <div className="flex gap-2">
-              <button onClick={handleDeleteAccount} disabled={deleteLoading} className="pico-btn flex-1 py-2.5 rounded-xl"
-                style={{ background: "#f07878", color: "#0d0d0d", fontSize: 13, fontWeight: 500 }}>
-                {deleteLoading ? "처리중..." : "탈퇴할게"}
-              </button>
-              <button onClick={() => setShowDeleteConfirm(false)} className="pico-btn flex-1 py-2.5 rounded-xl"
-                style={{ background: "#1c1c1c", color: "#a09688", fontSize: 13, border: "0.5px solid rgba(255,255,255,0.1)" }}>
-                취소
-              </button>
+              <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(126,212,160,0.2)" }}>
+                <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>이번 달 출석</p>
+                <p style={{ fontFamily: "var(--font-inter)", fontSize: 26, fontWeight: 300, color: "#7ed4a0", letterSpacing: "-0.02em" }}>
+                  {attendRate}%
+                </p>
+                <p style={{ fontSize: 11, color: "#5c5448", marginTop: 4 }}>{attendCount}일 / {daysInMonth}일</p>
+              </div>
             </div>
-          </div>
+
+            {/* 출석 캘린더 */}
+            <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 12 }}>출석 캘린더</p>
+
+            <div className="rounded-2xl px-5 py-4 border mb-3 flex items-center justify-between" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
+              <div>
+                <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 4 }}>현재 연속 출석</p>
+                <div className="flex items-baseline gap-1.5">
+                  <span style={{ fontFamily: "var(--font-inter)", fontSize: 34, fontWeight: 300, color: "#FACA3E", letterSpacing: "-0.03em" }}>{streak}</span>
+                  <span style={{ fontSize: 15, color: "#a09688" }}>일 연속</span>
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <p style={{ fontSize: 12, color: "#5c5448" }}>
+                  {streak === 0 ? "오늘 배틀 투표로 시작!" : "VS 배틀 투표 → +50P"}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl p-5 border mb-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+              <p style={{ fontSize: 12, color: "#a09688", fontWeight: 500, marginBottom: 14 }}>
+                {now.toLocaleDateString("ko-KR", { year: "numeric", month: "long" })}
+              </p>
+              <div className="grid grid-cols-7 mb-2">
+                {["일","월","화","수","목","금","토"].map((d) => (
+                  <div key={d} style={{ textAlign: "center", fontSize: 11, color: "#5c5448" }}>{d}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-y-1">
+                {Array.from({ length: firstDow }).map((_, i) => <div key={`e${i}`} />)}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                  const attended = attendSet.has(dateStr);
+                  const isToday = day === todayDay;
+                  const isFuture = day > todayDay;
+                  return (
+                    <div key={day} className="flex flex-col items-center gap-1 py-1">
+                      <span style={{ fontFamily: "var(--font-inter)", fontSize: 12, fontWeight: isToday ? 500 : 300, color: isToday ? "#e8e0d0" : isFuture ? "#2a2a2a" : attended ? "#FACA3E" : "#3a3a3a" }}>
+                        {day}
+                      </span>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: attended ? "#FACA3E" : isToday ? "rgba(255,255,255,0.12)" : "transparent", boxShadow: attended ? "0 0 5px rgba(250,202,62,0.55)" : "none" }} />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 mt-4 pt-3" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#FACA3E", boxShadow: "0 0 5px rgba(250,202,62,0.55)" }} />
+                <span style={{ fontSize: 11, color: "#5c5448" }}>출석</span>
+                <span style={{ fontSize: 11, color: "#3a3a3a", marginLeft: 10 }}>{attendCount} / {daysInMonth}일</span>
+              </div>
+            </div>
+
+            {/* 연속 출석 보너스 */}
+            <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 12 }}>연속 출석 보너스</p>
+            <div className="flex flex-col gap-2 mb-8">
+              {MILESTONES.map((m) => {
+                const achieved = streak >= m.days;
+                return (
+                  <div key={m.days} className="rounded-xl px-4 py-3.5 border flex items-center justify-between"
+                    style={{ background: achieved ? "rgba(255,255,255,0.03)" : "#141414", borderColor: achieved ? `${m.color}35` : "rgba(255,255,255,0.06)", opacity: achieved ? 1 : 0.45 }}>
+                    <div className="flex items-center gap-2">
+                      <span style={{ fontSize: 13, fontWeight: 500, color: achieved ? m.color : "#5c5448" }}>{m.label}</span>
+                      {achieved && <span style={{ fontSize: 10, color: m.color, background: `${m.color}18`, padding: "1px 6px", borderRadius: 4 }}>달성</span>}
+                    </div>
+                    <span style={{ fontFamily: "var(--font-inter)", fontSize: 18, fontWeight: 300, color: achieved ? m.color : "#2a2a2a", letterSpacing: "-0.02em" }}>
+                      +{m.bonus.toLocaleString()}P
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 로그아웃 */}
+            <button onClick={signOut} className="pico-btn w-full rounded-xl py-3 mb-3"
+              style={{ background: "transparent", color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 500 }}>
+              로그아웃
+            </button>
+
+            {!showDeleteConfirm ? (
+              <button onClick={() => setShowDeleteConfirm(true)} className="pico-btn w-full py-2"
+                style={{ background: "transparent", color: "#5c5448", fontSize: 13, border: "none" }}>
+                회원 탈퇴
+              </button>
+            ) : (
+              <div className="rounded-2xl p-5 border" style={{ background: "rgba(240,120,120,0.06)", borderColor: "rgba(240,120,120,0.25)" }}>
+                <p style={{ fontSize: 14, color: "#f07878", marginBottom: 12, fontWeight: 500 }}>정말 탈퇴할까? 모든 포인트와 기록이 삭제돼.</p>
+                <div className="flex gap-2">
+                  <button onClick={handleDeleteAccount} disabled={deleteLoading} className="pico-btn flex-1 py-2.5 rounded-xl"
+                    style={{ background: "#f07878", color: "#0d0d0d", fontSize: 13, fontWeight: 500 }}>
+                    {deleteLoading ? "처리중..." : "탈퇴할게"}
+                  </button>
+                  <button onClick={() => setShowDeleteConfirm(false)} className="pico-btn flex-1 py-2.5 rounded-xl"
+                    style={{ background: "#1c1c1c", color: "#a09688", fontSize: 13, border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                    취소
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── 투자 DNA 탭 ── */}
+        {tab === "dna" && (
+          <>
+            {dnaType ? (
+              <>
+                {/* 타입 헤더 */}
+                <div className="rounded-2xl p-6 border mb-4" style={{ background: `${dnaType.color}12`, borderColor: `${dnaType.color}35` }}>
+                  <div className="flex items-start gap-4">
+                    <span style={{ fontSize: 52, lineHeight: 1 }}>{dnaType.emoji}</span>
+                    <div className="flex-1">
+                      <p style={{ fontSize: 11, letterSpacing: "0.14em", color: dnaType.color, textTransform: "uppercase", marginBottom: 4 }}>{dnaType.modifier}</p>
+                      <p style={{ fontSize: 26, fontWeight: 600, color: "#e8e0d0", marginBottom: 6 }}>{dnaType.name}</p>
+                      <p style={{ fontSize: 13, color: "#a09688", lineHeight: 1.5 }}>{dnaType.tagline}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 성향 */}
+                <div className="rounded-2xl p-5 border mb-3" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                  <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10 }}>투자 성향</p>
+                  <p style={{ fontSize: 14, color: "#c8c0b0", lineHeight: 1.7 }}>{dnaType.desc}</p>
+                </div>
+
+                {/* 자산 배분 */}
+                <div className="rounded-2xl p-5 border mb-3" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                  <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 12 }}>추천 자산 배분</p>
+                  <div className="flex flex-col gap-2.5">
+                    {dnaType.allocation.map((item, i) => (
+                      <div key={i}>
+                        <div className="flex justify-between mb-1">
+                          <span style={{ fontSize: 13, color: "#a09688" }}>{item.label}</span>
+                          <span style={{ fontFamily: "var(--font-inter)", fontSize: 13, fontWeight: 500, color: dnaType.color }}>{item.pct}%</span>
+                        </div>
+                        <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${item.pct}%`, background: dnaType.color, borderRadius: 2, opacity: 0.7 }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 추천 종목 */}
+                <div className="rounded-2xl p-5 border mb-3" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                  <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10 }}>추천 ETF · 종목</p>
+                  <div className="flex flex-wrap gap-2">
+                    {dnaType.recommended.map((s, i) => (
+                      <span key={i} style={{ fontSize: 13, color: dnaType.color, background: `${dnaType.color}15`, padding: "4px 10px", borderRadius: 8, border: `0.5px solid ${dnaType.color}30` }}>
+                        {s.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 경계 경고 */}
+                <div className="rounded-2xl p-5 border mb-3" style={{ background: "rgba(240,120,120,0.05)", borderColor: "rgba(240,120,120,0.2)" }}>
+                  <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#f07878", textTransform: "uppercase", marginBottom: 10 }}>주의 · 경계</p>
+                  <div className="flex flex-col gap-2">
+                    {dnaType.guards.map((g, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <span style={{ fontSize: 12, color: "#f07878", marginTop: 1 }}>⚠</span>
+                        <div>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0" }}>{g.title} </span>
+                          <span style={{ fontSize: 13, color: "#c8c0b0", lineHeight: 1.5 }}>{g.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 궁합 타입 */}
+                {(() => {
+                  const compat = INVESTOR_TYPES[dnaType.compatible as TypeKey];
+                  return compat ? (
+                    <div className="rounded-2xl p-5 border mb-5" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                      <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10 }}>찰떡 궁합 유형</p>
+                      <div className="flex items-center gap-3">
+                        <span style={{ fontSize: 32 }}>{compat.emoji}</span>
+                        <div>
+                          <p style={{ fontSize: 11, color: compat.color, marginBottom: 2 }}>{compat.modifier}</p>
+                          <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>{compat.name}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+
+                {/* 모든 유형 보기 */}
+                <button onClick={() => setShowAllTypes((v) => !v)} className="pico-btn w-full rounded-xl py-3 mb-4"
+                  style={{ background: "transparent", color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 14 }}>
+                  {showAllTypes ? "접기" : "모든 유형 보기"}
+                </button>
+
+                {showAllTypes && (
+                  <div className="flex flex-col gap-3 mb-6">
+                    {TYPE_KEYS.map((key) => {
+                      const t = INVESTOR_TYPES[key];
+                      const isMe = key === userRow.investor_type;
+                      return (
+                        <div key={key} className="rounded-2xl p-4 border flex items-center gap-4"
+                          style={{ background: isMe ? `${t.color}10` : "#141414", borderColor: isMe ? `${t.color}40` : "rgba(255,255,255,0.06)" }}>
+                          <span style={{ fontSize: 32, flexShrink: 0 }}>{t.emoji}</span>
+                          <div className="flex-1 min-w-0">
+                            <p style={{ fontSize: 10, color: t.color, marginBottom: 2, letterSpacing: "0.1em", textTransform: "uppercase" }}>{t.modifier}</p>
+                            <p style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0" }}>{t.name}</p>
+                            <p style={{ fontSize: 12, color: "#5c5448", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.tagline}</p>
+                          </div>
+                          {isMe && (
+                            <span style={{ fontSize: 10, color: t.color, background: `${t.color}18`, padding: "2px 7px", borderRadius: 4, flexShrink: 0 }}>나</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="rounded-2xl p-8 border text-center" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                <p style={{ fontSize: 32, marginBottom: 16 }}>🧬</p>
+                <p style={{ fontSize: 16, color: "#a09688", marginBottom: 6 }}>아직 투자 DNA를 몰라</p>
+                <p style={{ fontSize: 13, color: "#5c5448", marginBottom: 20 }}>18개 질문으로 나만의 투자 유형을 찾아봐</p>
+                <Link href="/quiz"
+                  style={{ display: "inline-block", background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500, padding: "10px 24px", borderRadius: 12, textDecoration: "none" }}>
+                  투자 DNA 테스트 시작
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>
