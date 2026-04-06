@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, type CSSProperties } from "react";
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
@@ -8,6 +8,7 @@ import { fetchNews, NEWS_FALLBACK, type NewsItem, type NewsCat } from "@/app/lib
 import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory } from "@/app/lib/stockNames";
 import { supabase, getTodayVote, submitVoteAndAttendance } from "@/app/lib/supabase";
 import { useAuth } from "@/app/lib/authContext";
+import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
@@ -192,6 +193,8 @@ export default function Home() {
   const [quizDone,   setQuizDone]   = useState(false);
   const [battleDone, setBattleDone] = useState(false);
   const [quizType,   setQuizType]   = useState<string | null>(null);
+  const [popupType,  setPopupType]  = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [battleVote, setBattleVote] = useState<"a"|"b"|null>(null);
   const [votesA, setVotesA] = useState(INIT_VOTES_A);
   const [votesB, setVotesB] = useState(INIT_VOTES_B);
@@ -236,15 +239,12 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
 
-    const qRaw      = localStorage.getItem("pico_quiz_done");
     const bRaw      = localStorage.getItem("pico_battle_done");
     const battleData = localStorage.getItem(BATTLE_KEY);
 
-    const qDone = qRaw ? JSON.parse(qRaw).done === true : false;
+    // 비로그인 유저는 localStorage의 퀴즈 데이터를 무시 — quizDone/quizType은 DB(userRow)에서만 설정
     const bDone = bRaw === "true";
-    setQuizDone(qDone);
     setBattleDone(bDone);
-    if (qRaw) setQuizType(JSON.parse(qRaw).type ?? null);
     if (battleData) {
       const bd = JSON.parse(battleData);
       setBattleVote(bd.choice);
@@ -267,10 +267,9 @@ export default function Home() {
       });
     });
 
-    if (!qDone && !bDone) setModal("onboarding");
-    else if (qDone && !bDone) setModal("followup_battle");
-    // followup_quiz 모달은 localStorage에 퀴즈 완료 기록이 없을 때만
-    else if (!qDone && bDone) setModal("followup_quiz");
+    // 모달: 퀴즈 완료 여부는 DB(userRow)에서 나중에 판단 — 여기선 배틀 미완료 기준으로만 초기 설정
+    if (!bDone) setModal("onboarding");
+    else setModal("followup_quiz");
 
     setCountdown(getMarketCountdown());
     const timer = setInterval(() => setCountdown(getMarketCountdown()), 1000);
@@ -294,12 +293,36 @@ export default function Home() {
     });
   }, [newsCat, mounted]);
 
-  // DB에 investor_type이 있으면 퀴즈 완료로 처리 (팝업 제거)
+  // 카드 슬라이더 마우스 드래그 스크롤
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    let isDown = false, startX = 0, scrollLeft = 0;
+    const onDown  = (e: MouseEvent) => { isDown = true; el.style.cursor = "grabbing"; startX = e.pageX - el.offsetLeft; scrollLeft = el.scrollLeft; };
+    const onLeave = () => { isDown = false; el.style.cursor = "grab"; };
+    const onUp    = () => { isDown = false; el.style.cursor = "grab"; };
+    const onMove  = (e: MouseEvent) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - el.offsetLeft; el.scrollLeft = scrollLeft - (x - startX) * 1.5; };
+    el.addEventListener("mousedown", onDown);
+    el.addEventListener("mouseleave", onLeave);
+    el.addEventListener("mouseup", onUp);
+    el.addEventListener("mousemove", onMove);
+    return () => {
+      el.removeEventListener("mousedown", onDown);
+      el.removeEventListener("mouseleave", onLeave);
+      el.removeEventListener("mouseup", onUp);
+      el.removeEventListener("mousemove", onMove);
+    };
+  }, [mounted]);
+
+  // DB에 investor_type이 있으면 퀴즈 완료로 처리
   useEffect(() => {
     if (userRow?.investor_type) {
       setQuizDone(true);
       setQuizType(userRow.investor_type);
-      if (modal === "followup_quiz") setModal(null);
+      if (modal === "followup_quiz" || modal === "onboarding") {
+        // 퀴즈 완료 + 배틀 미완료 → followup_battle
+        setModal(battleDone ? null : "followup_battle");
+      }
     }
   }, [userRow]);
 
@@ -729,7 +752,7 @@ export default function Home() {
                 ))}
               </div>
               {/* 카드 슬라이더 */}
-              <div className="scroll-x flex gap-3 pb-2" style={{ scrollSnapType: "x mandatory" }}>
+              <div ref={scrollContainerRef} className="scroll-x flex gap-3 pb-2" style={{ scrollSnapType: "x mandatory", cursor: "grab", userSelect: "none" }}>
                 {Object.entries(ANIMAL_NAMES).map(([key, info]) => {
                   const typeColors: Record<string, string> = {
                     tiger: "#f07878", wolf: "#c4b0fc", eagle: "#7eb8f7", fox: "#f5a742",
@@ -740,10 +763,10 @@ export default function Home() {
                   return (
                     <div key={key} className="snap-start flex-shrink-0 rounded-2xl p-4 border cursor-pointer pico-card"
                       style={{ width: 160, background: isMe ? `${color}0c` : "#141414", borderColor: isMe ? `${color}50` : "rgba(255,255,255,0.08)" }}
-                      onClick={() => router.push("/quiz")}>
+                      onClick={() => setPopupType(key)}>
                       <div style={{ fontSize: 28, marginBottom: 8 }}>{info.emoji}</div>
-                      <div style={{ fontSize: 10, color: "#5c5448", marginBottom: 2 }}>{info.modifier}</div>
-                      <div style={{ fontSize: 15, fontWeight: 500, color: isMe ? color : "#e8e0d0", marginBottom: 6, lineHeight: 1.2 }}>{info.name}</div>
+                      <div style={{ fontFamily: "'Instrument Sans','Noto Sans KR',sans-serif", fontSize: 12, fontWeight: 400, color: isMe ? color : "#5c5448", marginBottom: 2 }}>{info.modifier}</div>
+                      <div style={{ fontFamily: "'Instrument Sans','Noto Sans KR',sans-serif", fontSize: 17, fontWeight: 500, color: isMe ? color : "#e8e0d0", marginBottom: 6, lineHeight: 1.2 }}>{info.name}</div>
                       {isMe && (
                         <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 4, background: `${color}20`, color, border: `0.5px solid ${color}40`, fontWeight: 500 }}>내 유형</span>
                       )}
@@ -1168,6 +1191,90 @@ export default function Home() {
           </div>
         </>
       )}
+
+      {/* ════════ 유형 상세 팝업 ════════ */}
+      {popupType && (() => {
+        const typeColors: Record<string, string> = {
+          tiger: "#f07878", wolf: "#c4b0fc", eagle: "#7eb8f7", fox: "#f5a742",
+          butterfly: "#FACA3E", hedgehog: "#7ed4a0", elephant: "#7eb8f7", turtle: "#7ed4a0",
+        };
+        const color = typeColors[popupType] ?? "#FACA3E";
+        const info  = ANIMAL_NAMES[popupType];
+        const typeData = INVESTOR_TYPES[popupType as keyof typeof INVESTOR_TYPES];
+        if (!info || !typeData) return null;
+        return (
+          <>
+            <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }} onClick={() => setPopupType(null)} />
+            <div className="fixed inset-x-0 bottom-0 sm:inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
+              <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl border overflow-y-auto fade-up"
+                style={{ background: "#141414", borderColor: `${color}40`, maxHeight: "88vh" }}>
+                {/* 헤더 */}
+                <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
+                  <div className="flex items-center gap-3">
+                    <span style={{ fontSize: 32 }}>{info.emoji}</span>
+                    <div>
+                      <p style={{ fontFamily: "'Instrument Sans','Noto Sans KR',sans-serif", fontSize: 11, fontWeight: 400, color, marginBottom: 2, letterSpacing: "0.06em", textTransform: "uppercase" }}>{info.modifier}</p>
+                      <p style={{ fontFamily: "'Instrument Sans','Noto Sans KR',sans-serif", fontSize: 20, fontWeight: 600, color: "#e8e0d0" }}>{info.name}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setPopupType(null)} className="pico-btn flex items-center justify-center rounded-xl w-8 h-8" style={{ background: "#1c1c1c", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 14 }}>✕</button>
+                </div>
+
+                <div className="px-6 py-5 flex flex-col gap-4">
+                  {/* 성향 */}
+                  <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.8, fontWeight: 300 }}>{typeData.desc}</p>
+
+                  {/* 포트폴리오 */}
+                  <div className="rounded-xl p-4 border" style={{ background: "#1c1c1c", borderColor: "rgba(255,255,255,0.07)" }}>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <p style={{ fontSize: 11, letterSpacing: "0.1em", color: "#5c5448", textTransform: "uppercase", fontWeight: 500 }}>포트폴리오 배분</p>
+                      <span title="포트폴리오 = 내가 투자한 자산들의 구성 비율. 어디에 얼마나 투자했는지 보여줘."
+                        style={{ fontSize: 10, color: "#5c5448", background: "#242424", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: "50%", width: 14, height: 14, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "help", flexShrink: 0 }}>?</span>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {typeData.allocation.map((a) => (
+                        <div key={a.label} className="flex justify-between items-center">
+                          <span style={{ fontSize: 13, color: "#c8c0b0" }}>{a.label}</span>
+                          <span style={{ fontFamily: "var(--font-inter)", fontSize: 14, fontWeight: 600, color }}>{a.pct}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 잘 맞는 스타일 */}
+                  <div className="rounded-xl p-4 border" style={{ background: "#1c1c1c", borderColor: "rgba(255,255,255,0.07)" }}>
+                    <p style={{ fontSize: 11, letterSpacing: "0.1em", color: "#5c5448", textTransform: "uppercase", fontWeight: 500, marginBottom: 10 }}>잘 맞는 종목 스타일</p>
+                    <div className="flex flex-col gap-2">
+                      {typeData.recommended.filter((r) => r.label !== "피할 것").map((r) => (
+                        <div key={r.label} className="flex gap-2">
+                          <span style={{ fontSize: 10, color, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", paddingTop: 2, flexShrink: 0 }}>{r.label}</span>
+                          <span style={{ fontSize: 13, color: "#a09688", lineHeight: 1.5 }}>{r.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 조심할 것 */}
+                  <div className="flex flex-col gap-2">
+                    {typeData.guards.map((g) => (
+                      <div key={g.title} className="rounded-xl p-4 border" style={{ background: "rgba(240,120,120,0.06)", borderColor: "rgba(240,120,120,0.2)" }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: "#f07878", marginBottom: 4 }}>⚠️ {g.title}</p>
+                        <p style={{ fontSize: 13, color: "#c8c0b0", lineHeight: 1.65, fontWeight: 300 }}>{g.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  <button onClick={() => { setPopupType(null); router.push("/quiz"); }} className="pico-btn w-full rounded-xl py-3.5"
+                    style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 600, border: "none", marginBottom: 8 }}>
+                    나도 테스트 해보기 →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

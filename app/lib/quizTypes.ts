@@ -36,7 +36,6 @@ export type InvestorType = {
   allocation: { label: string; pct: string }[];
   recommended: { label: string; value: string }[];
   guards: { title: string; desc: string }[];
-  compatible: string; // 궁합 유형 이름
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,7 +62,6 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
       { title: "⚡ FOMO 충동 매수", desc: "분석 없이 화제 종목을 바로 사는 패턴. 매수 전 '이 종목을 3줄로 설명할 수 있나'를 자문해보세요." },
       { title: "🔥 과도한 확신", desc: "수익이 연속으로 나면 비중을 무리하게 늘리는 경향. 단일 종목 비중 25% 이내를 지켜요." },
     ],
-    compatible: "복리의 설계자 코끼리",
   },
   wolf: {
     emoji: "🐺", modifier: "역발상의 철학자", name: "늑대",
@@ -85,7 +83,6 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
       { title: "⚡ 역발상 과신", desc: "바닥이라고 판단해 너무 일찍 진입하는 패턴. '더 떨어질 수 있다'를 항상 열어두세요." },
       { title: "🕳️ 가치 함정 (Value Trap)", desc: "싼 이유가 따로 있는 종목. PER 외에 매출 성장률·부채비율도 반드시 확인하세요." },
     ],
-    compatible: "안전 제일 수호자 거북이",
   },
   eagle: {
     emoji: "🦅", modifier: "집중 돌파의", name: "독수리",
@@ -107,7 +104,6 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
       { title: "⚡ 타이밍 과신", desc: "바닥·고점을 정확히 맞출 수 있다는 생각은 통계적으로 틀릴 확률이 높아요." },
       { title: "🔥 집중 리스크", desc: "섹터 집중 투자 시 해당 섹터 동반 하락 때 타격이 크므로 섹터 간 분산도 고려하세요." },
     ],
-    compatible: "방어의 전략가 고슴도치",
   },
   fox: {
     emoji: "🦊", modifier: "정보의 연금술사", name: "여우",
@@ -129,7 +125,6 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
       { title: "⚡ 소셜 의존 과잉", desc: "커뮤니티 알림을 끄는 것도 방법. 정보를 다양한 채널로 교차 검증하는 습관을 만드세요." },
       { title: "💸 잦은 매매 비용", desc: "트렌드 체이싱이 수수료·세금을 갉아먹어요. 진입 이유를 메모해 두고 재진입 기준을 명확히 하세요." },
     ],
-    compatible: "복리의 설계자 코끼리",
   },
   butterfly: {
     emoji: "🦋", modifier: "예술가적 직관가", name: "나비",
@@ -151,7 +146,6 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
       { title: "🎨 감각 과신", desc: "직관이 강점이지만 최소 1개 숫자(매출 성장률 등)로 검증하는 습관을 만드세요." },
       { title: "⚡ 트렌드 사이클 착각", desc: "테마주는 피크 때 진입하면 긴 하락을 버텨야 해요. 유행 초기에 들어갔는지 확인하세요." },
     ],
-    compatible: "역발상의 철학자 늑대",
   },
   hedgehog: {
     emoji: "🦔", modifier: "방어의 전략가", name: "고슴도치",
@@ -173,7 +167,6 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
       { title: "💰 기회비용 손실", desc: "너무 안전만 추구하면 인플레이션에 실질 자산이 감소해요. 주식 ETF 비중 최소 40%는 유지하세요." },
       { title: "🚪 손실 회피 과잉", desc: "-5%만 되어도 팔고 싶어지는 심리. 분기 1회 포트폴리오 확인 규칙으로 잦은 개입을 차단하세요." },
     ],
-    compatible: "집중 돌파의 독수리",
   },
   elephant: {
     emoji: "🐘", modifier: "복리의 설계자", name: "코끼리",
@@ -195,7 +188,6 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
       { title: "🔒 집중 투자 함정", desc: "장기 보유에 익숙해지면 '이건 확실해'라는 착각으로 한 종목에 과도하게 몰리는 경향. 단일 종목 30% 이내를 지켜요." },
       { title: "⏱️ 타이밍 무시 리스크", desc: "장기 투자여도 밸류에이션이 극단적으로 높을 때는 추가 매수 속도를 조절하는 게 좋아요." },
     ],
-    compatible: "공격적 개척자 호랑이",
   },
   turtle: {
     emoji: "🐢", modifier: "안전 제일 수호자", name: "거북이",
@@ -217,7 +209,6 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
       { title: "💰 기회비용 손실", desc: "너무 방어적이면 인플레이션에 실질 자산이 줄어요. 주식 비중 최소 40%는 확보하세요." },
       { title: "🚪 손실 회피 과잉", desc: "작은 손실에도 팔고 싶어지는 심리가 장기 수익을 갉아먹어요. 리밸런싱은 분기 1회로 제한하세요." },
     ],
-    compatible: "복리의 설계자 코끼리",
   },
 };
 

@@ -133,13 +133,6 @@ export default function DnaPage() {
               ))}
             </div>
 
-            {/* ── 궁합 ── */}
-            <div className="rounded-2xl px-8 py-5 border mb-6"
-              style={{ background: "rgba(255,255,255,0.025)", borderColor: "rgba(255,255,255,0.1)" }}>
-              <p style={{ fontSize: 14, letterSpacing: "0.14em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10, fontWeight: 500 }}>찰떡 궁합 유형</p>
-              <p style={{ fontSize: "clamp(15px, 2.8vw, 18px)", color: "#e8e0d0", lineHeight: 1.65 }}>{dnaType.compatible}</p>
-            </div>
-
             {/* ── 공유 + 다시 하기 ── */}
             <div className="flex gap-3 mb-8">
               <button onClick={share} className="pico-btn flex-1 py-4 rounded-2xl"

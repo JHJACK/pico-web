@@ -40,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     await supabase.auth.signOut();
+    localStorage.clear();
+    sessionStorage.clear();
     setUser(null);
     setUserRow(null);
   }

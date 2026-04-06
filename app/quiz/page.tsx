@@ -69,15 +69,16 @@ export default function QuizPage() {
     setShowFull(true);
   }, [user]);
 
-  // 이미 완료한 유형 확인
+  // 이미 완료한 유형 확인 (로그인 사용자만)
   const [existingType, setExistingType] = useState<TypeKey | null>(null);
   useEffect(() => {
+    if (!user) { setExistingType(null); return; }
     const raw = localStorage.getItem("pico_quiz_done");
     if (raw) {
       const { done, type } = JSON.parse(raw);
       if (done && type) setExistingType(type as TypeKey);
     }
-  }, []);
+  }, [user]);
 
   const progress  = step === 0 ? 0 : Math.min((step / TOTAL) * 100, 100);
   const currentQ  = step >= 1 && step <= TOTAL ? QUESTIONS[step - 1] : null;
@@ -474,14 +475,6 @@ export default function QuizPage() {
                   </div>
                 </div>
 
-                {/* 궁합 유형 */}
-                <div className="rounded-2xl px-5 py-4 border mb-6 flex items-center gap-3" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                  <span style={{ fontSize: 22 }}>💞</span>
-                  <div>
-                    <p style={{ fontSize: 11, color: "#5c5448", marginBottom: 2 }}>투자 궁합 유형</p>
-                    <p style={{ fontSize: "clamp(14px, 3vw, 16px)", fontWeight: 500, color: "#e8e0d0" }}>{typeData.compatible}</p>
-                  </div>
-                </div>
               </>
             )}
 
