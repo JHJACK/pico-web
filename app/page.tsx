@@ -16,15 +16,15 @@ type ModalType = "onboarding" | "followup_quiz" | "followup_battle" | "login" | 
 type AuthTab   = "login" | "signup";
 type MainTab   = "event" | "play";
 
-const ANIMAL_NAMES: Record<string, { emoji: string; name: string }> = {
-  tiger:     { emoji: "🐯", name: "호랑이"   },
-  eagle:     { emoji: "🦅", name: "독수리"   },
-  wolf:      { emoji: "🐺", name: "늑대"     },
-  fox:       { emoji: "🦊", name: "여우"     },
-  elephant:  { emoji: "🐘", name: "코끼리"   },
-  hedgehog:  { emoji: "🦔", name: "고슴도치" },
-  turtle:    { emoji: "🐢", name: "거북이"   },
-  butterfly: { emoji: "🦋", name: "나비"     },
+const ANIMAL_NAMES: Record<string, { emoji: string; modifier: string; name: string }> = {
+  tiger:     { emoji: "🐯", modifier: "공격적 개척자",  name: "호랑이"   },
+  eagle:     { emoji: "🦅", modifier: "정확한 사냥꾼",  name: "독수리"   },
+  wolf:      { emoji: "🐺", modifier: "역발상 철학자",  name: "늑대"     },
+  fox:       { emoji: "🦊", modifier: "정보 연금술사",  name: "여우"     },
+  elephant:  { emoji: "🐘", modifier: "복리 설계사",    name: "코끼리"   },
+  hedgehog:  { emoji: "🦔", modifier: "철벽 방어",      name: "고슴도치" },
+  turtle:    { emoji: "🐢", modifier: "신중한 수호자",  name: "거북이"   },
+  butterfly: { emoji: "🦋", modifier: "예술가적 직관가", name: "나비"     },
 };
 
 const TODAY_DATE = new Date().toISOString().slice(0, 10);
@@ -269,6 +269,7 @@ export default function Home() {
 
     if (!qDone && !bDone) setModal("onboarding");
     else if (qDone && !bDone) setModal("followup_battle");
+    // followup_quiz 모달은 localStorage에 퀴즈 완료 기록이 없을 때만
     else if (!qDone && bDone) setModal("followup_quiz");
 
     setCountdown(getMarketCountdown());
@@ -292,6 +293,15 @@ export default function Home() {
       setNewsLoading(false);
     });
   }, [newsCat, mounted]);
+
+  // DB에 investor_type이 있으면 퀴즈 완료로 처리 (팝업 제거)
+  useEffect(() => {
+    if (userRow?.investor_type) {
+      setQuizDone(true);
+      setQuizType(userRow.investor_type);
+      if (modal === "followup_quiz") setModal(null);
+    }
+  }, [userRow]);
 
   const isBlurred = modal === "onboarding" || modal === "followup_quiz" || modal === "followup_battle";
   const total = votesA + votesB;
@@ -668,20 +678,76 @@ export default function Home() {
                     <>
                       <div className="rounded-xl px-4 py-4 mb-4" style={{ background: "rgba(250,202,62,0.06)", border: "0.5px solid rgba(250,202,62,0.2)" }}>
                         <div style={{ fontSize: 36, marginBottom: 6 }}>{animalInfo.emoji}</div>
-                        <div style={{ fontSize: 22, fontWeight: 500, color: "#FACA3E" }}>{animalInfo.name}</div>
+                        <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 2 }}>{animalInfo.modifier}</div>
+                        <div style={{ fontSize: 20, fontWeight: 500, color: "#FACA3E" }}>{animalInfo.name}</div>
                         <div style={{ fontSize: 13, color: "#a09688", marginTop: 2, fontWeight: 300 }}>내 투자 유형</div>
                       </div>
-                      <button onClick={() => router.push("/quiz")} className="pico-btn w-full rounded-xl py-2.5" style={{ background: "transparent", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 13, fontWeight: 500 }}>다시하기</button>
+                      <div className="flex gap-2">
+                        <button onClick={() => router.push("/mypage")} className="pico-btn flex-1 rounded-xl py-2.5" style={{ background: "rgba(250,202,62,0.08)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.25)", fontSize: 13, fontWeight: 500 }}>상세 리포트</button>
+                        <button onClick={() => router.push("/quiz")} className="pico-btn px-4 rounded-xl py-2.5" style={{ background: "transparent", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 13 }}>다시하기</button>
+                      </div>
                     </>
                   ) : (
                     <>
-                      <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.75, marginBottom: 16, fontWeight: 300 }}>12문항 A/B 선택으로 8가지 동물 유형 중 나를 찾아봐.</p>
+                      <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.75, marginBottom: 16, fontWeight: 300 }}>18문항으로 4가지 축을 측정해 8가지 유형 중 나를 찾아봐.</p>
                       <button onClick={() => router.push("/quiz")} className="pico-btn w-full rounded-xl py-3" style={{ background: "rgba(126,184,247,0.1)", color: "#7eb8f7", border: "0.5px solid rgba(126,184,247,0.3)", fontSize: 14, fontWeight: 500 }}>
                         🧬 DNA 확인하러 가기
                       </button>
                     </>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* ── 8가지 투자 DNA 유형 슬라이더 ── */}
+            <div className="pt-10 pb-10 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+              <div className="flex items-end justify-between mb-5">
+                <div>
+                  <p style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>8가지 투자 DNA 유형</p>
+                  <p style={{ fontSize: 13, color: "#a09688", fontWeight: 300 }}>4가지 성향 축으로 분류한 투자자 아키타입</p>
+                </div>
+                <button onClick={() => router.push("/quiz")} className="pico-btn px-4 py-2 rounded-lg flex-shrink-0"
+                  style={{ background: "rgba(250,202,62,0.1)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.25)", fontSize: 12, fontWeight: 500 }}>
+                  내 유형 찾기 →
+                </button>
+              </div>
+              {/* 4축 설명 컴팩트 */}
+              <div className="flex flex-wrap gap-2 mb-5">
+                {[
+                  { ax: "R", label: "변동성 회복력", sub: "손실 내성·추가매수 의향", color: "#f07878" },
+                  { ax: "I", label: "정보 필터링",   sub: "분석 깊이·결정 속도",   color: "#7eb8f7" },
+                  { ax: "T", label: "이용 호흡",     sub: "단기 vs 장기 보유",     color: "#7ed4a0" },
+                  { ax: "Y", label: "수익 성향",     sub: "성장주 vs 배당·안정주", color: "#FACA3E" },
+                ].map((a) => (
+                  <div key={a.ax} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: `${a.color}0f`, border: `0.5px solid ${a.color}28` }}>
+                    <span style={{ fontFamily: "var(--font-inter)", fontSize: 11, fontWeight: 500, color: a.color }}>{a.ax}</span>
+                    <span style={{ fontSize: 11, color: "#a09688" }}>{a.label}</span>
+                    <span style={{ fontSize: 10, color: "#5c5448", display: "none" }}>{a.sub}</span>
+                  </div>
+                ))}
+              </div>
+              {/* 카드 슬라이더 */}
+              <div className="scroll-x flex gap-3 pb-2" style={{ scrollSnapType: "x mandatory" }}>
+                {Object.entries(ANIMAL_NAMES).map(([key, info]) => {
+                  const typeColors: Record<string, string> = {
+                    tiger: "#f07878", wolf: "#c4b0fc", eagle: "#7eb8f7", fox: "#f5a742",
+                    butterfly: "#FACA3E", hedgehog: "#7ed4a0", elephant: "#7eb8f7", turtle: "#7ed4a0",
+                  };
+                  const color = typeColors[key] ?? "#FACA3E";
+                  const isMe = quizType === key;
+                  return (
+                    <div key={key} className="snap-start flex-shrink-0 rounded-2xl p-4 border cursor-pointer pico-card"
+                      style={{ width: 160, background: isMe ? `${color}0c` : "#141414", borderColor: isMe ? `${color}50` : "rgba(255,255,255,0.08)" }}
+                      onClick={() => router.push("/quiz")}>
+                      <div style={{ fontSize: 28, marginBottom: 8 }}>{info.emoji}</div>
+                      <div style={{ fontSize: 10, color: "#5c5448", marginBottom: 2 }}>{info.modifier}</div>
+                      <div style={{ fontSize: 15, fontWeight: 500, color: isMe ? color : "#e8e0d0", marginBottom: 6, lineHeight: 1.2 }}>{info.name}</div>
+                      {isMe && (
+                        <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 4, background: `${color}20`, color, border: `0.5px solid ${color}40`, fontWeight: 500 }}>내 유형</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
