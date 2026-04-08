@@ -316,68 +316,6 @@ export default function BattlePage() {
           </div>
         )}
 
-        {/* 카테고리 안내 */}
-        <div
-          className="rounded-xl p-4 border"
-          style={{
-            background: "#141414",
-            borderColor: "rgba(255,255,255,0.06)",
-          }}
-        >
-          <div
-            className="text-xs font-semibold tracking-widest uppercase mb-3"
-            style={{ fontFamily: "var(--font-mono)", color: "#5c5448" }}
-          >
-            배틀 카테고리 예시
-          </div>
-          {[
-            { icon: "🏨", label: "숙박", desc: "에어비앤비 vs 힐튼 / 메리어트 vs 하얏트" },
-            { icon: "⚡", label: "전기차", desc: "테슬라 vs 리비안 / BYD vs 니오" },
-            { icon: "☕", label: "소비재", desc: "스타벅스 vs 맥도날드 / 나이키 vs 아디다스" },
-            { icon: "🤖", label: "AI·반도체", desc: "엔비디아 vs AMD / 삼성전자 vs SK하이닉스" },
-          ].map((cat, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-2 py-2.5 border-b"
-              style={{
-                borderColor: "rgba(255,255,255,0.06)",
-                ...(i === 3 ? { borderBottom: "none" } : {}),
-              }}
-            >
-              <span style={{ fontSize: 14 }}>{cat.icon}</span>
-              <div>
-                <span style={{ fontSize: 13, color: "#e8e0d0", fontWeight: 500 }}>{cat.label}</span>
-                <span style={{ fontSize: 12, color: "#5c5448", marginLeft: 8 }}>{cat.desc}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 퀴즈 유도 */}
-        <div
-          className="mt-4 rounded-2xl p-5 border"
-          style={{
-            background: "#141414",
-            borderColor: "rgba(126,184,247,0.15)",
-          }}
-        >
-          <div style={{ fontSize: 13, color: "#a09688", marginBottom: 12 }}>
-            내 투자 성향도 확인해볼래?
-          </div>
-          <Link
-            href="/quiz"
-            className="inline-block rounded-xl px-5 py-2.5 text-sm border transition-all"
-            style={{
-              color: "#7eb8f7",
-              border: "0.5px solid rgba(126,184,247,0.25)",
-              fontFamily: "var(--font-mono)",
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            🧬 투자 DNA 찾기
-          </Link>
-        </div>
       </div>
     </main>
   );

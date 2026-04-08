@@ -77,6 +77,19 @@ export async function getUserRow(uid: string): Promise<UserRow | null> {
   return data as UserRow | null;
 }
 
+// ── 오늘 battle_vote 투표 수 집계 ────────────────
+export async function getTodayBattleVoteCounts(): Promise<{ votesA: number; votesB: number }> {
+  const today = todayKST();
+  const { data } = await supabase
+    .from("battle_votes")
+    .select("voted_for")
+    .eq("date", today);
+  const rows = (data ?? []) as { voted_for: string }[];
+  const votesA = rows.filter((r) => r.voted_for === "ABNB").length;
+  const votesB = rows.filter((r) => r.voted_for === "HLT").length;
+  return { votesA, votesB };
+}
+
 // ── 오늘 battle_vote 존재 여부 ────────────────────
 export async function getTodayVote(uid: string): Promise<BattleVoteRow | null> {
   const { data } = await supabase

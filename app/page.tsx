@@ -6,14 +6,14 @@ import Link from "next/link";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
 import { fetchNews, NEWS_FALLBACK, type NewsItem, type NewsCat } from "@/app/lib/news";
 import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory } from "@/app/lib/stockNames";
-import { supabase, getTodayVote, submitVoteAndAttendance } from "@/app/lib/supabase";
+import { supabase, getTodayVote, submitVoteAndAttendance, getTodayBattleVoteCounts } from "@/app/lib/supabase";
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
 // ═══════════════════════════════════════════════
-type ModalType = "onboarding" | "followup_quiz" | "followup_battle" | "login" | null;
+type ModalType = "onboarding" | "followup_quiz" | "followup_battle" | "login" | "vs_battle" | null;
 type AuthTab   = "login" | "signup";
 type MainTab   = "event" | "play";
 
@@ -207,6 +207,12 @@ export default function Home() {
   const [authError,   setAuthError]   = useState("");
   const [mounted,   setMounted]  = useState(false);
 
+  // VS 배틀 팝업
+  const [popupBattleVote, setPopupBattleVote] = useState<"a"|"b"|null>(null);
+  const [popupBattleDone, setPopupBattleDone] = useState(false);
+  const [popupVotesA,     setPopupVotesA]     = useState(0);
+  const [popupVotesB,     setPopupVotesB]     = useState(0);
+
   // 출석/보너스 토스트
   const [toast, setToast] = useState<string | null>(null);
 
@@ -254,20 +260,32 @@ export default function Home() {
       setShowResultMsg(true);
     }
 
-    // 로그인 사용자: Supabase에서 오늘 투표 확인
+    // 로그인 사용자: Supabase에서 오늘 투표 확인 + VS 배틀 팝업 체크
     supabase.auth.getUser().then(({ data: { user: u } }) => {
       if (!u) return;
+      const todayKey = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+      const popupKey = `pico_vs_popup_${todayKey}`;
+      const popupShown = sessionStorage.getItem(popupKey);
+
       getTodayVote(u.id).then((vote) => {
         if (vote) {
           setBattleDone(true);
           setBattleVote(vote.voted_for === "ABNB" ? "a" : "b");
           setShowBarAnim(true);
           setShowResultMsg(true);
+        } else if (!popupShown) {
+          // 오늘 첫 접속 + 투표 안 함 → VS 배틀 팝업
+          sessionStorage.setItem(popupKey, "1");
+          setModal("vs_battle");
+          getTodayBattleVoteCounts().then(({ votesA: a, votesB: b }) => {
+            setPopupVotesA(a);
+            setPopupVotesB(b);
+          });
         }
       });
     });
 
-    // 모달: 퀴즈 완료 여부는 DB(userRow)에서 나중에 판단 — 여기선 배틀 미완료 기준으로만 초기 설정
+    // 비로그인 유저 모달: 배틀 미완료면 온보딩, 완료면 followup_quiz
     if (!bDone) setModal("onboarding");
     else setModal("followup_quiz");
 
@@ -366,6 +384,35 @@ export default function Home() {
     }, 300);
     setTimeout(() => { setShowParticlesA(false); setShowParticlesB(false); setJustVoted(null); }, 1000);
   }, [battleVote, battleDone, votesA, votesB, user]);
+
+  async function handleBattlePopupVote() {
+    if (!popupBattleVote || !user || popupBattleDone) return;
+    const choice     = popupBattleVote;
+    const votedTicker = choice === "a" ? "ABNB" : "HLT";
+
+    // Supabase 저장
+    const { bonusDays, bonusPoints } = await submitVoteAndAttendance(user.id, votedTicker, "ABNB", "HLT");
+
+    // 메인 배틀 상태 업데이트
+    const newA = choice === "a" ? votesA + 1 : votesA;
+    const newB = choice === "b" ? votesB + 1 : votesB;
+    setBattleDone(true);
+    setBattleVote(choice);
+    setVotesA(newA);
+    setVotesB(newB);
+    setShowBarAnim(true);
+    setShowResultMsg(true);
+    localStorage.setItem(BATTLE_KEY, JSON.stringify({ choice, votesA: newA, votesB: newB }));
+    localStorage.setItem("pico_battle_done", "true");
+
+    refreshUserRow();
+    if (bonusPoints > 0) {
+      showToast(`🎉 ${bonusDays}일 연속 출석! +${bonusPoints}P 추가 지급`);
+    } else {
+      showToast("✅ 출석 완료 +50P");
+    }
+    setPopupBattleDone(true);
+  }
 
   function openLogin(tab: AuthTab = "login") { setAuthTab(tab); setAuthError(""); setModal("login"); }
 
@@ -1122,6 +1169,124 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* ════════ VS 배틀 팝업 (로그인 유저 첫 접속) ════════ */}
+      {modal === "vs_battle" && (() => {
+        const popTotal = popupVotesA + popupVotesB;
+        const popPctA  = popTotal > 0 ? Math.round((popupVotesA / popTotal) * 100) : 50;
+        const popPctB  = 100 - popPctA;
+        return (
+          <>
+            <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.78)", backdropFilter: "blur(8px)" }} onClick={() => { if (popupBattleDone) setModal(null); }} />
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
+              <div className="w-full max-w-sm rounded-2xl p-5 fade-up" style={{ background: "#141414", border: "0.5px solid rgba(250,202,62,0.25)" }} onClick={(e) => e.stopPropagation()}>
+
+                {!popupBattleDone ? (
+                  <>
+                    {/* 투표 전 */}
+                    <div className="text-center mb-5">
+                      <p style={{ fontSize: 20, fontWeight: 600, color: "#e8e0d0", marginBottom: 6 }}>오늘의 대결 ⚔️</p>
+                      <p style={{ fontSize: 13, color: "#a09688", fontWeight: 300 }}>오늘 장 마감까지 어느 쪽이 더 오를까?</p>
+                    </div>
+
+                    {/* 종목 카드 2개 */}
+                    <div className="flex gap-3 mb-5">
+                      {/* A — ABNB */}
+                      <button
+                        onClick={() => setPopupBattleVote("a")}
+                        className="flex-1 rounded-xl p-4 border text-center pico-btn transition-all"
+                        style={{
+                          background: popupBattleVote === "a" ? "rgba(250,202,62,0.08)" : "#1c1c1c",
+                          borderColor: popupBattleVote === "a" ? "rgba(250,202,62,0.5)" : "rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <div style={{ fontSize: 15, fontWeight: 600, color: popupBattleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 3 }}>ABNB</div>
+                        <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 8 }}>에어비앤비</div>
+                        <div style={{ fontSize: 12, fontWeight: 500, color: popupBattleVote === "a" ? "#FACA3E" : "#a09688" }}>
+                          {popPctA}% 선택 중
+                        </div>
+                        {popupBattleVote === "a" && (
+                          <div style={{ fontSize: 10, color: "#FACA3E", marginTop: 4 }}>✓ 선택됨</div>
+                        )}
+                      </button>
+
+                      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 24, fontSize: 12, color: "#5c5448", fontWeight: 500 }}>VS</div>
+
+                      {/* B — HLT */}
+                      <button
+                        onClick={() => setPopupBattleVote("b")}
+                        className="flex-1 rounded-xl p-4 border text-center pico-btn transition-all"
+                        style={{
+                          background: popupBattleVote === "b" ? "rgba(126,184,247,0.08)" : "#1c1c1c",
+                          borderColor: popupBattleVote === "b" ? "rgba(126,184,247,0.5)" : "rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <div style={{ fontSize: 15, fontWeight: 600, color: popupBattleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 3 }}>HLT</div>
+                        <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 8 }}>힐튼 호텔</div>
+                        <div style={{ fontSize: 12, fontWeight: 500, color: popupBattleVote === "b" ? "#7eb8f7" : "#a09688" }}>
+                          {popPctB}% 선택 중
+                        </div>
+                        {popupBattleVote === "b" && (
+                          <div style={{ fontSize: 10, color: "#7eb8f7", marginTop: 4 }}>✓ 선택됨</div>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* 참여 버튼 */}
+                    <button
+                      onClick={handleBattlePopupVote}
+                      disabled={!popupBattleVote}
+                      className="pico-btn w-full rounded-xl py-3.5 mb-3"
+                      style={{
+                        background: popupBattleVote ? "#FACA3E" : "#242424",
+                        color: popupBattleVote ? "#0d0d0d" : "#5c5448",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      대결 참여하고 출석체크하기
+                    </button>
+                    <button onClick={() => setModal(null)} className="pico-btn w-full py-2" style={{ fontSize: 12, color: "#5c5448" }}>
+                      나중에 할게
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* 투표 완료 후 */}
+                    <div className="text-center mb-5">
+                      <div style={{ fontSize: 36, marginBottom: 10 }}>🎯</div>
+                      <p style={{ fontSize: 17, fontWeight: 600, color: "#e8e0d0", marginBottom: 6 }}>
+                        내일 오전 결과 공개!
+                      </p>
+                      <p style={{ fontSize: 14, color: "#7ed4a0", fontWeight: 500 }}>오늘 출석 완료 ✓</p>
+                    </div>
+
+                    {/* 선택 종목 강조 */}
+                    <div
+                      className="rounded-xl p-4 border text-center mb-5"
+                      style={{
+                        background: popupBattleVote === "a" ? "rgba(250,202,62,0.07)" : "rgba(126,184,247,0.07)",
+                        borderColor: popupBattleVote === "a" ? "rgba(250,202,62,0.4)" : "rgba(126,184,247,0.4)",
+                      }}
+                    >
+                      <div style={{ fontSize: 16, fontWeight: 600, color: popupBattleVote === "a" ? "#FACA3E" : "#7eb8f7", marginBottom: 2 }}>
+                        {popupBattleVote === "a" ? "ABNB 에어비앤비" : "HLT 힐튼 호텔"}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#5c5448" }}>내 선택</div>
+                    </div>
+
+                    <button onClick={() => setModal(null)} className="pico-btn w-full rounded-xl py-3"
+                      style={{ background: "#1c1c1c", color: "#a09688", fontSize: 14, fontWeight: 500, border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                      닫기
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </>
+        );
+      })()}
 
       {/* ════════ 로그인 모달 ════════ */}
       {modal === "login" && (
