@@ -51,23 +51,23 @@ export default function DnaPage() {
         </button>
       </nav>
 
-      <div className="mx-auto px-4 py-8" style={{ maxWidth: 960 }}>
+      <div className="mx-auto py-8 px-4 sm:px-6" style={{ maxWidth: 700 }}>
 
         {dnaType ? (
           <>
             {/* ── 타입 헤더 ── */}
-            <div className="rounded-2xl px-8 py-8 border mb-6 flex items-center justify-between flex-wrap gap-6"
+            <div className="rounded-2xl px-5 py-6 border mb-5 flex items-center justify-between flex-wrap gap-4"
               style={{ background: `${dnaType.color}0d`, borderColor: `${dnaType.color}35` }}>
-              <div className="flex items-center gap-6">
-                <span style={{ fontSize: "clamp(56px, 10vw, 80px)", lineHeight: 1 }}>{dnaType.emoji}</span>
+              <div className="flex items-center gap-4">
+                <span style={{ fontSize: "clamp(44px, 8vw, 60px)", lineHeight: 1 }}>{dnaType.emoji}</span>
                 <div>
-                  <p style={{ fontSize: "clamp(16px, 3vw, 22px)", letterSpacing: "0.08em", color: dnaType.color, fontWeight: 700, marginBottom: 6, textTransform: "uppercase" }}>
+                  <p style={{ fontSize: 13, letterSpacing: "0.08em", color: dnaType.color, fontWeight: 600, marginBottom: 4, textTransform: "uppercase" }}>
                     {dnaType.modifier}
                   </p>
-                  <p style={{ fontSize: "clamp(32px, 7vw, 52px)", fontWeight: 700, color: "#e8e0d0", lineHeight: 1.05, marginBottom: 8 }}>
+                  <p style={{ fontSize: "clamp(24px, 5vw, 36px)", fontWeight: 700, color: "#e8e0d0", lineHeight: 1.05, marginBottom: 6 }}>
                     {dnaType.name}
                   </p>
-                  <p style={{ fontSize: "clamp(14px, 2.8vw, 18px)", color: "#a09688", lineHeight: 1.6, maxWidth: 480 }}>
+                  <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.6, maxWidth: 420 }}>
                     {dnaType.tagline}
                   </p>
                 </div>
@@ -86,34 +86,34 @@ export default function DnaPage() {
             </div>
 
             {/* ── 성향 ── */}
-            <div className="rounded-2xl px-8 py-6 border mb-5" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-              <p style={{ fontSize: 14, letterSpacing: "0.14em", color: "#5c5448", textTransform: "uppercase", marginBottom: 14, fontWeight: 500 }}>투자 성향</p>
-              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", color: "#c8c0b0", lineHeight: 1.85 }}>{dnaType.desc}</p>
+            <div className="rounded-2xl px-5 py-4 border mb-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+              <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10, fontWeight: 400 }}>투자 성향</p>
+              <p style={{ fontSize: 15, color: "#c8c0b0", lineHeight: 1.8 }}>{dnaType.desc}</p>
             </div>
 
             {/* ── 자산배분 + 추천종목 2열 ── */}
-            <div className="grid gap-5 mb-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
+            <div className="grid gap-4 mb-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
               {/* 자산 배분 */}
-              <div className="rounded-2xl px-8 py-6 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                <p style={{ fontSize: 14, letterSpacing: "0.14em", color: "#5c5448", textTransform: "uppercase", marginBottom: 18, fontWeight: 500 }}>적정 자산 배분</p>
-                <div className="flex flex-col gap-5">
+              <div className="rounded-2xl px-5 py-4 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 14, fontWeight: 400 }}>적정 자산 배분</p>
+                <div className="flex flex-col gap-4">
                   {dnaType.allocation.map((item, i) => (
                     <div key={i}>
-                      <p style={{ fontSize: "clamp(16px, 2.8vw, 20px)", fontWeight: 700, color: "#e8e0d0", marginBottom: 4 }}>{item.label}</p>
-                      <p style={{ fontFamily: "var(--font-inter)", fontSize: "clamp(18px, 3vw, 24px)", fontWeight: 300, color: dnaType.color, letterSpacing: "-0.02em" }}>{item.pct}</p>
+                      <p style={{ fontSize: 15, fontWeight: 600, color: "#e8e0d0", marginBottom: 3 }}>{item.label}</p>
+                      <p style={{ fontFamily: "var(--font-inter)", fontSize: 17, fontWeight: 300, color: dnaType.color, letterSpacing: "-0.02em" }}>{item.pct}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* 추천 종목 */}
-              <div className="rounded-2xl px-8 py-6 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                <p style={{ fontSize: 14, letterSpacing: "0.14em", color: "#5c5448", textTransform: "uppercase", marginBottom: 18, fontWeight: 500 }}>추천 종목 스타일</p>
-                <div className="flex flex-col gap-4">
+              <div className="rounded-2xl px-5 py-4 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+                <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 14, fontWeight: 400 }}>추천 종목 스타일</p>
+                <div className="flex flex-col gap-3">
                   {dnaType.recommended.map((r, i) => (
-                    <div key={i} className="pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-                      <p style={{ fontSize: "clamp(12px, 2vw, 15px)", color: dnaType.color, fontWeight: 700, marginBottom: 5, letterSpacing: "0.06em", textTransform: "uppercase" }}>{r.label}</p>
-                      <p style={{ fontSize: "clamp(14px, 2.5vw, 17px)", color: "#c8c0b0", lineHeight: 1.6 }}>{r.value}</p>
+                    <div key={i} className="pb-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                      <p style={{ fontSize: 12, color: dnaType.color, fontWeight: 700, marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" }}>{r.label}</p>
+                      <p style={{ fontSize: 14, color: "#c8c0b0", lineHeight: 1.6 }}>{r.value}</p>
                     </div>
                   ))}
                 </div>
@@ -121,14 +121,14 @@ export default function DnaPage() {
             </div>
 
             {/* ── 위험 경고 ── */}
-            <div className="flex flex-col gap-4 mb-5">
+            <div className="flex flex-col gap-3 mb-5">
               {dnaType.guards.map((g, i) => (
-                <div key={i} className="rounded-2xl px-8 py-5 border"
+                <div key={i} className="rounded-2xl px-5 py-4 border"
                   style={{ background: "rgba(240,120,120,0.06)", borderColor: "rgba(240,120,120,0.22)" }}>
-                  <p style={{ fontSize: "clamp(15px, 2.8vw, 18px)", fontWeight: 700, color: "#f07878", marginBottom: 8 }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#f07878", marginBottom: 6 }}>
                     🚨 위험 신호 — {g.title}
                   </p>
-                  <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", color: "#c8c0b0", lineHeight: 1.75 }}>{g.desc}</p>
+                  <p style={{ fontSize: 13, color: "#c8c0b0", lineHeight: 1.75 }}>{g.desc}</p>
                 </div>
               ))}
             </div>

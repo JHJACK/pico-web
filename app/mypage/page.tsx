@@ -195,7 +195,7 @@ export default function MyPage() {
         </div>
       )}
 
-      <div className="mx-auto px-4 py-8" style={{ maxWidth: 640 }}>
+      <div className="mx-auto py-8 px-4 sm:px-6" style={{ maxWidth: 700 }}>
 
         {/* ── 프로필 카드 ── */}
         <div className="rounded-2xl p-6 border mb-4 flex items-center gap-4"
@@ -208,7 +208,7 @@ export default function MyPage() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
+            <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
             <p style={{ fontSize: 12, color: "#5c5448", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
           </div>
           <button onClick={openEdit} className="pico-btn px-3 py-2 rounded-lg flex-shrink-0"
@@ -220,13 +220,13 @@ export default function MyPage() {
         {/* ── 포인트 + 출석률 ── */}
         <div className="grid grid-cols-2 gap-3 mb-5">
           <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
-            <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>누적 포인트</p>
+            <p style={{ fontSize: 13, fontWeight: 500, color: "#5c5448", marginBottom: 8 }}>누적 포인트</p>
             <p style={{ fontFamily: "var(--font-inter)", fontSize: 26, fontWeight: 300, color: "#FACA3E", letterSpacing: "-0.02em" }}>
               {userRow.total_points.toLocaleString()}P
             </p>
           </div>
           <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(126,212,160,0.2)" }}>
-            <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>이번 달 출석</p>
+            <p style={{ fontSize: 13, fontWeight: 500, color: "#5c5448", marginBottom: 8 }}>이번 달 출석</p>
             <p style={{ fontFamily: "var(--font-inter)", fontSize: 26, fontWeight: 300, color: "#7ed4a0", letterSpacing: "-0.02em" }}>
               {attendRate}%
             </p>
@@ -260,12 +260,12 @@ export default function MyPage() {
         </button>
 
         {/* ── 출석 캘린더 ── */}
-        <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 12 }}>출석 캘린더</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: "#5c5448", marginBottom: 12 }}>출석 캘린더</p>
 
         <div className="rounded-2xl px-5 py-4 border mb-3 flex items-center justify-between"
           style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
           <div>
-            <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 4 }}>현재 연속 출석</p>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "#5c5448", marginBottom: 4 }}>현재 연속 출석</p>
             <div className="flex items-baseline gap-1.5">
               <span style={{ fontFamily: "var(--font-inter)", fontSize: 34, fontWeight: 300, color: "#FACA3E", letterSpacing: "-0.03em" }}>{streak}</span>
               <span style={{ fontSize: 15, color: "#a09688" }}>일 연속</span>
@@ -295,7 +295,7 @@ export default function MyPage() {
               const isFuture = day > todayDay;
               return (
                 <div key={day} className="flex flex-col items-center gap-1 py-1">
-                  <span style={{ fontFamily: "var(--font-inter)", fontSize: 12, fontWeight: isToday ? 500 : 300, color: isToday ? "#e8e0d0" : isFuture ? "#2a2a2a" : attended ? "#FACA3E" : "#3a3a3a" }}>
+                  <span style={{ fontFamily: "var(--font-inter)", fontSize: 13, fontWeight: isToday ? 500 : 300, color: isToday ? "#e8e0d0" : isFuture ? "#2a2a2a" : attended ? "#FACA3E" : "#3a3a3a" }}>
                     {day}
                   </span>
                   <div style={{ width: 5, height: 5, borderRadius: "50%", background: attended ? "#FACA3E" : isToday ? "rgba(255,255,255,0.12)" : "transparent", boxShadow: attended ? "0 0 5px rgba(250,202,62,0.55)" : "none" }} />
@@ -311,7 +311,7 @@ export default function MyPage() {
         </div>
 
         {/* ── 연속 출석 보너스 ── */}
-        <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 12 }}>연속 출석 보너스</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: "#5c5448", marginBottom: 12 }}>연속 출석 보너스</p>
         <div className="flex flex-col gap-2 mb-8">
           {MILESTONES.map((m) => {
             const achieved = streak >= m.days;
