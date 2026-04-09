@@ -171,7 +171,11 @@ export async function submitVoteAndAttendance(
   tickerB: string
 ): Promise<{ bonusDays: number; bonusPoints: number }> {
   if (!uid) return { bonusDays: 0, bonusPoints: 0 };
+
+  // 날짜: KST 기준 YYYY-MM-DD (date 타입 컬럼과 일치)
   const today = todayKST();
+
+  console.log("1. 투표 시작", { userId: uid, voted: votedFor, today });
 
   // 1) battle_votes 저장
   const { error: voteErr } = await supabase.from("battle_votes").upsert(
@@ -186,7 +190,7 @@ export async function submitVoteAndAttendance(
     },
     { onConflict: "user_id,date" }
   );
-  if (voteErr) console.error("[submitVote] battle_votes upsert:", voteErr.message);
+  console.log("2. battle_votes 저장 결과", voteErr ?? "✅ 성공");
 
   // 2) attendance 이미 있는지 확인
   const { data: existingAtt, error: attSelErr } = await supabase
@@ -195,7 +199,7 @@ export async function submitVoteAndAttendance(
     .eq("user_id", uid)
     .eq("date", today)
     .maybeSingle();
-  if (attSelErr) console.error("[submitVote] attendance select:", attSelErr.message);
+  console.log("2b. attendance 중복 확인", { existingAtt, error: attSelErr ?? null });
 
   if (!existingAtt) {
     // 3) attendance 삽입
@@ -205,11 +209,27 @@ export async function submitVoteAndAttendance(
       attended: true,
       points_earned: 50,
     });
-    if (attInsErr) console.error("[submitVote] attendance insert:", attInsErr.message);
-    else await addPoints(uid, 50);
+    console.log("3. attendance 저장 결과", attInsErr ?? "✅ 성공");
+
+    if (!attInsErr) {
+      // 4) 기본 출석 포인트 +50
+      const { error: pointErr } = await supabase.rpc("increment_user_points", {
+        uid,
+        delta: 50,
+      });
+      console.log("4. 포인트 업데이트 결과 (+50)", pointErr ?? "✅ 성공");
+
+      if (pointErr) {
+        // RPC 없으면 fallback
+        console.warn("[addPoints] RPC fallback:", pointErr.message);
+        await addPoints(uid, 50);
+      }
+    }
+  } else {
+    console.log("3. attendance 이미 존재 — 삽입 건너뜀");
   }
 
-  // 4) 연속 출석 보너스 계산
+  // 5) 연속 출석 보너스 계산
   const { data: attRows, error: streakErr } = await supabase
     .from("attendance")
     .select("date")
@@ -217,14 +237,20 @@ export async function submitVoteAndAttendance(
     .eq("attended", true)
     .order("date", { ascending: false })
     .limit(35);
-  if (streakErr) console.error("[submitVote] streak query:", streakErr.message);
+  console.log("5. streak 조회", { rows: attRows?.length ?? 0, error: streakErr ?? null });
 
   const streak      = calcStreak(attRows?.map((r: { date: string }) => r.date) ?? []);
   const bonusMap: Record<number, number> = { 7: 100, 14: 200, 21: 300, 30: 500 };
   const bonusPoints = bonusMap[streak] ?? 0;
+  console.log("5b. streak 계산", { streak, bonusPoints });
 
   if (bonusPoints > 0 && !existingAtt) {
-    await addPoints(uid, bonusPoints);
+    const { error: bonusErr } = await supabase.rpc("increment_user_points", {
+      uid,
+      delta: bonusPoints,
+    });
+    console.log(`6. 보너스 포인트 +${bonusPoints}`, bonusErr ?? "✅ 성공");
+    if (bonusErr) await addPoints(uid, bonusPoints); // fallback
   }
 
   return { bonusDays: streak, bonusPoints: !existingAtt ? bonusPoints : 0 };
