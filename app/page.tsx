@@ -33,14 +33,6 @@ const BATTLE_KEY = `pico_battle_${TODAY_DATE}`;
 const INIT_VOTES_A = 1648;
 const INIT_VOTES_B = 1193;
 
-const YESTERDAY = {
-  date: "4월 1일",
-  winnerTicker: "ABNB",
-  winnerName: "에어비앤비",
-  winnerChange: "+2.3%",
-  loserTicker: "HLT",
-  loserName: "힐튼",
-};
 
 const TERMS = [
   { word: "PER",    reading: "퍼 / Price-to-Earnings Ratio",  desc: "주가가 이익의 몇 배인지 보는 지표. PER 50이면 지금 이익의 50년치를 주고 사는 것.",      example: "치킨집이 1년에 100만원 버는데 가게 값이 5,000만원이면 PER 50" },
@@ -455,9 +447,6 @@ export default function Home() {
     </div>
   );
 
-  const userPickedYesterday = battleVote === "a" ? "ABNB" : battleVote === "b" ? "HLT" : null;
-  const userWon = userPickedYesterday === YESTERDAY.winnerTicker;
-
   // NewsItem 확장 타입 (AI 번역 결과 포함)
   type RichNewsItem = NewsItem & { korTitle?: string; bullets?: string[] };
 
@@ -585,32 +574,6 @@ export default function Home() {
         {/* ════ 이벤트 탭 ════ */}
         {mainTab === "event" && (
           <div key="event" className={tabAnim}>
-
-            {/* ── 어제 결과 카드 ── */}
-            <div className="mt-8 mb-2 rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-              <SectionLabel text={`${YESTERDAY.date} 배틀 결과`} />
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <TickerLogo src="https://logo.clearbit.com/airbnb.com" ticker="ABNB" size={28} />
-                  <div>
-                    <span style={{ ...NUM, fontSize: 16, color: "#FACA3E" }}>👑 {YESTERDAY.winnerTicker}</span>
-                    <span style={{ fontSize: 13, color: "#5c5448", marginLeft: 6, fontWeight: 300 }}>{YESTERDAY.winnerName}</span>
-                  </div>
-                  <span style={{ ...NUM, fontSize: 13, color: "#7ed4a0" }}>{YESTERDAY.winnerChange}</span>
-                </div>
-                <span style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>이겼어요!</span>
-                {battleVote && (
-                  <span className="fade-in-up rounded-lg px-3 py-1.5" style={{
-                    background: userWon ? "rgba(126,212,160,0.1)" : "rgba(240,120,120,0.1)",
-                    color: userWon ? "#7ed4a0" : "#f07878",
-                    border: `0.5px solid ${userWon ? "rgba(126,212,160,0.25)" : "rgba(240,120,120,0.25)"}`,
-                    fontSize: 13, fontWeight: 500,
-                  }}>
-                    {userWon ? "정답! 🎉 +100P 획득" : "아쉽게 틀렸어요 😅"}
-                  </span>
-                )}
-              </div>
-            </div>
 
             {/* ── VS 배틀 + DNA 그리드 ── */}
             <div className="pb-10 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>

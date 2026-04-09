@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
-import { supabase, uploadAvatar } from "@/app/lib/supabase";
+import { supabase, uploadAvatar, type BattleVoteRow } from "@/app/lib/supabase";
 import { INVESTOR_TYPES, type TypeKey } from "@/app/lib/quizTypes";
 
 function calcStreak(dates: string[]): number {
@@ -40,6 +40,7 @@ export default function MyPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading]         = useState(false);
   const [saveError,     setSaveError]             = useState("");
+  const [lastBattle,   setLastBattle]             = useState<BattleVoteRow | null | undefined>(undefined);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/");
@@ -48,6 +49,21 @@ export default function MyPage() {
   useEffect(() => {
     if (userRow) setNickname(userRow.nickname);
   }, [userRow]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("battle_votes")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("date", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) { console.error("[mypage] lastBattle:", error.message); return; }
+        setLastBattle(data as BattleVoteRow | null);
+      });
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -246,12 +262,33 @@ export default function MyPage() {
               {userRow.total_points.toLocaleString()}P
             </p>
           </div>
-          <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(126,212,160,0.2)" }}>
-            <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8 }}>이번 달 출석</p>
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 500, color: "#7ed4a0", letterSpacing: "-0.02em" }}>
-              {attendRate}%
-            </p>
-            <p style={{ fontSize: 11, fontWeight: 300, color: "#5c5448", marginTop: 4 }}>{attendCount}일 / {daysInMonth}일</p>
+          <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(126,184,247,0.2)" }}>
+            <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8 }}>최근 대결 결과</p>
+            {lastBattle === undefined ? null : lastBattle === null ? (
+              <p style={{ fontSize: 13, fontWeight: 300, color: "#3a3a3a", marginTop: 4 }}>아직 대결 참여 기록이 없어요</p>
+            ) : (
+              <>
+                <p style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 500, color: "#7eb8f7", letterSpacing: "-0.02em" }}>
+                  {lastBattle.voted_for}
+                </p>
+                <p style={{
+                  fontSize: 13,
+                  fontWeight: 300,
+                  marginTop: 4,
+                  color: lastBattle.is_correct === true
+                    ? "#7ed4a0"
+                    : lastBattle.is_correct === false
+                    ? "#a09688"
+                    : "#5c5448",
+                }}>
+                  {lastBattle.is_correct === true
+                    ? "정답! 🎉"
+                    : lastBattle.is_correct === false
+                    ? "아쉽게 틀렸어요 😅"
+                    : "결과 집계 중..."}
+                </p>
+              </>
+            )}
           </div>
         </div>
 
