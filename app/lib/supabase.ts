@@ -34,6 +34,14 @@ export type BattleVoteRow = {
   points_earned: number;
 };
 
+export type PointHistoryRow = {
+  id: number;
+  user_id: string;
+  points: number;
+  reason: string;
+  created_at: string;
+};
+
 // ── 오늘 날짜 (KST 기준 YYYY-MM-DD) ───────────────
 export function todayKST(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
@@ -123,6 +131,27 @@ export async function getTodayVote(uid: string): Promise<BattleVoteRow | null> {
     .maybeSingle();
   if (error) console.error("[getTodayVote]", error.message);
   return data as BattleVoteRow | null;
+}
+
+// ── 포인트 내역 조회 ──────────────────────────────────
+export async function getPointHistory(uid: string): Promise<PointHistoryRow[]> {
+  if (!uid) return [];
+  const { data, error } = await supabase
+    .from("point_history")
+    .select("*")
+    .eq("user_id", uid)
+    .order("created_at", { ascending: false });
+  if (error) { console.error("[getPointHistory]", error.message); return []; }
+  return (data ?? []) as PointHistoryRow[];
+}
+
+// ── 포인트 내역 삽입 (내부 헬퍼) ─────────────────────
+async function insertPointHistory(uid: string, points: number, reason: string) {
+  if (!uid) return;
+  const { error } = await supabase
+    .from("point_history")
+    .insert({ user_id: uid, points, reason });
+  if (error) console.error("[insertPointHistory]", error.message);
 }
 
 // ── 포인트 증가 헬퍼 (RPC 사용 — race condition 방지) ──
@@ -231,6 +260,7 @@ export async function submitVoteAndAttendance(
         console.warn("4. RPC 없음 — fallback 사용:", pointErr.message);
         await addPoints(uid, 50);
       }
+      await insertPointHistory(uid, 50, "일일 출석 체크");
     }
   } else {
     console.log("3. attendance 이미 존재 — 삽입 건너뜀");
@@ -258,6 +288,13 @@ export async function submitVoteAndAttendance(
     });
     console.log(`6. 보너스 포인트 +${bonusPoints}`, bonusErr ?? "✅ 성공");
     if (bonusErr) await addPoints(uid, bonusPoints); // fallback
+    const bonusReasonMap: Record<number, string> = {
+      100: "7일 연속 출석 보너스",
+      200: "14일 연속 출석 보너스",
+      300: "21일 연속 출석 보너스",
+      500: "30일 연속 출석 보너스",
+    };
+    await insertPointHistory(uid, bonusPoints, bonusReasonMap[bonusPoints] ?? `${streak}일 연속 출석 보너스`);
   }
 
   return { bonusDays: streak, bonusPoints: !existingAtt ? bonusPoints : 0 };
@@ -297,7 +334,18 @@ export async function saveQuizResult(uid: string, investorType: string) {
     .eq("id", uid);
   if (updErr) console.error("[saveQuizResult] update:", updErr.message);
 
-  if (isFirst) await addPoints(uid, 300);
+  if (isFirst) {
+    await addPoints(uid, 300);
+    await insertPointHistory(uid, 300, "투자 DNA 퀴즈 완료");
+  }
 
   return { pointsAdded: isFirst ? 300 : 0 };
+}
+
+// ── VS 대결 정답 포인트 지급 ──────────────────────────
+// battle_votes의 is_correct가 true로 확정된 후 호출
+export async function awardBattleCorrect(uid: string) {
+  if (!uid) return;
+  await addPoints(uid, 100);
+  await insertPointHistory(uid, 100, "VS 대결 정답");
 }
