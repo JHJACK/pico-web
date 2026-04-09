@@ -51,12 +51,18 @@ export default function MyPage() {
 
   useEffect(() => {
     if (!user) return;
-    const thisMonth = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }).slice(0, 7);
+    const now = new Date();
+    const y   = now.getFullYear();
+    const m   = String(now.getMonth() + 1).padStart(2, "0");
+    const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
+    const monthStart = `${y}-${m}-01`;
+    const monthEnd   = `${y}-${m}-${String(lastDay).padStart(2, "0")}`;
     supabase
       .from("attendance")
       .select("date", { count: "exact" })
       .eq("user_id", user.id)
-      .like("date", `${thisMonth}%`)
+      .gte("date", monthStart)
+      .lte("date", monthEnd)
       .then(({ data, count, error }) => {
         if (error) { console.error("[mypage] attendance:", error.message); return; }
         setAttendCount(count ?? 0);

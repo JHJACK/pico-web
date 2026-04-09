@@ -177,8 +177,8 @@ export async function submitVoteAndAttendance(
 
   console.log("1. 투표 시작", { userId: uid, voted: votedFor, today });
 
-  // 1) battle_votes 저장
-  const { error: voteErr } = await supabase.from("battle_votes").upsert(
+  // 1) battle_votes 저장 (이미 있으면 무시)
+  const { error: voteErr } = await supabase.from("battle_votes").insert(
     {
       user_id: uid,
       date: today,
@@ -187,10 +187,14 @@ export async function submitVoteAndAttendance(
       voted_for: votedFor,
       is_correct: null,
       points_earned: 0,
-    },
-    { onConflict: "user_id,date" }
+    }
   );
-  console.log("2. battle_votes 저장 결과", voteErr ?? "✅ 성공");
+  // 중복(unique violation) 에러는 정상 — 이미 투표한 경우
+  if (voteErr && voteErr.code !== "23505") {
+    console.error("2. battle_votes 저장 실패", voteErr);
+  } else {
+    console.log("2. battle_votes 저장 결과", voteErr ? "이미 존재(정상)" : "✅ 성공");
+  }
 
   // 2) attendance 이미 있는지 확인
   const { data: existingAtt, error: attSelErr } = await supabase
@@ -202,14 +206,14 @@ export async function submitVoteAndAttendance(
   console.log("2b. attendance 중복 확인", { existingAtt, error: attSelErr ?? null });
 
   if (!existingAtt) {
-    // 3) attendance 삽입
+    // 3) attendance 삽입 — user_id 명시 필수 (RLS: auth.uid() = user_id)
     const { error: attInsErr } = await supabase.from("attendance").insert({
       user_id: uid,
       date: today,
       attended: true,
       points_earned: 50,
     });
-    console.log("3. attendance 저장 결과", attInsErr ?? "✅ 성공");
+    console.log("3. attendance 저장 결과", attInsErr ? attInsErr : "✅ 성공");
 
     if (!attInsErr) {
       // 4) 기본 출석 포인트 +50
@@ -218,10 +222,8 @@ export async function submitVoteAndAttendance(
         delta: 50,
       });
       console.log("4. 포인트 업데이트 결과 (+50)", pointErr ?? "✅ 성공");
-
       if (pointErr) {
-        // RPC 없으면 fallback
-        console.warn("[addPoints] RPC fallback:", pointErr.message);
+        console.warn("4. RPC 없음 — fallback 사용:", pointErr.message);
         await addPoints(uid, 50);
       }
     }
