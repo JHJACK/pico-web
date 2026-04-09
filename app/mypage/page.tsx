@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
-import { supabase, uploadAvatar, getPointHistory, type BattleVoteRow, type PointHistoryRow } from "@/app/lib/supabase";
+import { supabase, uploadAvatar, type BattleVoteRow } from "@/app/lib/supabase";
 import { INVESTOR_TYPES, type TypeKey } from "@/app/lib/quizTypes";
 
 function calcStreak(dates: string[]): number {
@@ -40,10 +40,7 @@ export default function MyPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading]         = useState(false);
   const [saveError,     setSaveError]             = useState("");
-  const [lastBattle,      setLastBattle]      = useState<BattleVoteRow | null | undefined>(undefined);
-  const [pointHistory,    setPointHistory]    = useState<PointHistoryRow[]>([]);
-  const [historyOpen,     setHistoryOpen]     = useState(false);
-  const [historyLoaded,   setHistoryLoaded]   = useState(false);
+  const [lastBattle,   setLastBattle]   = useState<BattleVoteRow | null | undefined>(undefined);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/");
@@ -261,25 +258,14 @@ export default function MyPage() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <button
             className="pico-btn rounded-2xl p-5 border text-left"
-            style={{ background: "#141414", borderColor: historyOpen ? "rgba(250,202,62,0.4)" : "rgba(250,202,62,0.2)" }}
-            onClick={async () => {
-              if (!user) return;
-              const next = !historyOpen;
-              setHistoryOpen(next);
-              if (next && !historyLoaded) {
-                const rows = await getPointHistory(user.id);
-                setPointHistory(rows);
-                setHistoryLoaded(true);
-              }
-            }}
+            style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}
+            onClick={() => router.push("/mypage/points")}
           >
             <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8 }}>누적 포인트</p>
             <p style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
               {userRow.total_points.toLocaleString()}P
             </p>
-            <p style={{ fontSize: 11, fontWeight: 300, color: historyOpen ? "#FACA3E" : "#3a3a3a", marginTop: 6 }}>
-              {historyOpen ? "내역 닫기 ↑" : "내역 보기 ↓"}
-            </p>
+            <p style={{ fontSize: 11, fontWeight: 300, color: "#3a3a3a", marginTop: 6 }}>내역 보기 →</p>
           </button>
           <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(126,184,247,0.2)" }}>
             <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8 }}>최근 대결 결과</p>
@@ -310,39 +296,6 @@ export default function MyPage() {
             )}
           </div>
         </div>
-
-        {/* ── 포인트 내역 아코디언 ── */}
-        {historyOpen && (
-          <div className="rounded-2xl border mb-4" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.15)" }}>
-            {pointHistory.length === 0 ? (
-              <p style={{ fontSize: 13, fontWeight: 300, color: "#3a3a3a", padding: "20px", textAlign: "center" }}>
-                아직 포인트 내역이 없어요
-              </p>
-            ) : (
-              <div>
-                {pointHistory.map((item, i) => {
-                  const d = new Date(item.created_at);
-                  const label = `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between px-5 py-3"
-                      style={{ borderBottom: i < pointHistory.length - 1 ? "0.5px solid rgba(255,255,255,0.05)" : "none" }}
-                    >
-                      <div>
-                        <p style={{ fontSize: 13, fontWeight: 400, color: "#a09688" }}>{item.reason}</p>
-                        <p style={{ fontSize: 11, fontWeight: 300, color: "#3a3a3a", marginTop: 2 }}>{label}</p>
-                      </div>
-                      <span style={{ fontFamily: "var(--font-inter)", fontSize: 15, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
-                        +{item.points.toLocaleString()}P
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* ── 내 투자 DNA 박스 ── */}
         <button onClick={() => router.push("/mypage/dna")} className="pico-btn w-full text-left rounded-2xl p-5 border mb-4"
