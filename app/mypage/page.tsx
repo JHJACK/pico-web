@@ -39,6 +39,7 @@ export default function MyPage() {
   const [attendDates, setAttendDates]     = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading]         = useState(false);
+  const [saveError,     setSaveError]             = useState("");
 
   useEffect(() => {
     if (!loading && !user) router.replace("/");
@@ -56,7 +57,8 @@ export default function MyPage() {
       .select("date", { count: "exact" })
       .eq("user_id", user.id)
       .like("date", `${thisMonth}%`)
-      .then(({ data, count }) => {
+      .then(({ data, count, error }) => {
+        if (error) { console.error("[mypage] attendance query:", error.message); return; }
         setAttendCount(count ?? 0);
         setAttendDates((data ?? []).map((r: { date: string }) => r.date));
       });
@@ -85,15 +87,25 @@ export default function MyPage() {
     if (!user || !userRow) return;
     setSaving(true);
     setUploadLoading(true);
+    setSaveError("");
 
     if (nickname.trim() && nickname.trim() !== userRow.nickname) {
-      await supabase.from("users").update({ nickname: nickname.trim() }).eq("id", user.id);
+      const { error } = await supabase
+        .from("users")
+        .update({ nickname: nickname.trim() })
+        .eq("id", user.id);
+      if (error) {
+        setSaveError("닉네임 저장에 실패했어. 다시 시도해줘.");
+        setUploadLoading(false);
+        setSaving(false);
+        return;
+      }
     }
 
     if (pendingFile) {
       const result = await uploadAvatar(user.id, pendingFile);
       if (!result) {
-        alert("이미지 업로드에 실패했어. 브라우저 콘솔에서 에러를 확인해줘.");
+        setSaveError("이미지 업로드에 실패했어. 파일 크기나 형식을 확인해줘.");
         setUploadLoading(false);
         setSaving(false);
         return;
@@ -111,11 +123,18 @@ export default function MyPage() {
   async function handleDeleteAccount() {
     if (!user) return;
     setDeleteLoading(true);
-    await supabase.from("battle_votes").delete().eq("user_id", user.id);
-    await supabase.from("attendance").delete().eq("user_id", user.id);
-    await supabase.from("users").delete().eq("id", user.id);
-    await signOut();
-    router.replace("/");
+    try {
+      await supabase.from("battle_votes").delete().eq("user_id", user.id);
+      await supabase.from("attendance").delete().eq("user_id", user.id);
+      const { error } = await supabase.from("users").delete().eq("id", user.id);
+      if (error) throw error;
+      await signOut();
+      router.replace("/");
+    } catch (e) {
+      console.error("[deleteAccount]", e);
+      setDeleteLoading(false);
+      setShowDeleteConfirm(false);
+    }
   }
 
   const dnaType     = userRow?.investor_type ? INVESTOR_TYPES[userRow.investor_type as TypeKey] : null;
@@ -169,6 +188,9 @@ export default function MyPage() {
               style={{ background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.35)", color: "#e8e0d0", fontSize: 15 }}
             />
 
+            {saveError && (
+              <p style={{ fontSize: 12, color: "#f07878", marginBottom: 10 }}>{saveError}</p>
+            )}
             <div className="flex gap-3">
               <button onClick={handleSave} disabled={saving} className="pico-btn flex-1 py-3 rounded-xl"
                 style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>

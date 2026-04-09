@@ -85,7 +85,8 @@ export default function AttendancePage() {
       .select("date")
       .eq("user_id", user.id)
       .eq("attended", true)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) { console.error("[attendance page] query:", error.message); return; }
         setAttendDates((data ?? []).map((r: { date: string }) => r.date));
       });
   }, [user]);

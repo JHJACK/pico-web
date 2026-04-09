@@ -15,27 +15,6 @@ export type UserRow = {
   avatar_url: string | null;
 };
 
-// ── 프로필 이미지 업로드 ──────────────────────────
-export async function uploadAvatar(uid: string, file: File): Promise<string | null> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${uid}/avatar.${ext}`;
-  const { error } = await supabase.storage
-    .from("avatars")
-    .upload(path, file, { upsert: true, contentType: file.type });
-  if (error) {
-    console.error("[uploadAvatar] storage error:", error.message);
-    return null;
-  }
-  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-  const url = `${data.publicUrl}?t=${Date.now()}`;
-  const { error: dbError } = await supabase.from("users").update({ avatar_url: url }).eq("id", uid);
-  if (dbError) {
-    console.error("[uploadAvatar] db update error:", dbError.message);
-    return null;
-  }
-  return url;
-}
-
 export type AttendanceRow = {
   id: number;
   user_id: string;
@@ -60,31 +39,74 @@ export function todayKST(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
 }
 
+// ── 프로필 이미지 업로드 ──────────────────────────
+export async function uploadAvatar(uid: string, file: File): Promise<string | null> {
+  if (!uid) return null;
+  const ext  = file.name.split(".").pop() ?? "jpg";
+  const path = `${uid}/avatar.${ext}`;
+
+  const { error: upErr } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (upErr) {
+    console.error("[uploadAvatar] storage:", upErr.message);
+    return null;
+  }
+
+  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  const url = `${data.publicUrl}?t=${Date.now()}`;
+
+  const { error: dbErr } = await supabase
+    .from("users")
+    .update({ avatar_url: url })
+    .eq("id", uid);
+  if (dbErr) {
+    console.error("[uploadAvatar] db update:", dbErr.message);
+    return null;
+  }
+  return url;
+}
+
 // ── 회원가입 후 users 테이블 row 생성 ─────────────
 export async function createUserRow(uid: string, email: string) {
+  if (!uid) return;
   const nickname = email.split("@")[0];
-  await supabase.from("users").upsert({
-    id: uid,
-    nickname,
-    investor_type: null,
-    total_points: 0,
-  }, { onConflict: "id" });
+  const { error } = await supabase.from("users").upsert(
+    { id: uid, nickname, investor_type: null, total_points: 0 },
+    { onConflict: "id" }
+  );
+  if (error) console.error("[createUserRow]", error.message);
 }
 
 // ── users row 가져오기 ─────────────────────────────
 export async function getUserRow(uid: string): Promise<UserRow | null> {
-  const { data } = await supabase.from("users").select("*").eq("id", uid).single();
+  if (!uid) return null;
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", uid)
+    .single();
+  if (error && error.code !== "PGRST116") {
+    // PGRST116 = 0 rows (정상 케이스)
+    console.error("[getUserRow]", error.message);
+  }
   return data as UserRow | null;
 }
 
-// ── 오늘 battle_vote 투표 수 집계 ────────────────
+// ── 오늘 battle_vote 투표 수 집계 (인증 유저 전체) ──
+// ※ RLS 정책 필요: battle_votes SELECT USING (auth.role() = 'authenticated')
 export async function getTodayBattleVoteCounts(): Promise<{ votesA: number; votesB: number }> {
-  const today = todayKST();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("battle_votes")
     .select("voted_for")
-    .eq("date", today);
-  const rows = (data ?? []) as { voted_for: string }[];
+    .eq("date", todayKST());
+
+  if (error) {
+    console.error("[getTodayBattleVoteCounts]", error.message);
+    return { votesA: 0, votesB: 0 };
+  }
+
+  const rows   = (data ?? []) as { voted_for: string }[];
   const votesA = rows.filter((r) => r.voted_for === "ABNB").length;
   const votesB = rows.filter((r) => r.voted_for === "HLT").length;
   return { votesA, votesB };
@@ -92,24 +114,53 @@ export async function getTodayBattleVoteCounts(): Promise<{ votesA: number; vote
 
 // ── 오늘 battle_vote 존재 여부 ────────────────────
 export async function getTodayVote(uid: string): Promise<BattleVoteRow | null> {
-  const { data } = await supabase
+  if (!uid) return null;
+  const { data, error } = await supabase
     .from("battle_votes")
     .select("*")
     .eq("user_id", uid)
     .eq("date", todayKST())
     .maybeSingle();
+  if (error) console.error("[getTodayVote]", error.message);
   return data as BattleVoteRow | null;
 }
 
-// ── 포인트 증가 헬퍼 ─────────────────────────────
+// ── 포인트 증가 헬퍼 (RPC 사용 — race condition 방지) ──
+// ※ Supabase SQL Editor에서 아래 함수를 먼저 생성해야 합니다:
+//
+//   CREATE OR REPLACE FUNCTION increment_user_points(uid uuid, delta int)
+//   RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+//   BEGIN
+//     UPDATE users SET total_points = total_points + delta WHERE id = uid;
+//   END;
+//   $$;
+//
+// RPC가 없으면 select→update fallback 사용
 async function addPoints(uid: string, delta: number) {
-  const { data } = await supabase
+  if (!uid || delta === 0) return;
+
+  // RPC 시도
+  const { error: rpcErr } = await supabase.rpc("increment_user_points", {
+    uid,
+    delta,
+  });
+
+  if (!rpcErr) return; // 성공
+
+  // RPC 없으면 select→update fallback
+  console.warn("[addPoints] RPC fallback:", rpcErr.message);
+  const { data, error: selErr } = await supabase
     .from("users")
     .select("total_points")
     .eq("id", uid)
     .single();
+  if (selErr) { console.error("[addPoints] select:", selErr.message); return; }
   const current = (data as { total_points: number } | null)?.total_points ?? 0;
-  await supabase.from("users").update({ total_points: current + delta }).eq("id", uid);
+  const { error: updErr } = await supabase
+    .from("users")
+    .update({ total_points: current + delta })
+    .eq("id", uid);
+  if (updErr) console.error("[addPoints] update:", updErr.message);
 }
 
 // ── 투표 + 출석 저장 + 포인트 처리 ───────────────
@@ -119,49 +170,56 @@ export async function submitVoteAndAttendance(
   tickerA: string,
   tickerB: string
 ): Promise<{ bonusDays: number; bonusPoints: number }> {
+  if (!uid) return { bonusDays: 0, bonusPoints: 0 };
   const today = todayKST();
 
   // 1) battle_votes 저장
-  await supabase.from("battle_votes").upsert({
-    user_id: uid,
-    date: today,
-    ticker_a: tickerA,
-    ticker_b: tickerB,
-    voted_for: votedFor,
-    is_correct: null,
-    points_earned: 0,
-  }, { onConflict: "user_id,date" });
+  const { error: voteErr } = await supabase.from("battle_votes").upsert(
+    {
+      user_id: uid,
+      date: today,
+      ticker_a: tickerA,
+      ticker_b: tickerB,
+      voted_for: votedFor,
+      is_correct: null,
+      points_earned: 0,
+    },
+    { onConflict: "user_id,date" }
+  );
+  if (voteErr) console.error("[submitVote] battle_votes upsert:", voteErr.message);
 
-  // 2) attendance 저장 (이미 있으면 무시)
-  const { data: existingAtt } = await supabase
+  // 2) attendance 이미 있는지 확인
+  const { data: existingAtt, error: attSelErr } = await supabase
     .from("attendance")
     .select("id")
     .eq("user_id", uid)
     .eq("date", today)
     .maybeSingle();
+  if (attSelErr) console.error("[submitVote] attendance select:", attSelErr.message);
 
   if (!existingAtt) {
-    await supabase.from("attendance").insert({
+    // 3) attendance 삽입
+    const { error: attInsErr } = await supabase.from("attendance").insert({
       user_id: uid,
       date: today,
       attended: true,
       points_earned: 50,
     });
-
-    // 3) 기본 출석 포인트 +50
-    await addPoints(uid, 50);
+    if (attInsErr) console.error("[submitVote] attendance insert:", attInsErr.message);
+    else await addPoints(uid, 50);
   }
 
   // 4) 연속 출석 보너스 계산
-  const { data: attRows } = await supabase
+  const { data: attRows, error: streakErr } = await supabase
     .from("attendance")
     .select("date")
     .eq("user_id", uid)
     .eq("attended", true)
     .order("date", { ascending: false })
-    .limit(30);
+    .limit(35);
+  if (streakErr) console.error("[submitVote] streak query:", streakErr.message);
 
-  const streak = calcStreak(attRows?.map((r: { date: string }) => r.date) ?? []);
+  const streak      = calcStreak(attRows?.map((r: { date: string }) => r.date) ?? []);
   const bonusMap: Record<number, number> = { 7: 100, 14: 200, 21: 300, 30: 500 };
   const bonusPoints = bonusMap[streak] ?? 0;
 
@@ -178,7 +236,7 @@ function calcStreak(dates: string[]): number {
   const sorted = [...dates].sort((a, b) => b.localeCompare(a));
   let streak = 1;
   for (let i = 0; i < sorted.length - 1; i++) {
-    const cur = new Date(sorted[i]);
+    const cur  = new Date(sorted[i]);
     const next = new Date(sorted[i + 1]);
     const diff = (cur.getTime() - next.getTime()) / 86_400_000;
     if (diff === 1) streak++;
@@ -189,19 +247,24 @@ function calcStreak(dates: string[]): number {
 
 // ── 퀴즈 결과 저장 ────────────────────────────────
 export async function saveQuizResult(uid: string, investorType: string) {
-  const { data: user } = await supabase
+  if (!uid) return { pointsAdded: 0 };
+
+  const { data: row, error: selErr } = await supabase
     .from("users")
     .select("investor_type")
     .eq("id", uid)
     .single();
+  if (selErr) console.error("[saveQuizResult] select:", selErr.message);
 
-  const isFirst = !(user as { investor_type: string | null } | null)?.investor_type;
+  const isFirst = !(row as { investor_type: string | null } | null)?.investor_type;
 
-  await supabase.from("users").update({ investor_type: investorType }).eq("id", uid);
+  const { error: updErr } = await supabase
+    .from("users")
+    .update({ investor_type: investorType })
+    .eq("id", uid);
+  if (updErr) console.error("[saveQuizResult] update:", updErr.message);
 
-  if (isFirst) {
-    await addPoints(uid, 300);
-  }
+  if (isFirst) await addPoints(uid, 300);
 
   return { pointsAdded: isFirst ? 300 : 0 };
 }
