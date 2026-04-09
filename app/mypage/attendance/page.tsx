@@ -365,6 +365,38 @@ export default function AttendancePage() {
             );
           })}
         </div>
+
+        {/* ─────────────────────────────────────────────
+            TODO: 실서비스 전 이 블록 전체 삭제
+            ───────────────────────────────────────────── */}
+        <div className="mt-4 pt-6" style={{ borderTop: "0.5px solid rgba(255,255,255,0.04)" }}>
+          <button
+            className="pico-btn w-full py-2 rounded-xl"
+            style={{
+              background: "transparent",
+              color: "#3a3a3a",
+              fontSize: 11,
+              fontWeight: 300,
+              border: "0.5px solid rgba(255,255,255,0.06)",
+            }}
+            onClick={async () => {
+              if (!user) return;
+              const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+              // 오늘 attendance 삭제
+              await supabase.from("attendance").delete().eq("user_id", user.id).eq("date", today);
+              // 오늘 battle_votes 삭제
+              await supabase.from("battle_votes").delete().eq("user_id", user.id).eq("date", today);
+              // sessionStorage 팝업 키 삭제
+              sessionStorage.removeItem(`pico_vs_popup_${today}`);
+              // 홈으로 이동 → VS 배틀 팝업 다시 뜸
+              router.push("/");
+            }}
+          >
+            오늘 출석 초기화 (테스트용)
+          </button>
+        </div>
+        {/* ── TODO: 실서비스 전 삭제 끝 ── */}
+
       </div>
     </main>
   );
