@@ -58,7 +58,7 @@ export default function MyPage() {
       .eq("user_id", user.id)
       .like("date", `${thisMonth}%`)
       .then(({ data, count, error }) => {
-        if (error) { console.error("[mypage] attendance query:", error.message); return; }
+        if (error) { console.error("[mypage] attendance:", error.message); return; }
         setAttendCount(count ?? 0);
         setAttendDates((data ?? []).map((r: { date: string }) => r.date));
       });
@@ -68,6 +68,7 @@ export default function MyPage() {
     if (userRow) setNickname(userRow.nickname);
     setPreviewUrl(null);
     setPendingFile(null);
+    setSaveError("");
     setEditOpen(true);
   }
 
@@ -75,7 +76,7 @@ export default function MyPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("이미지는 2MB 이하만 업로드할 수 있어.");
+      setSaveError("이미지는 2MB 이하만 업로드할 수 있어.");
       e.target.value = "";
       return;
     }
@@ -150,8 +151,10 @@ export default function MyPage() {
 
   return (
     <main className="min-h-screen" style={{ background: "#0d0d0d" }}>
-      <nav className="sticky top-0 z-30 border-b flex items-center px-5"
-        style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
+      <nav
+        className="sticky top-0 z-30 border-b flex items-center px-6"
+        style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}
+      >
         <Link href="/" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>← 홈</Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
@@ -162,7 +165,7 @@ export default function MyPage() {
           style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
           <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 border"
             style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)" }}>
-            <p style={{ fontSize: 17, fontWeight: 500, color: "#e8e0d0", marginBottom: 24 }}>프로필 수정</p>
+            <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0", marginBottom: 24 }}>프로필 수정</p>
 
             <div className="flex justify-center mb-6">
               <button onClick={() => fileInputRef.current?.click()} className="pico-btn relative" style={{ background: "none", border: "none" }}>
@@ -173,9 +176,7 @@ export default function MyPage() {
                     {userRow.nickname[0]?.toUpperCase() ?? "?"}
                   </div>
                 )}
-                <div style={{ position: "absolute", bottom: 0, right: 0, width: 24, height: 24, borderRadius: "50%", background: "#FACA3E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#0d0d0d" }}>
-                  ✎
-                </div>
+                <div style={{ position: "absolute", bottom: 0, right: 0, width: 24, height: 24, borderRadius: "50%", background: "#FACA3E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#0d0d0d" }}>✎</div>
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
             </div>
@@ -184,13 +185,14 @@ export default function MyPage() {
             <input
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full rounded-xl px-4 py-3 outline-none mb-5"
-              style={{ background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.35)", color: "#e8e0d0", fontSize: 15 }}
+              className="w-full rounded-xl px-4 py-3 outline-none mb-4"
+              style={{ background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.35)", color: "#e8e0d0", fontSize: 15, fontWeight: 300 }}
             />
 
             {saveError && (
               <p style={{ fontSize: 12, color: "#f07878", marginBottom: 10 }}>{saveError}</p>
             )}
+
             <div className="flex gap-3">
               <button onClick={handleSave} disabled={saving} className="pico-btn flex-1 py-3 rounded-xl"
                 style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
@@ -205,68 +207,68 @@ export default function MyPage() {
         </div>
       )}
 
-      <div className="mx-auto py-8 px-4 sm:px-6" style={{ maxWidth: 700 }}>
+      <div
+        className="mx-auto py-8"
+        style={{ maxWidth: 700, paddingLeft: "clamp(16px, 4vw, 24px)", paddingRight: "clamp(16px, 4vw, 24px)" }}
+      >
 
         {/* ── 프로필 카드 ── */}
-        <div className="rounded-2xl p-6 border mb-4 flex items-center gap-4"
+        <div className="rounded-2xl p-5 border mb-4 flex items-center gap-4"
           style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
           {userRow.avatar_url ? (
-            <img src={userRow.avatar_url} alt="프로필" style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid rgba(255,255,255,0.1)" }} />
+            <img src={userRow.avatar_url} alt="프로필" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid rgba(255,255,255,0.1)" }} />
           ) : (
-            <div style={{ width: 72, height: 72, borderRadius: "50%", background: "#242424", border: "2px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 500, color: "#a09688", flexShrink: 0 }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#242424", border: "2px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 400, color: "#a09688", flexShrink: 0 }}>
               {userRow.nickname[0]?.toUpperCase() ?? "?"}
             </div>
           )}
           <div className="flex-1 min-w-0">
             <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
-            <p style={{ fontSize: 12, color: "#5c5448", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
+            <p style={{ fontSize: 12, fontWeight: 300, color: "#5c5448", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
           </div>
           <button onClick={openEdit} className="pico-btn px-3 py-2 rounded-lg flex-shrink-0"
-            style={{ fontSize: 12, color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", background: "transparent" }}>
+            style={{ fontSize: 12, fontWeight: 400, color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", background: "transparent" }}>
             수정
           </button>
         </div>
 
         {/* ── 포인트 + 출석률 ── */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
-            <p style={{ fontSize: 13, fontWeight: 500, color: "#5c5448", marginBottom: 8 }}>누적 포인트</p>
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: 26, fontWeight: 300, color: "#FACA3E", letterSpacing: "-0.02em" }}>
+            <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8 }}>누적 포인트</p>
+            <p style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
               {userRow.total_points.toLocaleString()}P
             </p>
           </div>
           <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(126,212,160,0.2)" }}>
-            <p style={{ fontSize: 13, fontWeight: 500, color: "#5c5448", marginBottom: 8 }}>이번 달 출석</p>
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: 26, fontWeight: 300, color: "#7ed4a0", letterSpacing: "-0.02em" }}>
+            <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8 }}>이번 달 출석</p>
+            <p style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 500, color: "#7ed4a0", letterSpacing: "-0.02em" }}>
               {attendRate}%
             </p>
-            <p style={{ fontSize: 11, color: "#5c5448", marginTop: 4 }}>{attendCount}일 / {daysInMonth}일</p>
+            <p style={{ fontSize: 11, fontWeight: 300, color: "#5c5448", marginTop: 4 }}>{attendCount}일 / {daysInMonth}일</p>
           </div>
         </div>
 
         {/* ── 내 투자 DNA 박스 ── */}
-        <button onClick={() => router.push("/mypage/dna")} className="pico-btn w-full text-left rounded-2xl p-5 border mb-5"
+        <button onClick={() => router.push("/mypage/dna")} className="pico-btn w-full text-left rounded-2xl p-5 border mb-4"
           style={{ background: "#141414", borderColor: dnaType ? `${dnaType.color}30` : "rgba(255,255,255,0.08)" }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span style={{ fontSize: 28 }}>{dnaType ? dnaType.emoji : "🧬"}</span>
+              <span style={{ fontSize: 26 }}>{dnaType ? dnaType.emoji : "🧬"}</span>
               <div>
-                <p style={{ fontSize: 11, letterSpacing: "0.12em", color: dnaType ? dnaType.color : "#5c5448", textTransform: "uppercase", marginBottom: 3 }}>
+                <p style={{ fontSize: 11, letterSpacing: "0.12em", fontWeight: 400, color: dnaType ? dnaType.color : "#5c5448", textTransform: "uppercase", marginBottom: 3 }}>
                   {dnaType ? dnaType.modifier : "투자 DNA"}
                 </p>
-                <p style={{ fontSize: 17, fontWeight: 600, color: "#e8e0d0" }}>
+                <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>
                   {dnaType ? dnaType.name : "아직 테스트 안 함"}
                 </p>
               </div>
             </div>
             <span style={{ fontSize: 18, color: "#5c5448" }}>→</span>
           </div>
-          {dnaType && (
-            <p style={{ fontSize: 12, color: "#5c5448", marginTop: 8 }}>상세 리포트 · 자산 배분 · 추천 종목 보기</p>
-          )}
-          {!dnaType && (
-            <p style={{ fontSize: 12, color: "#5c5448", marginTop: 8 }}>18문항으로 나만의 투자 유형 찾기</p>
-          )}
+          <p style={{ fontSize: 12, fontWeight: 300, color: "#5c5448", marginTop: 8 }}>
+            {dnaType ? "상세 리포트 · 자산 배분 · 추천 종목 보기" : "18문항으로 나만의 투자 유형 찾기"}
+          </p>
         </button>
 
         {/* ── 출석 캘린더 카드 ── */}
@@ -274,44 +276,44 @@ export default function MyPage() {
           style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span style={{ fontSize: 28 }}>📅</span>
+              <span style={{ fontSize: 26 }}>📅</span>
               <div>
-                <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#FACA3E", textTransform: "uppercase", marginBottom: 3 }}>
+                <p style={{ fontSize: 11, letterSpacing: "0.12em", fontWeight: 400, color: "#FACA3E", textTransform: "uppercase", marginBottom: 3 }}>
                   출석 캘린더
                 </p>
-                <p style={{ fontSize: 17, fontWeight: 600, color: "#e8e0d0" }}>
+                <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>
                   🔥 {streak}일 연속 출석 중
                 </p>
               </div>
             </div>
             <span style={{ fontSize: 18, color: "#5c5448" }}>→</span>
           </div>
-          <p style={{ fontSize: 12, color: "#5c5448", marginTop: 8 }}>
+          <p style={{ fontSize: 12, fontWeight: 300, color: "#5c5448", marginTop: 8 }}>
             이번 달 출석 {attendCount}/{daysInMonth}일
           </p>
         </button>
 
         {/* ── 로그아웃 ── */}
         <button onClick={signOut} className="pico-btn w-full rounded-xl py-3 mb-3"
-          style={{ background: "transparent", color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 500 }}>
+          style={{ background: "transparent", color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 400 }}>
           로그아웃
         </button>
 
         {!showDeleteConfirm ? (
           <button onClick={() => setShowDeleteConfirm(true)} className="pico-btn w-full py-2"
-            style={{ background: "transparent", color: "#5c5448", fontSize: 13, border: "none" }}>
+            style={{ background: "transparent", color: "#5c5448", fontSize: 13, fontWeight: 300, border: "none" }}>
             회원 탈퇴
           </button>
         ) : (
           <div className="rounded-2xl p-5 border" style={{ background: "rgba(240,120,120,0.06)", borderColor: "rgba(240,120,120,0.25)" }}>
-            <p style={{ fontSize: 14, color: "#f07878", marginBottom: 12, fontWeight: 500 }}>정말 탈퇴할까? 모든 포인트와 기록이 삭제돼.</p>
+            <p style={{ fontSize: 14, fontWeight: 400, color: "#f07878", marginBottom: 12 }}>정말 탈퇴할까? 모든 포인트와 기록이 삭제돼.</p>
             <div className="flex gap-2">
               <button onClick={handleDeleteAccount} disabled={deleteLoading} className="pico-btn flex-1 py-2.5 rounded-xl"
                 style={{ background: "#f07878", color: "#0d0d0d", fontSize: 13, fontWeight: 500 }}>
                 {deleteLoading ? "처리중..." : "탈퇴할게"}
               </button>
               <button onClick={() => setShowDeleteConfirm(false)} className="pico-btn flex-1 py-2.5 rounded-xl"
-                style={{ background: "#1c1c1c", color: "#a09688", fontSize: 13, border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                style={{ background: "#1c1c1c", color: "#a09688", fontSize: 13, fontWeight: 400, border: "0.5px solid rgba(255,255,255,0.1)" }}>
                 취소
               </button>
             </div>

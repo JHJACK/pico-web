@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase } from "@/app/lib/supabase";
 
-// 연속 출석일 계산 (오늘 또는 어제부터 연속인 경우만)
 function calcStreak(dates: string[]): number {
   if (dates.length === 0) return 0;
   const sorted = [...dates].sort((a, b) => b.localeCompare(a));
@@ -18,15 +17,13 @@ function calcStreak(dates: string[]): number {
   let streak = 1;
   for (let i = 1; i < sorted.length; i++) {
     const diff =
-      (new Date(sorted[i - 1]).getTime() - new Date(sorted[i]).getTime()) /
-      86_400_000;
+      (new Date(sorted[i - 1]).getTime() - new Date(sorted[i]).getTime()) / 86_400_000;
     if (diff === 1) streak++;
     else break;
   }
   return streak;
 }
 
-// 현재 연속 스트릭의 시작 날짜 반환
 function calcStreakStart(dates: string[]): string | null {
   if (dates.length === 0) return null;
   const sorted = [...dates].sort((a, b) => b.localeCompare(a));
@@ -38,20 +35,18 @@ function calcStreakStart(dates: string[]): string | null {
   let start = sorted[0];
   for (let i = 1; i < sorted.length; i++) {
     const diff =
-      (new Date(sorted[i - 1]).getTime() - new Date(sorted[i]).getTime()) /
-      86_400_000;
+      (new Date(sorted[i - 1]).getTime() - new Date(sorted[i]).getTime()) / 86_400_000;
     if (diff === 1) start = sorted[i];
     else break;
   }
   return start;
 }
 
-// 세그먼트별 설정 (7→14→21→30일 순차 구간)
 const SEGMENTS = [
-  { endDiff: 6,  points: 100, bg: "rgba(250,202,62,0.10)",   color: "#FACA3E", grayBg: "rgba(255,255,255,0.03)" },
-  { endDiff: 13, points: 200, bg: "rgba(126,184,247,0.10)",  color: "#7eb8f7", grayBg: "rgba(255,255,255,0.03)" },
-  { endDiff: 20, points: 300, bg: "rgba(196,176,252,0.10)",  color: "#c4b0fc", grayBg: "rgba(255,255,255,0.03)" },
-  { endDiff: 29, points: 500, bg: "rgba(126,212,160,0.10)",  color: "#7ed4a0", grayBg: "rgba(255,255,255,0.03)" },
+  { endDiff: 6,  points: 100, bg: "rgba(250,202,62,0.09)",   color: "#FACA3E", grayBg: "rgba(255,255,255,0.03)" },
+  { endDiff: 13, points: 200, bg: "rgba(126,184,247,0.09)",  color: "#7eb8f7", grayBg: "rgba(255,255,255,0.03)" },
+  { endDiff: 20, points: 300, bg: "rgba(196,176,252,0.09)",  color: "#c4b0fc", grayBg: "rgba(255,255,255,0.03)" },
+  { endDiff: 29, points: 500, bg: "rgba(126,212,160,0.09)",  color: "#7ed4a0", grayBg: "rgba(255,255,255,0.03)" },
 ];
 
 const BONUS_LIST = [
@@ -86,7 +81,7 @@ export default function AttendancePage() {
       .eq("user_id", user.id)
       .eq("attended", true)
       .then(({ data, error }) => {
-        if (error) { console.error("[attendance page] query:", error.message); return; }
+        if (error) { console.error("[attendance page]", error.message); return; }
         setAttendDates((data ?? []).map((r: { date: string }) => r.date));
       });
   }, [user]);
@@ -108,7 +103,6 @@ export default function AttendancePage() {
   if (loading) return null;
   if (!user) return null;
 
-  // 날짜셀의 세그먼트 정보 반환
   function getSegInfo(dateStr: string): { segIdx: number; diff: number } | null {
     if (!streakStart) return null;
     const d    = new Date(dateStr + "T00:00:00");
@@ -121,7 +115,7 @@ export default function AttendancePage() {
   return (
     <main className="min-h-screen" style={{ background: "#0d0d0d" }}>
       <nav
-        className="sticky top-0 z-30 border-b flex items-center px-5"
+        className="sticky top-0 z-30 border-b flex items-center px-6"
         style={{
           height: 56,
           background: "rgba(13,13,13,0.96)",
@@ -129,44 +123,36 @@ export default function AttendancePage() {
           borderColor: "rgba(255,255,255,0.06)",
         }}
       >
-        <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>
-          ← 내 정보
-        </Link>
-        <span
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: 20,
-            color: "#FACA3E",
-            marginLeft: 16,
-          }}
-        >
-          PICO
-        </span>
+        <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>← 내 정보</Link>
+        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 
-      <div className="mx-auto py-8 px-4 sm:px-6" style={{ maxWidth: 500 }}>
+      <div
+        className="mx-auto py-8"
+        style={{ maxWidth: 700, paddingLeft: "clamp(16px, 4vw, 24px)", paddingRight: "clamp(16px, 4vw, 24px)" }}
+      >
 
         {/* ── 연속 출석 헤더 ── */}
         <div className="text-center mb-8">
           <p
             style={{
               fontFamily: "var(--font-inter)",
-              fontSize: 64,
-              fontWeight: 700,
+              fontSize: 32,
+              fontWeight: 500,
               color: "#FACA3E",
               letterSpacing: "-0.03em",
               lineHeight: 1,
-              marginBottom: 6,
+              marginBottom: 8,
             }}
           >
             🔥 {streak}일
           </p>
-          <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 8 }}>
+          <p style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>
             연속 출석 중
           </p>
-          <p style={{ fontSize: 13, color: "#5c5448" }}>
+          <p style={{ fontSize: 13, fontWeight: 300, color: "#5c5448" }}>
             이번 달 출석률&nbsp;
-            <span style={{ color: "#a09688" }}>{attendRate}%</span>
+            <span style={{ color: "#a09688", fontWeight: 400 }}>{attendRate}%</span>
             &nbsp;·&nbsp;{attendCount}/{daysInMonth}일
           </p>
         </div>
@@ -176,7 +162,7 @@ export default function AttendancePage() {
           className="rounded-2xl p-5 border mb-6"
           style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}
         >
-          <p style={{ fontSize: 13, color: "#a09688", fontWeight: 500, marginBottom: 16 }}>
+          <p style={{ fontSize: 13, fontWeight: 400, color: "#a09688", marginBottom: 16 }}>
             {now.toLocaleDateString("ko-KR", { year: "numeric", month: "long" })}
           </p>
 
@@ -187,8 +173,8 @@ export default function AttendancePage() {
                 key={d}
                 style={{
                   textAlign: "center",
-                  fontSize: 12,
-                  fontWeight: 600,
+                  fontSize: 13,
+                  fontWeight: 400,
                   color: i === 0 ? "#f07878" : i === 6 ? "#7eb8f7" : "#5c5448",
                   paddingBottom: 8,
                 }}
@@ -205,8 +191,8 @@ export default function AttendancePage() {
             ))}
 
             {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day     = i + 1;
-              const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+              const day      = i + 1;
+              const dateStr  = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const attended = attendSet.has(dateStr);
               const isToday  = dateStr === todayKST;
               const isFuture = day > todayDay;
@@ -220,11 +206,7 @@ export default function AttendancePage() {
                   key={day}
                   className="flex flex-col items-center py-1.5 rounded-lg"
                   style={{
-                    background: seg
-                      ? segDone
-                        ? seg.grayBg
-                        : seg.bg
-                      : "transparent",
+                    background: seg ? (segDone ? seg.grayBg : seg.bg) : "transparent",
                     opacity: isFuture && !seg ? 0.25 : 1,
                   }}
                 >
@@ -232,13 +214,9 @@ export default function AttendancePage() {
                   <span
                     style={{
                       fontFamily: "var(--font-inter)",
-                      fontSize: 14,
-                      fontWeight: isToday ? 700 : 300,
-                      color: isToday
-                        ? "#e8e0d0"
-                        : isFuture
-                        ? "#3a3a3a"
-                        : "#a09688",
+                      fontSize: 15,
+                      fontWeight: 400,
+                      color: isToday ? "#e8e0d0" : isFuture ? "#3a3a3a" : "#a09688",
                       lineHeight: 1.2,
                       marginBottom: 2,
                       border: isToday ? "1.5px solid rgba(255,255,255,0.4)" : "1.5px solid transparent",
@@ -253,7 +231,7 @@ export default function AttendancePage() {
                   {attended ? (
                     <div
                       style={{
-                        width: 30,
+                        width: 32,
                         height: 22,
                         border: `1.5px solid ${segDone ? "rgba(255,255,255,0.12)" : "#FACA3E"}`,
                         borderRadius: 3,
@@ -265,8 +243,8 @@ export default function AttendancePage() {
                       <span
                         style={{
                           fontFamily: "var(--font-serif)",
-                          fontSize: 8,
-                          fontWeight: 700,
+                          fontSize: 9,
+                          fontWeight: 500,
                           color: segDone ? "rgba(255,255,255,0.18)" : "#FACA3E",
                           transform: "rotate(-15deg)",
                           display: "inline-block",
@@ -278,15 +256,15 @@ export default function AttendancePage() {
                       </span>
                     </div>
                   ) : (
-                    <div style={{ width: 30, height: 22 }} />
+                    <div style={{ width: 32, height: 22 }} />
                   )}
 
-                  {/* 세그먼트 끝 포인트 레이블 */}
-                  {isSegEnd && seg && (
+                  {/* 구간 끝 포인트 레이블 */}
+                  {isSegEnd && seg ? (
                     <span
                       style={{
                         fontSize: 9,
-                        fontWeight: 600,
+                        fontWeight: 400,
                         color: segDone ? "#5c5448" : seg.color,
                         marginTop: 1,
                         lineHeight: 1,
@@ -294,8 +272,9 @@ export default function AttendancePage() {
                     >
                       {segDone ? "완료" : `+${seg.points}P`}
                     </span>
+                  ) : (
+                    <div style={{ height: 11 }} />
                   )}
-                  {!isSegEnd && <div style={{ height: 11 }} />}
                 </div>
               );
             })}
@@ -308,7 +287,7 @@ export default function AttendancePage() {
           >
             <div
               style={{
-                width: 30,
+                width: 32,
                 height: 22,
                 border: "1.5px solid #FACA3E",
                 borderRadius: 3,
@@ -320,8 +299,8 @@ export default function AttendancePage() {
               <span
                 style={{
                   fontFamily: "var(--font-serif)",
-                  fontSize: 8,
-                  fontWeight: 700,
+                  fontSize: 9,
+                  fontWeight: 500,
                   color: "#FACA3E",
                   transform: "rotate(-15deg)",
                   display: "inline-block",
@@ -330,17 +309,15 @@ export default function AttendancePage() {
                 PICO
               </span>
             </div>
-            <span style={{ fontSize: 11, color: "#5c5448" }}>출석 완료</span>
-            <span style={{ fontSize: 11, color: "#3a3a3a", marginLeft: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 300, color: "#5c5448" }}>출석 완료</span>
+            <span style={{ fontSize: 12, fontWeight: 300, color: "#3a3a3a", marginLeft: 8 }}>
               {attendCount} / {daysInMonth}일
             </span>
           </div>
         </div>
 
         {/* ── 연속 출석 보너스 ── */}
-        <p style={{ fontSize: 14, fontWeight: 500, color: "#5c5448", marginBottom: 12 }}>
-          연속 출석 보너스
-        </p>
+        <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 12 }}>연속 출석 보너스</p>
         <div className="flex flex-col gap-2 mb-8">
           {BONUS_LIST.map((b) => {
             const achieved = streak >= b.days;
@@ -355,15 +332,14 @@ export default function AttendancePage() {
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <span
-                    style={{ fontSize: 13, fontWeight: 500, color: achieved ? b.color : "#5c5448" }}
-                  >
+                  <span style={{ fontSize: 13, fontWeight: 400, color: achieved ? b.color : "#5c5448" }}>
                     {b.days}일 연속
                   </span>
                   {achieved && (
                     <span
                       style={{
                         fontSize: 10,
+                        fontWeight: 400,
                         color: b.color,
                         background: `${b.color}18`,
                         padding: "1px 6px",
@@ -377,8 +353,8 @@ export default function AttendancePage() {
                 <span
                   style={{
                     fontFamily: "var(--font-inter)",
-                    fontSize: 18,
-                    fontWeight: 300,
+                    fontSize: 17,
+                    fontWeight: 400,
                     color: achieved ? b.color : "#2a2a2a",
                     letterSpacing: "-0.02em",
                   }}

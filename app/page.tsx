@@ -13,7 +13,7 @@ import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
 // ═══════════════════════════════════════════════
-type ModalType = "onboarding" | "followup_quiz" | "followup_battle" | "login" | "vs_battle" | null;
+type ModalType = "login" | "vs_battle" | null;
 type AuthTab   = "login" | "signup";
 type MainTab   = "event" | "play";
 
@@ -285,10 +285,6 @@ export default function Home() {
       });
     });
 
-    // 비로그인 유저 모달: 배틀 미완료면 온보딩, 완료면 followup_quiz
-    if (!bDone) setModal("onboarding");
-    else setModal("followup_quiz");
-
     setCountdown(getMarketCountdown());
     const timer = setInterval(() => setCountdown(getMarketCountdown()), 1000);
 
@@ -337,14 +333,10 @@ export default function Home() {
     if (userRow?.investor_type) {
       setQuizDone(true);
       setQuizType(userRow.investor_type);
-      if (modal === "followup_quiz" || modal === "onboarding") {
-        // 퀴즈 완료 + 배틀 미완료 → followup_battle
-        setModal(battleDone ? null : "followup_battle");
-      }
     }
   }, [userRow]);
 
-  const isBlurred = modal === "onboarding" || modal === "followup_quiz" || modal === "followup_battle";
+  const isBlurred = modal === "vs_battle";
   const total = votesA + votesB;
   const pctA  = total > 0 ? Math.round((votesA / total) * 100) : 50;
   const pctB  = 100 - pctA;
@@ -1111,65 +1103,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* ════════ 온보딩 모달 ════════ */}
-      {modal === "onboarding" && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
-          <div className="w-full max-w-sm rounded-2xl p-6 fade-up" style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.1)" }}>
-            <div className="text-center mb-6">
-              <div style={{ fontSize: 22, fontWeight: 500, color: "#FACA3E", marginBottom: 6 }}>PICO에 온 걸 환영해 👋</div>
-              <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.8, fontWeight: 300 }}>시작하기 전에, 하나만 먼저 해볼래?</p>
-            </div>
-            <div className="flex flex-col gap-3">
-              {[
-                { icon: "🧬", label: "투자 DNA 찾기", title: "나는 어떤 투자자일까?", sub: "12문항 · 약 2분", accent: "#7eb8f7", path: "/quiz" },
-                { icon: "⚔️", label: "VS 배틀 참여하기", title: "오늘 ABNB vs HLT", sub: "하루 1번 · 정답 시 100P", accent: "#FACA3E", path: "/battle" },
-              ].map((item) => (
-                <button key={item.path} onClick={() => router.push(item.path)} className="pico-card w-full rounded-xl p-4 border text-left" style={{ background: "#1c1c1c", borderColor: `${item.accent}40` }}>
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">{item.icon}</div>
-                    <div>
-                      <div style={{ fontSize: 10, letterSpacing: "0.1em", color: item.accent, textTransform: "uppercase", fontWeight: 500, marginBottom: 2 }}>{item.label}</div>
-                      <div style={{ fontSize: 15, color: "#e8e0d0", fontWeight: 500 }}>{item.title}</div>
-                      <div style={{ fontSize: 12, color: "#5c5448", marginTop: 2, fontWeight: 300 }}>{item.sub}</div>
-                    </div>
-                    <div style={{ marginLeft: "auto", color: "#5c5448", fontSize: 20 }}>›</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setModal(null)} className="pico-btn w-full mt-4 py-2" style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>나중에 할게</button>
-          </div>
-        </div>
-      )}
-
-      {modal === "followup_battle" && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
-          <div className="w-full max-w-sm rounded-2xl p-6 fade-up" style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-            <div className="text-center mb-5">
-              <div style={{ fontSize: 38, marginBottom: 10 }}>⚔️</div>
-              <div style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>VS 배틀도 참여해볼래?</div>
-              <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.8, fontWeight: 300 }}>오늘 에어비앤비 vs 힐튼 배틀이 열려 있어.<br />정답 맞추면 100 포인트!</p>
-            </div>
-            <button onClick={() => router.push("/battle")} className="pico-btn w-full rounded-xl py-3 mb-3" style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>배틀 참여하기 →</button>
-            <button onClick={() => setModal(null)} className="pico-btn w-full py-2" style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>괜찮아, 나중에 할게</button>
-          </div>
-        </div>
-      )}
-
-      {modal === "followup_quiz" && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
-          <div className="w-full max-w-sm rounded-2xl p-6 fade-up" style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-            <div className="text-center mb-5">
-              <div style={{ fontSize: 38, marginBottom: 10 }}>🧬</div>
-              <div style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>투자 DNA도 확인해볼래?</div>
-              <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.8, fontWeight: 300 }}>12문항으로 내 투자 성향을 알아봐.<br />결과를 친구에게 공유할 수도 있어.</p>
-            </div>
-            <button onClick={() => router.push("/quiz")} className="pico-btn w-full rounded-xl py-3 mb-3" style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>퀴즈 시작하기 →</button>
-            <button onClick={() => setModal(null)} className="pico-btn w-full py-2" style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>괜찮아, 나중에 할게</button>
-          </div>
-        </div>
-      )}
-
       {/* ════════ VS 배틀 팝업 (로그인 유저 첫 접속) ════════ */}
       {modal === "vs_battle" && (() => {
         const popTotal = popupVotesA + popupVotesB;
@@ -1185,7 +1118,7 @@ export default function Home() {
                   <>
                     {/* 투표 전 */}
                     <div className="text-center mb-5">
-                      <p style={{ fontSize: 20, fontWeight: 600, color: "#e8e0d0", marginBottom: 6 }}>오늘의 대결 ⚔️</p>
+                      <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>오늘의 대결 ⚔️</p>
                       <p style={{ fontSize: 13, color: "#a09688", fontWeight: 300 }}>오늘 장 마감까지 어느 쪽이 더 오를까?</p>
                     </div>
 
@@ -1200,7 +1133,7 @@ export default function Home() {
                           borderColor: popupBattleVote === "a" ? "rgba(250,202,62,0.5)" : "rgba(255,255,255,0.08)",
                         }}
                       >
-                        <div style={{ fontSize: 15, fontWeight: 600, color: popupBattleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 3 }}>ABNB</div>
+                        <div style={{ fontSize: 15, fontWeight: 500, color: popupBattleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 3 }}>ABNB</div>
                         <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 8 }}>에어비앤비</div>
                         <div style={{ fontSize: 12, fontWeight: 500, color: popupBattleVote === "a" ? "#FACA3E" : "#a09688" }}>
                           {popPctA}% 선택 중
@@ -1221,7 +1154,7 @@ export default function Home() {
                           borderColor: popupBattleVote === "b" ? "rgba(126,184,247,0.5)" : "rgba(255,255,255,0.08)",
                         }}
                       >
-                        <div style={{ fontSize: 15, fontWeight: 600, color: popupBattleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 3 }}>HLT</div>
+                        <div style={{ fontSize: 15, fontWeight: 500, color: popupBattleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 3 }}>HLT</div>
                         <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 8 }}>힐튼 호텔</div>
                         <div style={{ fontSize: 12, fontWeight: 500, color: popupBattleVote === "b" ? "#7eb8f7" : "#a09688" }}>
                           {popPctB}% 선택 중
@@ -1241,7 +1174,7 @@ export default function Home() {
                         background: popupBattleVote ? "#FACA3E" : "#242424",
                         color: popupBattleVote ? "#0d0d0d" : "#5c5448",
                         fontSize: 14,
-                        fontWeight: 600,
+                        fontWeight: 500,
                         transition: "all 0.2s",
                       }}
                     >
@@ -1256,7 +1189,7 @@ export default function Home() {
                     {/* 투표 완료 후 */}
                     <div className="text-center mb-5">
                       <div style={{ fontSize: 36, marginBottom: 10 }}>🎯</div>
-                      <p style={{ fontSize: 17, fontWeight: 600, color: "#e8e0d0", marginBottom: 6 }}>
+                      <p style={{ fontSize: 17, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>
                         내일 오전 결과 공개!
                       </p>
                       <p style={{ fontSize: 14, color: "#7ed4a0", fontWeight: 500 }}>오늘 출석 완료 ✓</p>
@@ -1270,7 +1203,7 @@ export default function Home() {
                         borderColor: popupBattleVote === "a" ? "rgba(250,202,62,0.4)" : "rgba(126,184,247,0.4)",
                       }}
                     >
-                      <div style={{ fontSize: 16, fontWeight: 600, color: popupBattleVote === "a" ? "#FACA3E" : "#7eb8f7", marginBottom: 2 }}>
+                      <div style={{ fontSize: 16, fontWeight: 500, color: popupBattleVote === "a" ? "#FACA3E" : "#7eb8f7", marginBottom: 2 }}>
                         {popupBattleVote === "a" ? "ABNB 에어비앤비" : "HLT 힐튼 호텔"}
                       </div>
                       <div style={{ fontSize: 12, color: "#5c5448" }}>내 선택</div>
