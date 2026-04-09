@@ -206,14 +206,19 @@ export async function submitVoteAndAttendance(
   console.log("2b. attendance 중복 확인", { existingAtt, error: attSelErr ?? null });
 
   if (!existingAtt) {
+    if (!uid) {
+      console.error("3. attendance INSERT 건너뜀 — uid 없음");
+      return { bonusDays: 0, bonusPoints: 0 };
+    }
     // 3) attendance 삽입 — user_id 명시 필수 (RLS: auth.uid() = user_id)
+    // 컬럼명: points_earned (ALTER TABLE로 DB 통일됨)
     const { error: attInsErr } = await supabase.from("attendance").insert({
       user_id: uid,
       date: today,
       attended: true,
       points_earned: 50,
     });
-    console.log("3. attendance 저장 결과", attInsErr ? attInsErr : "✅ 성공");
+    console.log("3. attendance 저장 결과:", JSON.stringify(attInsErr));
 
     if (!attInsErr) {
       // 4) 기본 출석 포인트 +50
