@@ -321,9 +321,6 @@ export default function MyPage() {
                   {dnaType ? dnaType.name : "테스트 전"}
                 </span>
               </div>
-              <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", marginTop: 4 }}>
-                {dnaType ? dnaType.tagline : "18문항으로 나만의 투자 유형 찾기"}
-              </p>
             </div>
             <div style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "center" }}>
               <span style={{ fontSize: 16, color: "#EDD97A" }}>›</span>
