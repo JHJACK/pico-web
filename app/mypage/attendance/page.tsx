@@ -43,14 +43,14 @@ function calcStreakStart(dates: string[]): string | null {
 }
 
 const SEGMENTS = [
-  { endDiff: 6,  points: 100, bg: "rgba(250,202,62,0.09)",   color: "#FACA3E", grayBg: "rgba(255,255,255,0.03)" },
+  { endDiff: 6,  points: 100, bg: "rgba(237,217,122,0.09)",   color: "#EDD97A", grayBg: "rgba(255,255,255,0.03)" },
   { endDiff: 13, points: 200, bg: "rgba(126,184,247,0.09)",  color: "#7eb8f7", grayBg: "rgba(255,255,255,0.03)" },
   { endDiff: 20, points: 300, bg: "rgba(196,176,252,0.09)",  color: "#c4b0fc", grayBg: "rgba(255,255,255,0.03)" },
   { endDiff: 29, points: 500, bg: "rgba(126,212,160,0.09)",  color: "#7ed4a0", grayBg: "rgba(255,255,255,0.03)" },
 ];
 
 const BONUS_LIST = [
-  { days: 7,  points: 100, color: "#FACA3E" },
+  { days: 7,  points: 100, color: "#EDD97A" },
   { days: 14, points: 200, color: "#7eb8f7" },
   { days: 21, points: 300, color: "#c4b0fc" },
   { days: 30, points: 500, color: "#7ed4a0" },
@@ -124,7 +124,7 @@ export default function AttendancePage() {
         }}
       >
         <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>← 내 정보</Link>
-        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
+        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#EDD97A", marginLeft: 16 }}>PICO</span>
       </nav>
 
       <div
@@ -139,7 +139,7 @@ export default function AttendancePage() {
               fontFamily: "var(--font-inter)",
               fontSize: 32,
               fontWeight: 500,
-              color: "#FACA3E",
+              color: "#EDD97A",
               letterSpacing: "-0.03em",
               lineHeight: 1,
               marginBottom: 8,
@@ -233,7 +233,7 @@ export default function AttendancePage() {
                       style={{
                         width: 32,
                         height: 22,
-                        border: `1.5px solid ${segDone ? "rgba(255,255,255,0.12)" : "#FACA3E"}`,
+                        border: `1.5px solid ${segDone ? "rgba(255,255,255,0.12)" : "#EDD97A"}`,
                         borderRadius: 3,
                         display: "flex",
                         alignItems: "center",
@@ -245,7 +245,7 @@ export default function AttendancePage() {
                           fontFamily: "var(--font-serif)",
                           fontSize: 9,
                           fontWeight: 500,
-                          color: segDone ? "rgba(255,255,255,0.18)" : "#FACA3E",
+                          color: segDone ? "rgba(255,255,255,0.18)" : "#EDD97A",
                           transform: "rotate(-15deg)",
                           display: "inline-block",
                           letterSpacing: "0.04em",
@@ -289,7 +289,7 @@ export default function AttendancePage() {
               style={{
                 width: 32,
                 height: 22,
-                border: "1.5px solid #FACA3E",
+                border: "1.5px solid #EDD97A",
                 borderRadius: 3,
                 display: "flex",
                 alignItems: "center",
@@ -301,7 +301,7 @@ export default function AttendancePage() {
                   fontFamily: "var(--font-serif)",
                   fontSize: 9,
                   fontWeight: 500,
-                  color: "#FACA3E",
+                  color: "#EDD97A",
                   transform: "rotate(-15deg)",
                   display: "inline-block",
                 }}

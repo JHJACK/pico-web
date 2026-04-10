@@ -88,7 +88,7 @@ export default function BattlePage() {
           ← 홈
         </Link>
         <span
-          style={{ fontFamily: "var(--font-serif)", fontSize: 16, color: "#FACA3E" }}
+          style={{ fontFamily: "var(--font-serif)", fontSize: 16, color: "#EDD97A" }}
         >
           PICO
         </span>

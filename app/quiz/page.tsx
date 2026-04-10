@@ -191,7 +191,7 @@ export default function QuizPage() {
       <nav className="sticky top-0 z-50 flex items-center px-5 border-b"
         style={{ height: 50, background: "rgba(13,13,13,0.95)", backdropFilter: "blur(16px)", borderColor: "rgba(255,255,255,0.06)" }}>
         <Link href="/" style={{ color: "#5c5448", fontSize: 13, textDecoration: "none" }}>← 홈</Link>
-        <span style={{ fontFamily: "var(--font-serif)", fontSize: 16, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
+        <span style={{ fontFamily: "var(--font-serif)", fontSize: 16, color: "#EDD97A", marginLeft: 16 }}>PICO</span>
         {step >= 1 && step <= TOTAL && (
           <span style={{ fontFamily: "var(--font-inter)", fontSize: 11, color: "#5c5448", marginLeft: "auto" }}>{step} / {TOTAL}</span>
         )}

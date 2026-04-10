@@ -5,9 +5,9 @@
   --color-pico-bg2: #141414;
   --color-pico-bg3: #1c1c1c;
   --color-pico-bg4: #242424;
-  --color-pico-gold: #FACA3E;
+  --color-pico-gold: #EDD97A;
   --color-pico-text: #e8e0d0;
-  --color-pico-text2: #a09688;
+  --color-pico-text2: #c8bfb0;
   --color-pico-text3: #5c5448;
   --color-pico-blue: #7eb8f7;
   --color-pico-red: #f07878;
@@ -101,10 +101,10 @@ h1, h2, h3, h4, h5 {
 
 /* ── 골드 글로우 (배틀 선택) ── */
 @keyframes goldGlow {
-  0%   { box-shadow: 0 0 0px  rgba(250,202,62,0);    border-color: rgba(255,255,255,0.06); }
-  30%  { box-shadow: 0 0 22px rgba(250,202,62,0.6);  border-color: rgba(250,202,62,0.95); }
-  70%  { box-shadow: 0 0 12px rgba(250,202,62,0.3);  border-color: rgba(250,202,62,0.65); }
-  100% { box-shadow: 0 0 0px  rgba(250,202,62,0);    border-color: rgba(250,202,62,0.45); }
+  0%   { box-shadow: 0 0 0px  rgba(237,217,122,0);    border-color: rgba(255,255,255,0.06); }
+  30%  { box-shadow: 0 0 22px rgba(237,217,122,0.6);  border-color: rgba(237,217,122,0.95); }
+  70%  { box-shadow: 0 0 12px rgba(237,217,122,0.3);  border-color: rgba(237,217,122,0.65); }
+  100% { box-shadow: 0 0 0px  rgba(237,217,122,0);    border-color: rgba(237,217,122,0.45); }
 }
 .gold-glow { animation: goldGlow 0.7s cubic-bezier(.4,0,.2,1) forwards; }
 
@@ -128,6 +128,16 @@ h1, h2, h3, h4, h5 {
 .float-1 { animation: floatUp 3.6s ease-in-out infinite; }
 .float-2 { animation: floatUp 4.2s ease-in-out 0.5s infinite; }
 .float-3 { animation: floatUp 3.9s ease-in-out 1.1s infinite; }
+
+/* ── 2열 그리드 (mypage DNA+출석) ── */
+.grid-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 480px) {
+  .grid-2-col { grid-template-columns: 1fr; }
+}
 
 /* ── 가로 스크롤 ── */
 .scroll-x { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }

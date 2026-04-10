@@ -44,9 +44,9 @@ export default function DnaPage() {
         <button onClick={() => router.back()} className="pico-btn" style={{ background: "none", border: "none", fontSize: 13, color: "#5c5448", cursor: "pointer" }}>
           ← 내 정보
         </button>
-        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
+        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#EDD97A", marginLeft: 16 }}>PICO</span>
         <button onClick={share} className="pico-btn ml-auto px-4 py-2 rounded-xl"
-          style={{ background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.25)", color: "#FACA3E", fontSize: 13, fontWeight: 500 }}>
+          style={{ background: "rgba(237,217,122,0.1)", border: "0.5px solid rgba(237,217,122,0.25)", color: "#EDD97A", fontSize: 13, fontWeight: 500 }}>
           {copied ? "복사됨 ✓" : "🔗 공유하기"}
         </button>
       </nav>
@@ -79,7 +79,7 @@ export default function DnaPage() {
                 <span style={{ fontSize: 14, padding: "5px 14px", borderRadius: 6, background: "rgba(126,212,160,0.12)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.3)", fontFamily: "var(--font-inter)" }}>
                   T: {dnaType.axisT}
                 </span>
-                <span style={{ fontSize: 14, padding: "5px 14px", borderRadius: 6, background: "rgba(250,202,62,0.12)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.3)", fontFamily: "var(--font-inter)" }}>
+                <span style={{ fontSize: 14, padding: "5px 14px", borderRadius: 6, background: "rgba(237,217,122,0.12)", color: "#EDD97A", border: "0.5px solid rgba(237,217,122,0.3)", fontFamily: "var(--font-inter)" }}>
                   Y: {dnaType.axisY}
                 </span>
               </div>
@@ -136,7 +136,7 @@ export default function DnaPage() {
             {/* ── 공유 + 다시 하기 ── */}
             <div className="flex gap-3 mb-8">
               <button onClick={share} className="pico-btn flex-1 py-4 rounded-2xl"
-                style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 16, fontWeight: 600, border: "none" }}>
+                style={{ background: "#EDD97A", color: "#0d0d0d", fontSize: 16, fontWeight: 600, border: "none" }}>
                 {copied ? "링크 복사됨 ✓" : "🔗 공유하기 (카카오톡)"}
               </button>
               <Link href="/quiz" className="pico-btn px-6 py-4 rounded-2xl flex items-center"
@@ -181,7 +181,7 @@ export default function DnaPage() {
             <p style={{ fontSize: 22, fontWeight: 600, color: "#a09688", marginBottom: 8 }}>아직 투자 DNA를 몰라</p>
             <p style={{ fontSize: 15, color: "#5c5448", marginBottom: 28 }}>18개 질문으로 나만의 투자 유형을 찾아봐</p>
             <Link href="/quiz"
-              style={{ display: "inline-block", background: "#FACA3E", color: "#0d0d0d", fontSize: 16, fontWeight: 600, padding: "14px 32px", borderRadius: 14, textDecoration: "none" }}>
+              style={{ display: "inline-block", background: "#EDD97A", color: "#0d0d0d", fontSize: 16, fontWeight: 600, padding: "14px 32px", borderRadius: 14, textDecoration: "none" }}>
               투자 DNA 테스트 시작
             </Link>
           </div>

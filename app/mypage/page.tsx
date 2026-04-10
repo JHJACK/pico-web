@@ -178,7 +178,7 @@ export default function MyPage() {
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
         <Link href="/" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>← 홈</Link>
-        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
+        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#EDD97A", marginLeft: 16 }}>PICO</span>
       </nav>
 
       {/* 수정 모달 */}
@@ -192,13 +192,13 @@ export default function MyPage() {
             <div className="flex justify-center mb-6">
               <button onClick={() => fileInputRef.current?.click()} className="pico-btn relative" style={{ background: "none", border: "none" }}>
                 {avatarSrc ? (
-                  <img src={avatarSrc} alt="프로필" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(250,202,62,0.4)" }} />
+                  <img src={avatarSrc} alt="프로필" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(237,217,122,0.4)" }} />
                 ) : (
                   <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#242424", border: "2px dashed rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "#5c5448" }}>
                     {userRow.nickname[0]?.toUpperCase() ?? "?"}
                   </div>
                 )}
-                <div style={{ position: "absolute", bottom: 0, right: 0, width: 24, height: 24, borderRadius: "50%", background: "#FACA3E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#0d0d0d" }}>✎</div>
+                <div style={{ position: "absolute", bottom: 0, right: 0, width: 24, height: 24, borderRadius: "50%", background: "#EDD97A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#0d0d0d" }}>✎</div>
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
             </div>
@@ -208,7 +208,7 @@ export default function MyPage() {
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               className="w-full rounded-xl px-4 py-3 outline-none mb-4"
-              style={{ background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.35)", color: "#e8e0d0", fontSize: 15, fontWeight: 300 }}
+              style={{ background: "#1c1c1c", border: "0.5px solid rgba(237,217,122,0.35)", color: "#e8e0d0", fontSize: 15, fontWeight: 300 }}
             />
 
             {saveError && (
@@ -217,7 +217,7 @@ export default function MyPage() {
 
             <div className="flex gap-3">
               <button onClick={handleSave} disabled={saving} className="pico-btn flex-1 py-3 rounded-xl"
-                style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
+                style={{ background: "#EDD97A", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
                 {saving ? (uploadLoading ? "업로드 중..." : "저장 중...") : "저장"}
               </button>
               <button onClick={() => { setEditOpen(false); setPendingFile(null); setPreviewUrl(null); }} className="pico-btn px-5 py-3 rounded-xl"
@@ -235,55 +235,55 @@ export default function MyPage() {
       >
 
         {/* ── 프로필 카드 ── */}
-        <div className="rounded-2xl p-5 border mb-4 flex items-center gap-4"
-          style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
+        <div className="flex items-center gap-4 mb-[10px]"
+          style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)" }}>
           {userRow.avatar_url ? (
             <img src={userRow.avatar_url} alt="프로필" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid rgba(255,255,255,0.1)" }} />
           ) : (
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#242424", border: "2px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 400, color: "#a09688", flexShrink: 0 }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#242424", border: "2px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 400, color: "#c8bfb0", flexShrink: 0 }}>
               {userRow.nickname[0]?.toUpperCase() ?? "?"}
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
-            <p style={{ fontSize: 12, fontWeight: 300, color: "#5c5448", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
+            <p style={{ fontSize: 17, fontWeight: 500, color: "#e8e0d0", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
+            <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
           </div>
           <button onClick={openEdit} className="pico-btn px-3 py-2 rounded-lg flex-shrink-0"
-            style={{ fontSize: 12, fontWeight: 400, color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", background: "transparent" }}>
+            style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.07)", background: "transparent" }}>
             수정
           </button>
         </div>
 
         {/* ── 포인트 + 최근 대결 ── */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-2 gap-[10px] mb-[10px]">
           <button
-            className="pico-btn rounded-2xl p-5 border text-left"
-            style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}
+            className="pico-btn border text-left"
+            style={{ background: "#141414", borderColor: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "18px 20px" }}
             onClick={() => router.push("/mypage/points")}
           >
-            <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8 }}>누적 포인트</p>
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0", marginBottom: 8 }}>누적 포인트</p>
+            <p style={{ fontFamily: "var(--font-inter)", fontSize: 28, fontWeight: 500, color: "#EDD97A", letterSpacing: "-0.02em" }}>
               {userRow.total_points.toLocaleString()}P
             </p>
-            <p style={{ fontSize: 11, fontWeight: 300, color: "#3a3a3a", marginTop: 6 }}>내역 보기 →</p>
+            <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", marginTop: 6 }}>내역 보기 →</p>
           </button>
-          <div className="rounded-2xl p-5 border" style={{ background: "#141414", borderColor: "rgba(126,184,247,0.2)" }}>
-            <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8 }}>최근 대결 결과</p>
+          <div className="border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "18px 20px" }}>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0", marginBottom: 8 }}>최근 대결 결과</p>
             {lastBattle === undefined ? null : lastBattle === null ? (
-              <p style={{ fontSize: 13, fontWeight: 300, color: "#3a3a3a", marginTop: 4 }}>아직 대결 참여 기록이 없어요</p>
+              <p style={{ fontSize: 14, fontWeight: 400, color: "#5c5448", marginTop: 4 }}>아직 대결 참여 기록이 없어요</p>
             ) : (
               <>
-                <p style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 500, color: "#7eb8f7", letterSpacing: "-0.02em" }}>
+                <p style={{ fontFamily: "var(--font-inter)", fontSize: 14, fontWeight: 400, color: "#e8e0d0", letterSpacing: "-0.01em" }}>
                   {lastBattle.voted_for}
                 </p>
                 <p style={{
-                  fontSize: 13,
-                  fontWeight: 300,
+                  fontSize: 14,
+                  fontWeight: 400,
                   marginTop: 4,
                   color: lastBattle.is_correct === true
                     ? "#7ed4a0"
                     : lastBattle.is_correct === false
-                    ? "#a09688"
+                    ? "#c8bfb0"
                     : "#5c5448",
                 }}>
                   {lastBattle.is_correct === true
@@ -297,59 +297,59 @@ export default function MyPage() {
           </div>
         </div>
 
-        {/* ── 내 투자 DNA 박스 ── */}
-        <button onClick={() => router.push("/mypage/dna")} className="pico-btn w-full text-left rounded-2xl p-5 border mb-4"
-          style={{ background: "#141414", borderColor: dnaType ? `${dnaType.color}30` : "rgba(255,255,255,0.08)" }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span style={{ fontSize: 26 }}>{dnaType ? dnaType.emoji : "🧬"}</span>
-              <div>
-                <p style={{ fontSize: 11, letterSpacing: "0.12em", fontWeight: 400, color: dnaType ? dnaType.color : "#5c5448", textTransform: "uppercase", marginBottom: 3 }}>
-                  {dnaType ? dnaType.modifier : "투자 DNA"}
-                </p>
-                <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>
-                  {dnaType ? dnaType.name : "아직 테스트 안 함"}
-                </p>
+        {/* ── DNA 카드 + 출석 카드 2열 그리드 ── */}
+        <div className="grid-2-col mb-8">
+          {/* DNA 카드 */}
+          <button onClick={() => router.push("/mypage/dna")} className="pico-btn text-left"
+            style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 26, flexShrink: 0 }}>{dnaType ? dnaType.emoji : "🧬"}</span>
+                <div>
+                  <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", lineHeight: 1.25 }}>
+                    {dnaType ? dnaType.modifier : "투자 DNA"}
+                  </p>
+                  <p style={{ fontSize: 20, fontWeight: 500, color: "#EDD97A", lineHeight: 1.25 }}>
+                    {dnaType ? dnaType.name : "테스트 전"}
+                  </p>
+                </div>
+              </div>
+              <div style={{ background: "#1c1c1c", borderRadius: 8, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: 8 }}>
+                <span style={{ fontSize: 13, color: "#5c5448" }}>→</span>
               </div>
             </div>
-            <span style={{ fontSize: 18, color: "#5c5448" }}>→</span>
-          </div>
-          <p style={{ fontSize: 12, fontWeight: 300, color: "#5c5448", marginTop: 8 }}>
-            {dnaType ? "상세 리포트 · 자산 배분 · 추천 종목 보기" : "18문항으로 나만의 투자 유형 찾기"}
-          </p>
-        </button>
+            <p style={{ fontSize: 14, fontWeight: 400, color: "#e8e0d0" }}>
+              {dnaType ? dnaType.tagline : "18문항으로 나만의 투자 유형 찾기"}
+            </p>
+          </button>
 
-        {/* ── 출석 캘린더 카드 ── */}
-        <button onClick={() => router.push("/mypage/attendance")} className="pico-btn w-full text-left rounded-2xl p-5 border mb-8"
-          style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)" }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span style={{ fontSize: 26 }}>📅</span>
-              <div>
-                <p style={{ fontSize: 11, letterSpacing: "0.12em", fontWeight: 400, color: "#FACA3E", textTransform: "uppercase", marginBottom: 3 }}>
-                  출석 캘린더
-                </p>
-                <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>
-                  🔥 {streak}일 연속 출석 중
-                </p>
+          {/* 출석 카드 */}
+          <button onClick={() => router.push("/mypage/attendance")} className="pico-btn text-left"
+            style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
+              <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", lineHeight: 1.25 }}>출석체크 캘린더 🔥</p>
+              <div style={{ background: "#1c1c1c", borderRadius: 8, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: 8 }}>
+                <span style={{ fontSize: 13, color: "#5c5448" }}>→</span>
               </div>
             </div>
-            <span style={{ fontSize: 18, color: "#5c5448" }}>→</span>
-          </div>
-          <p style={{ fontSize: 12, fontWeight: 300, color: "#5c5448", marginTop: 8 }}>
-            이번 달 출석 {attendCount}/{daysInMonth}일
-          </p>
-        </button>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0" }}>
+              🔥 {streak}일 연속
+            </p>
+            <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", marginTop: 4 }}>
+              이번 달 {attendCount}/{daysInMonth}일
+            </p>
+          </button>
+        </div>
 
         {/* ── 로그아웃 ── */}
         <button onClick={signOut} className="pico-btn w-full rounded-xl py-3 mb-3"
-          style={{ background: "transparent", color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 400 }}>
+          style={{ background: "transparent", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.07)", fontSize: 14, fontWeight: 400 }}>
           로그아웃
         </button>
 
         {!showDeleteConfirm ? (
           <button onClick={() => setShowDeleteConfirm(true)} className="pico-btn w-full py-2"
-            style={{ background: "transparent", color: "#5c5448", fontSize: 13, fontWeight: 300, border: "none" }}>
+            style={{ background: "transparent", color: "#5c5448", fontSize: 14, fontWeight: 400, border: "none" }}>
             회원 탈퇴
           </button>
         ) : (
