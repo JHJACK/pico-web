@@ -257,87 +257,86 @@ export default function MyPage() {
         {/* ── 포인트 + 최근 대결 ── */}
         <div className="grid grid-cols-2 gap-[10px] mb-[10px]">
           <button
-            className="pico-btn border text-left"
-            style={{ background: "#141414", borderColor: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "18px 20px" }}
+            className="pico-btn border"
+            style={{ background: "#141414", borderColor: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "18px 20px", display: "flex", alignItems: "center", gap: 10 }}
             onClick={() => router.push("/mypage/points")}
           >
-            <p style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0", marginBottom: 8 }}>누적 포인트</p>
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: 28, fontWeight: 500, color: "#EDD97A", letterSpacing: "-0.02em" }}>
-              {userRow.total_points.toLocaleString()}P
-            </p>
-            <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", marginTop: 6 }}>내역 보기 →</p>
+            <div style={{ flex: 1, textAlign: "left" }}>
+              <p style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>누적 포인트</p>
+              <p style={{ fontFamily: "var(--font-inter)", fontSize: 28, fontWeight: 500, color: "#EDD97A", letterSpacing: "-0.02em" }}>
+                {userRow.total_points.toLocaleString()}P
+              </p>
+            </div>
+            <div style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ fontSize: 16, color: "#EDD97A" }}>›</span>
+            </div>
           </button>
-          <div className="border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "18px 20px" }}>
-            <p style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0", marginBottom: 8 }}>최근 대결 결과</p>
-            {lastBattle === undefined ? null : lastBattle === null ? (
-              <p style={{ fontSize: 14, fontWeight: 400, color: "#5c5448", marginTop: 4 }}>아직 대결 참여 기록이 없어요</p>
-            ) : (
-              <>
-                <p style={{ fontFamily: "var(--font-inter)", fontSize: 14, fontWeight: 400, color: "#e8e0d0", letterSpacing: "-0.01em" }}>
-                  {lastBattle.voted_for}
-                </p>
-                <p style={{
-                  fontSize: 14,
-                  fontWeight: 400,
-                  marginTop: 4,
-                  color: lastBattle.is_correct === true
-                    ? "#7ed4a0"
-                    : lastBattle.is_correct === false
-                    ? "#c8bfb0"
-                    : "#5c5448",
-                }}>
-                  {lastBattle.is_correct === true
-                    ? "정답! 🎉"
-                    : lastBattle.is_correct === false
-                    ? "아쉽게 틀렸어요 😅"
-                    : "결과 집계 중..."}
-                </p>
-              </>
-            )}
+          <div className="border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "18px 20px", display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>최근 대결 결과</p>
+              {lastBattle === undefined ? null : lastBattle === null ? (
+                <p style={{ fontSize: 14, fontWeight: 400, color: "#5c5448" }}>아직 기록 없음</p>
+              ) : (
+                <>
+                  <p style={{ fontFamily: "var(--font-inter)", fontSize: 14, fontWeight: 400, color: "#e8e0d0", letterSpacing: "-0.01em" }}>
+                    {lastBattle.voted_for}
+                  </p>
+                  <p style={{
+                    fontSize: 14,
+                    fontWeight: 400,
+                    marginTop: 4,
+                    color: lastBattle.is_correct === true
+                      ? "#7ed4a0"
+                      : lastBattle.is_correct === false
+                      ? "#c8bfb0"
+                      : "#5c5448",
+                  }}>
+                    {lastBattle.is_correct === true
+                      ? "정답! 🎉"
+                      : lastBattle.is_correct === false
+                      ? "아쉽게 틀렸어요 😅"
+                      : "결과 집계 중..."}
+                  </p>
+                </>
+              )}
+            </div>
+            <div style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "flex-start" }}>
+              <span style={{ fontSize: 16, color: "#EDD97A" }}>›</span>
+            </div>
           </div>
         </div>
 
         {/* ── DNA 카드 + 출석 카드 2열 그리드 ── */}
         <div className="grid-2-col mb-8">
           {/* DNA 카드 */}
-          <button onClick={() => router.push("/mypage/dna")} className="pico-btn text-left"
-            style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 26, flexShrink: 0 }}>{dnaType ? dnaType.emoji : "🧬"}</span>
-                <div>
-                  <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", lineHeight: 1.25 }}>
-                    {dnaType ? dnaType.modifier : "투자 DNA"}
-                  </p>
-                  <p style={{ fontSize: 20, fontWeight: 500, color: "#EDD97A", lineHeight: 1.25 }}>
-                    {dnaType ? dnaType.name : "테스트 전"}
-                  </p>
-                </div>
+          <button onClick={() => router.push("/mypage/dna")} className="pico-btn"
+            style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 12, textAlign: "left" }}>
+            <span style={{ fontSize: 26, flexShrink: 0 }}>{dnaType ? dnaType.emoji : "🧬"}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0" }}>
+                  {dnaType ? dnaType.modifier : "투자 DNA"}
+                </span>
+                <span style={{ fontSize: 18, fontWeight: 500, color: "#EDD97A" }}>
+                  {dnaType ? dnaType.name : "테스트 전"}
+                </span>
               </div>
-              <div style={{ background: "#1c1c1c", borderRadius: 8, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: 8 }}>
-                <span style={{ fontSize: 13, color: "#5c5448" }}>→</span>
-              </div>
+              <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", marginTop: 4 }}>
+                {dnaType ? dnaType.tagline : "18문항으로 나만의 투자 유형 찾기"}
+              </p>
             </div>
-            <p style={{ fontSize: 14, fontWeight: 400, color: "#e8e0d0" }}>
-              {dnaType ? dnaType.tagline : "18문항으로 나만의 투자 유형 찾기"}
-            </p>
+            <div style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "center" }}>
+              <span style={{ fontSize: 16, color: "#EDD97A" }}>›</span>
+            </div>
           </button>
 
           {/* 출석 카드 */}
-          <button onClick={() => router.push("/mypage/attendance")} className="pico-btn text-left"
-            style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-              <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", lineHeight: 1.25 }}>출석체크 캘린더 🔥</p>
-              <div style={{ background: "#1c1c1c", borderRadius: 8, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: 8 }}>
-                <span style={{ fontSize: 13, color: "#5c5448" }}>→</span>
-              </div>
+          <button onClick={() => router.push("/mypage/attendance")} className="pico-btn"
+            style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: "#e8e0d0", flex: 1, textAlign: "left" }}>출석체크 캘린더🔥</span>
+            <div style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ fontSize: 16, color: "#EDD97A" }}>›</span>
             </div>
-            <p style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0" }}>
-              🔥 {streak}일 연속
-            </p>
-            <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", marginTop: 4 }}>
-              이번 달 {attendCount}/{daysInMonth}일
-            </p>
           </button>
         </div>
 
