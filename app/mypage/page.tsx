@@ -60,7 +60,7 @@ export default function MyPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      setSaveError("이미지는 2MB 이하만 업로드할 수 있어.");
+      setSaveError("이미지는 2MB 이하만 업로드 가능해요.");
       e.target.value = "";
       return;
     }
@@ -80,7 +80,7 @@ export default function MyPage() {
         .update({ nickname: nickname.trim() })
         .eq("id", user.id);
       if (error) {
-        setSaveError("닉네임 저장에 실패했어. 다시 시도해줘.");
+        setSaveError("닉네임 저장에 실패했어요. 다시 시도해주세요.");
         setUploadLoading(false);
         setSaving(false);
         return;
@@ -90,7 +90,7 @@ export default function MyPage() {
     if (pendingFile) {
       const result = await uploadAvatar(user.id, pendingFile);
       if (!result) {
-        setSaveError("이미지 업로드에 실패했어. 파일 크기나 형식을 확인해줘.");
+        setSaveError("이미지 업로드에 실패했어요. 파일 크기나 형식을 확인해주세요.");
         setUploadLoading(false);
         setSaving(false);
         return;
@@ -160,7 +160,7 @@ export default function MyPage() {
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
             </div>
-            <p style={{ fontSize: 12, color: "#5c5448", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해</p>
+            <p style={{ fontSize: 12, color: "#5c5448", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
 
             {/* 이메일 (읽기 전용) */}
             <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 4 }}>로그인 이메일</p>
