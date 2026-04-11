@@ -223,7 +223,7 @@ export default function MyPage() {
             onClick={() => router.push("/mypage/battles")}
           >
             <div style={{ flex: 1 }}>
-              <p className="card-label" style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0" }}>오늘의 VS 대결 결과</p>
+              <span className="card-body" style={{ fontSize: 19, fontWeight: 500, color: "#e8e0d0" }}>오늘의 VS 대결 결과</span>
             </div>
             <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "center" }}>
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
