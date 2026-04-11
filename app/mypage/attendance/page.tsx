@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
-import { supabase } from "@/app/lib/supabase";
+import { supabase, submitAttendanceOnly, todayKST } from "@/app/lib/supabase";
 
 function calcStreak(dates: string[]): number {
   if (dates.length === 0) return 0;
@@ -66,8 +66,12 @@ function getSegmentIndex(diff: number): number {
 
 export default function AttendancePage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUserRow } = useAuth();
   const [attendDates, setAttendDates] = useState<string[]>([]);
+  const [attendLoading, setAttendLoading] = useState(false);
+  // 완료 팝업
+  const [showDoneModal, setShowDoneModal] = useState(false);
+  const [doneBonus, setDoneBonus] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/");
@@ -86,19 +90,35 @@ export default function AttendancePage() {
       });
   }, [user]);
 
-  const now         = new Date();
-  const year        = now.getFullYear();
-  const month       = now.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDow    = new Date(year, month, 1).getDay();
-  const todayKST    = now.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
-  const todayDay    = parseInt(todayKST.slice(8));
-  const thisMonth   = `${year}-${String(month + 1).padStart(2, "0")}`;
-  const attendCount = attendDates.filter((d) => d.startsWith(thisMonth)).length;
-  const attendRate  = Math.round((attendCount / daysInMonth) * 100);
-  const streak      = calcStreak(attendDates);
-  const streakStart = calcStreakStart(attendDates);
-  const attendSet   = new Set(attendDates);
+  const now          = new Date();
+  const year         = now.getFullYear();
+  const month        = now.getMonth();
+  const daysInMonth  = new Date(year, month + 1, 0).getDate();
+  const firstDow     = new Date(year, month, 1).getDay();
+  const todayDateStr = now.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+  const todayDay     = parseInt(todayDateStr.slice(8));
+  const thisMonth    = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const attendCount  = attendDates.filter((d) => d.startsWith(thisMonth)).length;
+  const attendRate   = Math.round((attendCount / daysInMonth) * 100);
+  const streak       = calcStreak(attendDates);
+  const streakStart  = calcStreakStart(attendDates);
+  const attendSet    = new Set(attendDates);
+
+  const todayAttended = attendSet.has(todayDateStr);
+
+  async function handleAttend() {
+    if (!user || attendLoading || todayAttended) return;
+    setAttendLoading(true);
+    const { bonusDays, bonusPoints, alreadyAttended } = await submitAttendanceOnly(user.id);
+    if (!alreadyAttended) {
+      // 캘린더 즉시 반영
+      setAttendDates((prev) => [...prev, todayKST()]);
+      refreshUserRow();
+      setDoneBonus(bonusPoints);
+      setShowDoneModal(true);
+    }
+    setAttendLoading(false);
+  }
 
   if (loading) return null;
   if (!user) return null;
@@ -131,6 +151,27 @@ export default function AttendancePage() {
         className="page-container mx-auto py-8"
         style={{ maxWidth: 700, paddingLeft: "clamp(16px, 4vw, 24px)", paddingRight: "clamp(16px, 4vw, 24px)" }}
       >
+
+        {/* ── 출석하기 버튼 ── */}
+        <div className="mb-6">
+          <button
+            onClick={handleAttend}
+            disabled={todayAttended || attendLoading}
+            className="w-full rounded-2xl py-4"
+            style={{
+              background: todayAttended ? "#1c1c1c" : "#FACA3E",
+              color: todayAttended ? "#5c5448" : "#0d0d0d",
+              fontSize: 15,
+              fontWeight: 500,
+              border: todayAttended ? "0.5px solid rgba(255,255,255,0.08)" : "none",
+              cursor: todayAttended ? "default" : "pointer",
+              opacity: attendLoading ? 0.7 : 1,
+              transition: "all 0.2s",
+            }}
+          >
+            {attendLoading ? "처리 중..." : todayAttended ? "오늘 출석 완료 ✓" : "출석하기"}
+          </button>
+        </div>
 
         {/* ── 연속 출석 헤더 ── */}
         <div className="text-center mb-8">
@@ -194,7 +235,7 @@ export default function AttendancePage() {
               const day      = i + 1;
               const dateStr  = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const attended = attendSet.has(dateStr);
-              const isToday  = dateStr === todayKST;
+              const isToday  = dateStr === todayDateStr;
               const isFuture = day > todayDay;
               const segInfo  = getSegInfo(dateStr);
               const seg      = segInfo ? SEGMENTS[segInfo.segIdx] : null;
@@ -381,13 +422,13 @@ export default function AttendancePage() {
             }}
             onClick={async () => {
               if (!user) return;
-              const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+              const today = todayKST();
               // 오늘 attendance 삭제
               await supabase.from("attendance").delete().eq("user_id", user.id).eq("date", today);
               // 오늘 battle_votes 삭제
               await supabase.from("battle_votes").delete().eq("user_id", user.id).eq("date", today);
-              // sessionStorage 팝업 키 삭제
-              sessionStorage.removeItem(`pico_vs_popup_${today}`);
+              // localStorage 팝업 키 삭제
+              localStorage.removeItem(`pico_vs_popup_${today}`);
               // 홈으로 이동 → VS 배틀 팝업 다시 뜸
               router.push("/");
             }}
@@ -398,6 +439,73 @@ export default function AttendancePage() {
         {/* ── TODO: 실서비스 전 삭제 끝 ── */}
 
       </div>
+
+      {/* ════════ 출석 완료 팝업 ════════ */}
+      {showDoneModal && (
+        <>
+          <div
+            className="fixed inset-0 z-50"
+            style={{ background: "rgba(0,0,0,0.78)", backdropFilter: "blur(8px)" }}
+            onClick={() => setShowDoneModal(false)}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <div
+              className="w-full rounded-2xl p-6"
+              style={{
+                maxWidth: 360,
+                background: "#141414",
+                border: "0.5px solid rgba(250,202,62,0.25)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-5">
+                <div style={{ fontSize: 36, marginBottom: 12 }}>🎉</div>
+                <p style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>
+                  출석 완료!
+                </p>
+                <p style={{ fontSize: 14, color: "#7ed4a0", fontWeight: 400, marginBottom: 4 }}>
+                  +50P 적립
+                </p>
+                {doneBonus > 0 && (
+                  <p style={{ fontSize: 13, color: "#FACA3E", fontWeight: 400 }}>
+                    연속 출석 보너스 +{doneBonus}P 🔥
+                  </p>
+                )}
+              </div>
+              <p style={{ fontSize: 14, color: "#a09688", textAlign: "center", marginBottom: 20, fontWeight: 300 }}>
+                오늘의 대결도 참여할래요?
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    setShowDoneModal(false);
+                    // localStorage 팝업 키 삭제해서 홈 이동 시 팝업 다시 뜨게
+                    localStorage.removeItem(`pico_vs_popup_${todayKST()}`);
+                    router.push("/");
+                  }}
+                  className="w-full rounded-xl py-3"
+                  style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}
+                >
+                  대결 참여하기
+                </button>
+                <button
+                  onClick={() => setShowDoneModal(false)}
+                  className="w-full rounded-xl py-3"
+                  style={{
+                    background: "transparent",
+                    color: "#5c5448",
+                    fontSize: 13,
+                    fontWeight: 300,
+                    border: "0.5px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  나중에
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </main>
   );
 }

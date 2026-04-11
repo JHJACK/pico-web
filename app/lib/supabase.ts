@@ -47,6 +47,18 @@ export function todayKST(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
 }
 
+// ── 어제 날짜 (KST 기준 YYYY-MM-DD) ───────────────
+export function yesterdayKST(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+}
+
+// ── 현재 KST 시각 (시간) ─────────────────────────
+export function currentHourKST(): number {
+  return parseInt(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul", hour: "numeric", hour12: false }));
+}
+
 // ── 프로필 이미지 업로드 ──────────────────────────
 export async function uploadAvatar(uid: string, file: File): Promise<string | null> {
   if (!uid) return null;
@@ -118,6 +130,19 @@ export async function getTodayBattleVoteCounts(): Promise<{ votesA: number; vote
   const votesA = rows.filter((r) => r.voted_for === "ABNB").length;
   const votesB = rows.filter((r) => r.voted_for === "HLT").length;
   return { votesA, votesB };
+}
+
+// ── 어제 battle_vote 조회 ────────────────────────
+export async function getYesterdayVote(uid: string): Promise<BattleVoteRow | null> {
+  if (!uid) return null;
+  const { data, error } = await supabase
+    .from("battle_votes")
+    .select("*")
+    .eq("user_id", uid)
+    .eq("date", yesterdayKST())
+    .maybeSingle();
+  if (error) console.error("[getYesterdayVote]", error.message);
+  return data as BattleVoteRow | null;
 }
 
 // ── 오늘 battle_vote 존재 여부 ────────────────────
@@ -350,4 +375,112 @@ export async function awardBattleCorrect(uid: string) {
   if (!uid) return;
   await addPoints(uid, 100);
   await insertPointHistory(uid, 100, "VS 대결 정답");
+}
+
+// ── 결과 판정: 어제 미판정 투표 처리 (더미) ──────────
+// 오전 6시(KST) 이후 첫 접속 시 호출
+// 실제 주가 API 연결 후 winner 결정 로직 교체 예정
+export async function judgeYesterdayBattle(
+  uid: string
+): Promise<{ winner: string | null; myVote: BattleVoteRow | null }> {
+  if (!uid) return { winner: null, myVote: null };
+
+  // 오전 6시(KST) 이전이면 판정 안 함
+  if (currentHourKST() < 6) return { winner: null, myVote: null };
+
+  const yesterday = yesterdayKST();
+  const { data: vote, error } = await supabase
+    .from("battle_votes")
+    .select("*")
+    .eq("user_id", uid)
+    .eq("date", yesterday)
+    .maybeSingle();
+
+  if (error || !vote) return { winner: null, myVote: null };
+
+  // 이미 판정됨 — 결과 반환
+  if (vote.is_correct !== null) {
+    const winner = vote.is_correct
+      ? vote.voted_for
+      : vote.voted_for === vote.ticker_a
+      ? vote.ticker_b
+      : vote.ticker_a;
+    return { winner, myVote: vote as BattleVoteRow };
+  }
+
+  // 더미 판정: 랜덤으로 승자 결정 (실제 API 연결 전 임시)
+  const winner = Math.random() < 0.5 ? vote.ticker_a : vote.ticker_b;
+  const isCorrect = vote.voted_for === winner;
+
+  await supabase
+    .from("battle_votes")
+    .update({ is_correct: isCorrect, points_earned: isCorrect ? 100 : 0 })
+    .eq("id", vote.id);
+
+  if (isCorrect) {
+    await awardBattleCorrect(uid);
+  }
+
+  const judged = { ...vote, is_correct: isCorrect, points_earned: isCorrect ? 100 : 0 };
+  return { winner, myVote: judged as BattleVoteRow };
+}
+
+// ── 출석만 처리 (대결 없이) ──────────────────────────
+export async function submitAttendanceOnly(
+  uid: string
+): Promise<{ bonusDays: number; bonusPoints: number; alreadyAttended: boolean }> {
+  if (!uid) return { bonusDays: 0, bonusPoints: 0, alreadyAttended: false };
+  const today = todayKST();
+
+  const { data: existing } = await supabase
+    .from("attendance")
+    .select("id")
+    .eq("user_id", uid)
+    .eq("date", today)
+    .maybeSingle();
+
+  if (existing) return { bonusDays: 0, bonusPoints: 0, alreadyAttended: true };
+
+  const { error: attErr } = await supabase.from("attendance").insert({
+    user_id: uid,
+    date: today,
+    attended: true,
+    points_earned: 50,
+  });
+  if (attErr) {
+    console.error("[submitAttendanceOnly]", attErr.message);
+    return { bonusDays: 0, bonusPoints: 0, alreadyAttended: false };
+  }
+
+  // 기본 출석 포인트 +50
+  const { error: rpcErr } = await supabase.rpc("increment_user_points", { uid, delta: 50 });
+  if (rpcErr) await addPoints(uid, 50);
+  await insertPointHistory(uid, 50, "일일 출석 체크");
+
+  // 연속 출석 보너스 계산
+  const { data: attRows } = await supabase
+    .from("attendance")
+    .select("date")
+    .eq("user_id", uid)
+    .eq("attended", true)
+    .order("date", { ascending: false })
+    .limit(35);
+
+  const streak = calcStreak(attRows?.map((r: { date: string }) => r.date) ?? []);
+  const bonusMap: Record<number, number> = { 7: 100, 14: 200, 21: 300, 30: 500 };
+  const bonusPoints = bonusMap[streak] ?? 0;
+
+  if (bonusPoints > 0) {
+    const { error: bErr } = await supabase.rpc("increment_user_points", { uid, delta: bonusPoints });
+    if (bErr) await addPoints(uid, bonusPoints);
+    const bonusReasonMap: Record<number, string> = {
+      100: "7일 연속 출석 보너스",
+      200: "14일 연속 출석 보너스",
+      300: "21일 연속 출석 보너스",
+      500: "30일 연속 출석 보너스",
+    };
+    await insertPointHistory(uid, bonusPoints, bonusReasonMap[bonusPoints] ?? `${streak}일 연속 출석 보너스`);
+  }
+
+  return { bonusDays: streak, bonusPoints, alreadyAttended: false };
 }

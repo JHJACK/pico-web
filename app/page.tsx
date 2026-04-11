@@ -6,7 +6,7 @@ import Link from "next/link";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
 import { fetchNews, NEWS_FALLBACK, type NewsItem, type NewsCat } from "@/app/lib/news";
 import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory } from "@/app/lib/stockNames";
-import { supabase, getTodayVote, submitVoteAndAttendance, getTodayBattleVoteCounts } from "@/app/lib/supabase";
+import { supabase, getTodayVote, submitVoteAndAttendance, getTodayBattleVoteCounts, getYesterdayVote, judgeYesterdayBattle, todayKST, type BattleVoteRow } from "@/app/lib/supabase";
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
 
@@ -204,6 +204,11 @@ export default function Home() {
   const [popupBattleDone, setPopupBattleDone] = useState(false);
   const [popupVotesA,     setPopupVotesA]     = useState(0);
   const [popupVotesB,     setPopupVotesB]     = useState(0);
+  // 어제 대결 결과
+  const [yesterdayVote,   setYesterdayVote]   = useState<BattleVoteRow | null>(null);
+  const [yesterdayWinner, setYesterdayWinner] = useState<string | null>(null);
+  // 팝업 체크 완료 여부 (user 변경시 중복 실행 방지)
+  const battlePopupChecked = useRef(false);
 
   // 출석/보너스 토스트
   const [toast, setToast] = useState<string | null>(null);
@@ -240,6 +245,14 @@ export default function Home() {
     const bRaw      = localStorage.getItem("pico_battle_done");
     const battleData = localStorage.getItem(BATTLE_KEY);
 
+    // 오늘 날짜 아닌 pico_vs_popup_ 키 자동 정리
+    const todayKey = todayKST();
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("pico_vs_popup_") && !key.endsWith(todayKey)) {
+        localStorage.removeItem(key);
+      }
+    });
+
     // 비로그인 유저는 localStorage의 퀴즈 데이터를 무시 — quizDone/quizType은 DB(userRow)에서만 설정
     const bDone = bRaw === "true";
     setBattleDone(bDone);
@@ -251,31 +264,6 @@ export default function Home() {
       setShowBarAnim(true);
       setShowResultMsg(true);
     }
-
-    // 로그인 사용자: Supabase에서 오늘 투표 확인 + VS 배틀 팝업 체크
-    supabase.auth.getUser().then(({ data: { user: u } }) => {
-      if (!u) return;
-      const todayKey = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
-      const popupKey = `pico_vs_popup_${todayKey}`;
-      const popupShown = sessionStorage.getItem(popupKey);
-
-      getTodayVote(u.id).then((vote) => {
-        if (vote) {
-          setBattleDone(true);
-          setBattleVote(vote.voted_for === "ABNB" ? "a" : "b");
-          setShowBarAnim(true);
-          setShowResultMsg(true);
-        } else if (!popupShown) {
-          // 오늘 첫 접속 + 투표 안 함 → VS 배틀 팝업
-          sessionStorage.setItem(popupKey, "1");
-          setModal("vs_battle");
-          getTodayBattleVoteCounts().then(({ votesA: a, votesB: b }) => {
-            setPopupVotesA(a);
-            setPopupVotesB(b);
-          });
-        }
-      });
-    });
 
     setCountdown(getMarketCountdown());
     const timer = setInterval(() => setCountdown(getMarketCountdown()), 1000);
@@ -289,6 +277,44 @@ export default function Home() {
 
     return () => clearInterval(timer);
   }, []);
+
+  // ── 로그인 후 팝업 체크 (user가 바뀔 때마다 한 번만 실행) ──
+  useEffect(() => {
+    if (!user || battlePopupChecked.current) return;
+    battlePopupChecked.current = true;
+
+    const popupKey = `pico_vs_popup_${todayKST()}`;
+
+    getTodayVote(user.id).then((vote) => {
+      if (vote) {
+        // 이미 투표함 → 배틀 상태만 복원
+        setBattleDone(true);
+        setBattleVote(vote.voted_for === "ABNB" ? "a" : "b");
+        setShowBarAnim(true);
+        setShowResultMsg(true);
+      } else if (!localStorage.getItem(popupKey)) {
+        // 오늘 첫 접속 + 미투표 → 팝업 표시
+        // 어제 결과 판정 후 팝업 오픈
+        judgeYesterdayBattle(user.id).then(({ winner, myVote }) => {
+          setYesterdayWinner(winner);
+          setYesterdayVote(myVote);
+        });
+        setModal("vs_battle");
+        getTodayBattleVoteCounts().then(({ votesA: a, votesB: b }) => {
+          setPopupVotesA(a);
+          setPopupVotesB(b);
+        });
+        // 어제 참여 여부와 무관하게 로드
+        getYesterdayVote(user.id).then((yv) => {
+          if (yv && yv.is_correct === null) {
+            // judgeYesterdayBattle가 처리 — 중복 방지
+          } else if (yv) {
+            setYesterdayVote(yv);
+          }
+        });
+      }
+    });
+  }, [user]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -396,6 +422,8 @@ export default function Home() {
       showToast("✅ 출석 완료 +50P");
     }
     setPopupBattleDone(true);
+    // 오늘 팝업 완료 → localStorage에 기록 (중복 방지)
+    localStorage.setItem(`pico_vs_popup_${todayKST()}`, "1");
   }
 
   function openLogin(tab: AuthTab = "login") { setAuthTab(tab); setAuthError(""); setModal("login"); }
@@ -1079,6 +1107,25 @@ export default function Home() {
 
                 {!popupBattleDone ? (
                   <>
+                    {/* 어제 대결 결과 (참여했을 때만) */}
+                    {yesterdayVote && yesterdayWinner && (
+                      <div
+                        className="rounded-xl px-4 py-3 mb-4"
+                        style={{
+                          background: yesterdayVote.is_correct ? "rgba(126,212,160,0.08)" : "rgba(240,120,120,0.08)",
+                          border: `0.5px solid ${yesterdayVote.is_correct ? "rgba(126,212,160,0.25)" : "rgba(240,120,120,0.25)"}`,
+                        }}
+                      >
+                        <p style={{ fontSize: 11, color: "#5c5448", marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" as const }}>어제 결과</p>
+                        <p style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>
+                          {yesterdayWinner} {yesterdayVote.is_correct ? "승리 🏆" : "승리 🏆"}
+                        </p>
+                        <p style={{ fontSize: 13, fontWeight: 500, color: yesterdayVote.is_correct ? "#7ed4a0" : "#f07878" }}>
+                          {yesterdayVote.is_correct ? "정답! 🎉 +100P" : "아쉽게 틀렸어요 😅"}
+                        </p>
+                      </div>
+                    )}
+
                     {/* 투표 전 */}
                     <div className="text-center mb-5">
                       <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>오늘의 대결 ⚔️</p>
