@@ -327,7 +327,8 @@ export async function saveQuizResult(uid: string, investorType: string) {
     .single();
   if (selErr) console.error("[saveQuizResult] select:", selErr.message);
 
-  const isFirst = !(row as { investor_type: string | null } | null)?.investor_type;
+  // SELECT 실패 시 isFirst = false로 처리 → 보너스 중복 지급 방지
+  const isFirst = !selErr && !(row as { investor_type: string | null } | null)?.investor_type;
 
   const { error: updErr } = await supabase
     .from("users")
