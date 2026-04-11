@@ -1222,9 +1222,20 @@ export default function Home() {
 
                     {/* 선택 안내 */}
                     {!popupBattleVote && (
-                      <p style={{ fontSize: 14, color: "#5c5448", textAlign: "center", marginBottom: 12, fontWeight: 300 }}>
-                        위 카드를 눌러 종목을 선택해요
-                      </p>
+                      <div style={{ textAlign: "center", marginBottom: 12 }}>
+                        <span style={{
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: "#FACA3E",
+                          background: "rgba(250,202,62,0.1)",
+                          border: "0.5px solid rgba(250,202,62,0.3)",
+                          borderRadius: 8,
+                          padding: "6px 14px",
+                          display: "inline-block",
+                        }}>
+                          위 카드 중 하나의 종목을 선택하세요
+                        </span>
+                      </div>
                     )}
 
                     {/* 참여 버튼 */}
