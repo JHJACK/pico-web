@@ -161,6 +161,11 @@ export default function MyPage() {
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
             </div>
 
+            {/* 이메일 (읽기 전용) */}
+            <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 4 }}>로그인 이메일</p>
+            <p style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 16 }}>{user.email}</p>
+            <div style={{ height: "0.5px", background: "rgba(255,255,255,0.07)", marginBottom: 16 }} />
+
             <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>닉네임</p>
             <input
               value={nickname}
@@ -203,12 +208,11 @@ export default function MyPage() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="nickname" style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
-            <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
+            <p className="nickname" style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
           </div>
-          <button onClick={openEdit} className="pico-btn px-3 py-2 rounded-lg flex-shrink-0"
-            style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.07)", background: "transparent" }}>
-            수정
+          <button onClick={openEdit} className="pico-btn arrow-btn flex-shrink-0"
+            style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
           </button>
         </div>
 
