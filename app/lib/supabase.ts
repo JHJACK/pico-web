@@ -173,6 +173,7 @@ async function addPoints(uid: string, delta: number) {
     uid,
     delta,
   });
+  console.log("포인트 RPC 결과:", rpcErr ?? "success");
 
   if (!rpcErr) return; // 성공
 
@@ -332,7 +333,7 @@ export async function saveQuizResult(uid: string, investorType: string) {
     .from("users")
     .update({ investor_type: investorType })
     .eq("id", uid);
-  if (updErr) console.error("[saveQuizResult] update:", updErr.message);
+  console.log("investor_type 저장 결과:", updErr ?? "success");
 
   if (isFirst) {
     await addPoints(uid, 300);
