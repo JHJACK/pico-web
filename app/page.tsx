@@ -180,7 +180,7 @@ function StockCard({ ticker, korName, stocks, stocksLoading }: {
 // ═══════════════════════════════════════════════
 export default function Home() {
   const router = useRouter();
-  const { user, userRow, refreshUserRow, signOut } = useAuth();
+  const { user, userRow, refreshUserRow } = useAuth();
 
   const [quizDone,   setQuizDone]   = useState(false);
   const [battleDone, setBattleDone] = useState(false);
@@ -1110,26 +1110,26 @@ export default function Home() {
                     {/* 어제 대결 결과 (참여했을 때만) */}
                     {yesterdayVote && yesterdayWinner && (
                       <div
-                        className="rounded-xl px-4 py-3 mb-4"
+                        className="rounded-xl px-4 py-3 mb-5"
                         style={{
-                          background: yesterdayVote.is_correct ? "rgba(126,212,160,0.08)" : "rgba(240,120,120,0.08)",
-                          border: `0.5px solid ${yesterdayVote.is_correct ? "rgba(126,212,160,0.25)" : "rgba(240,120,120,0.25)"}`,
+                          background: yesterdayVote.is_correct ? "rgba(126,212,160,0.07)" : "rgba(240,120,120,0.07)",
+                          border: `0.5px solid ${yesterdayVote.is_correct ? "rgba(126,212,160,0.22)" : "rgba(240,120,120,0.22)"}`,
                         }}
                       >
-                        <p style={{ fontSize: 11, color: "#5c5448", marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" as const }}>어제 결과</p>
-                        <p style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>
-                          {yesterdayWinner} {yesterdayVote.is_correct ? "승리 🏆" : "승리 🏆"}
+                        <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" as const, fontWeight: 500 }}>어제 결과</p>
+                        <p style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>
+                          {yesterdayWinner} 승리 🏆
                         </p>
-                        <p style={{ fontSize: 13, fontWeight: 500, color: yesterdayVote.is_correct ? "#7ed4a0" : "#f07878" }}>
-                          {yesterdayVote.is_correct ? "정답! 🎉 +100P" : "아쉽게 틀렸어요 😅"}
+                        <p style={{ fontSize: 15, fontWeight: 500, color: yesterdayVote.is_correct ? "#7ed4a0" : "#f07878" }}>
+                          {yesterdayVote.is_correct ? "정답! 🎉  +100P 적립" : "아쉽게 틀렸어요 😅"}
                         </p>
                       </div>
                     )}
 
-                    {/* 투표 전 */}
-                    <div className="text-center mb-5">
-                      <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>오늘의 대결 ⚔️</p>
-                      <p style={{ fontSize: 13, color: "#a09688", fontWeight: 300 }}>오늘 장 마감까지 어느 쪽이 더 오를까?</p>
+                    {/* 헤더 */}
+                    <div className="text-center mb-6">
+                      <p style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", marginBottom: 8 }}>오늘의 대결 ⚔️</p>
+                      <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>오늘 장 마감까지 어느 쪽이 더 오를까?</p>
                     </div>
 
                     {/* 종목 카드 2개 */}
@@ -1137,86 +1137,141 @@ export default function Home() {
                       {/* A — ABNB */}
                       <button
                         onClick={() => setPopupBattleVote("a")}
-                        className="flex-1 rounded-xl p-4 border text-center pico-btn transition-all"
+                        className="flex-1 rounded-xl border text-center pico-btn"
                         style={{
-                          background: popupBattleVote === "a" ? "rgba(250,202,62,0.08)" : "#1c1c1c",
-                          borderColor: popupBattleVote === "a" ? "rgba(250,202,62,0.5)" : "rgba(255,255,255,0.08)",
+                          padding: "20px 12px",
+                          background: popupBattleVote === "a"
+                            ? "rgba(250,202,62,0.13)"
+                            : "#242424",
+                          borderWidth: popupBattleVote === "a" ? 1.5 : 1,
+                          borderColor: popupBattleVote === "a"
+                            ? "#FACA3E"
+                            : "rgba(255,255,255,0.13)",
+                          transition: "all 0.18s",
+                          position: "relative",
                         }}
                       >
-                        <div style={{ fontSize: 15, fontWeight: 500, color: popupBattleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 3 }}>ABNB</div>
-                        <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 8 }}>에어비앤비</div>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: popupBattleVote === "a" ? "#FACA3E" : "#a09688" }}>
-                          {popPctA}% 선택 중
-                        </div>
                         {popupBattleVote === "a" && (
-                          <div style={{ fontSize: 10, color: "#FACA3E", marginTop: 4 }}>✓ 선택됨</div>
+                          <div style={{
+                            position: "absolute", top: 8, right: 8,
+                            width: 20, height: 20, borderRadius: "50%",
+                            background: "#FACA3E",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 11, color: "#0d0d0d", fontWeight: 700,
+                          }}>✓</div>
                         )}
+                        <div style={{ fontSize: 20, fontWeight: 600, color: popupBattleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 4, letterSpacing: "-0.01em" }}>ABNB</div>
+                        <div style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 14, fontWeight: 300 }}>에어비앤비</div>
+                        <div style={{
+                          fontSize: 14, fontWeight: 500,
+                          color: popupBattleVote === "a" ? "#FACA3E" : "#a09688",
+                          background: popupBattleVote === "a" ? "rgba(250,202,62,0.12)" : "rgba(255,255,255,0.05)",
+                          borderRadius: 8, padding: "4px 8px",
+                          display: "inline-block",
+                        }}>
+                          {popPctA}%
+                        </div>
                       </button>
 
-                      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 24, fontSize: 12, color: "#5c5448", fontWeight: 500 }}>VS</div>
+                      {/* VS 구분자 */}
+                      <div className="flex flex-col items-center justify-center flex-shrink-0" style={{ width: 32, gap: 4 }}>
+                        <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.06)" }} />
+                        <span style={{ fontSize: 13, color: "#5c5448", fontWeight: 600, letterSpacing: "0.04em" }}>VS</span>
+                        <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.06)" }} />
+                      </div>
 
                       {/* B — HLT */}
                       <button
                         onClick={() => setPopupBattleVote("b")}
-                        className="flex-1 rounded-xl p-4 border text-center pico-btn transition-all"
+                        className="flex-1 rounded-xl border text-center pico-btn"
                         style={{
-                          background: popupBattleVote === "b" ? "rgba(126,184,247,0.08)" : "#1c1c1c",
-                          borderColor: popupBattleVote === "b" ? "rgba(126,184,247,0.5)" : "rgba(255,255,255,0.08)",
+                          padding: "20px 12px",
+                          background: popupBattleVote === "b"
+                            ? "rgba(126,184,247,0.13)"
+                            : "#242424",
+                          borderWidth: popupBattleVote === "b" ? 1.5 : 1,
+                          borderColor: popupBattleVote === "b"
+                            ? "#7eb8f7"
+                            : "rgba(255,255,255,0.13)",
+                          transition: "all 0.18s",
+                          position: "relative",
                         }}
                       >
-                        <div style={{ fontSize: 15, fontWeight: 500, color: popupBattleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 3 }}>HLT</div>
-                        <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 8 }}>힐튼 호텔</div>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: popupBattleVote === "b" ? "#7eb8f7" : "#a09688" }}>
-                          {popPctB}% 선택 중
-                        </div>
                         {popupBattleVote === "b" && (
-                          <div style={{ fontSize: 10, color: "#7eb8f7", marginTop: 4 }}>✓ 선택됨</div>
+                          <div style={{
+                            position: "absolute", top: 8, right: 8,
+                            width: 20, height: 20, borderRadius: "50%",
+                            background: "#7eb8f7",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 11, color: "#0d0d0d", fontWeight: 700,
+                          }}>✓</div>
                         )}
+                        <div style={{ fontSize: 20, fontWeight: 600, color: popupBattleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 4, letterSpacing: "-0.01em" }}>HLT</div>
+                        <div style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 14, fontWeight: 300 }}>힐튼 호텔</div>
+                        <div style={{
+                          fontSize: 14, fontWeight: 500,
+                          color: popupBattleVote === "b" ? "#7eb8f7" : "#a09688",
+                          background: popupBattleVote === "b" ? "rgba(126,184,247,0.12)" : "rgba(255,255,255,0.05)",
+                          borderRadius: 8, padding: "4px 8px",
+                          display: "inline-block",
+                        }}>
+                          {popPctB}%
+                        </div>
                       </button>
                     </div>
+
+                    {/* 선택 안내 */}
+                    {!popupBattleVote && (
+                      <p style={{ fontSize: 14, color: "#5c5448", textAlign: "center", marginBottom: 12, fontWeight: 300 }}>
+                        위 카드를 눌러 종목을 선택해요
+                      </p>
+                    )}
 
                     {/* 참여 버튼 */}
                     <button
                       onClick={handleBattlePopupVote}
                       disabled={!popupBattleVote}
-                      className="pico-btn w-full rounded-xl py-3.5 mb-3"
+                      className="pico-btn w-full rounded-xl mb-3"
                       style={{
-                        background: popupBattleVote ? "#FACA3E" : "#242424",
-                        color: popupBattleVote ? "#0d0d0d" : "#5c5448",
-                        fontSize: 14,
-                        fontWeight: 500,
+                        padding: "15px 0",
+                        background: popupBattleVote ? "#FACA3E" : "#1c1c1c",
+                        color: popupBattleVote ? "#0d0d0d" : "#3a3a3a",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        border: popupBattleVote ? "none" : "0.5px solid rgba(255,255,255,0.07)",
                         transition: "all 0.2s",
+                        letterSpacing: "-0.01em",
                       }}
                     >
-                      대결 참여하고 출석체크하기
+                      {popupBattleVote ? "대결 참여하고 출석체크하기 →" : "대결 참여하고 출석체크하기"}
                     </button>
-                    <button onClick={() => setModal(null)} className="pico-btn w-full py-2" style={{ fontSize: 12, color: "#5c5448" }}>
+                    <button onClick={() => setModal(null)} className="pico-btn w-full py-3" style={{ fontSize: 14, color: "#5c5448", fontWeight: 300 }}>
                       나중에 할게
                     </button>
                   </>
                 ) : (
                   <>
                     {/* 투표 완료 후 */}
-                    <div className="text-center mb-5">
-                      <div style={{ fontSize: 36, marginBottom: 10 }}>🎯</div>
-                      <p style={{ fontSize: 17, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>
+                    <div className="text-center mb-6">
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
+                      <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 8 }}>
                         내일 오전 결과 공개!
                       </p>
-                      <p style={{ fontSize: 14, color: "#7ed4a0", fontWeight: 500 }}>오늘 출석 완료 ✓</p>
+                      <p style={{ fontSize: 15, color: "#7ed4a0", fontWeight: 500 }}>오늘 출석 완료 ✓  +50P</p>
                     </div>
 
                     {/* 선택 종목 강조 */}
                     <div
-                      className="rounded-xl p-4 border text-center mb-5"
+                      className="rounded-xl p-5 border text-center mb-5"
                       style={{
                         background: popupBattleVote === "a" ? "rgba(250,202,62,0.07)" : "rgba(126,184,247,0.07)",
                         borderColor: popupBattleVote === "a" ? "rgba(250,202,62,0.4)" : "rgba(126,184,247,0.4)",
                       }}
                     >
-                      <div style={{ fontSize: 16, fontWeight: 500, color: popupBattleVote === "a" ? "#FACA3E" : "#7eb8f7", marginBottom: 2 }}>
+                      <div style={{ fontSize: 18, fontWeight: 600, color: popupBattleVote === "a" ? "#FACA3E" : "#7eb8f7", marginBottom: 4 }}>
                         {popupBattleVote === "a" ? "ABNB 에어비앤비" : "HLT 힐튼 호텔"}
                       </div>
-                      <div style={{ fontSize: 12, color: "#5c5448" }}>내 선택</div>
+                      <div style={{ fontSize: 14, color: "#c8bfb0", fontWeight: 300 }}>내 선택</div>
                     </div>
 
                     <button onClick={() => setModal(null)} className="pico-btn w-full rounded-xl py-3"
