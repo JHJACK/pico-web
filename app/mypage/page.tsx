@@ -145,7 +145,7 @@ export default function MyPage() {
           style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
           <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 border"
             style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)" }}>
-            <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0", marginBottom: 24 }}>프로필 수정</p>
+            <p style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0", marginBottom: 24 }}>프로필 수정</p>
 
             <div className="flex justify-center mb-6">
               <button onClick={() => fileInputRef.current?.click()} className="pico-btn relative" style={{ background: "none", border: "none" }}>
@@ -160,32 +160,32 @@ export default function MyPage() {
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
             </div>
-            <p style={{ fontSize: 12, color: "#5c5448", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
+            <p style={{ fontSize: 13, color: "#a09688", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
 
             {/* 이메일 (읽기 전용) */}
-            <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 4 }}>로그인 이메일</p>
-            <p style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 16 }}>{user.email}</p>
+            <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 4 }}>로그인 이메일</p>
+            <p style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 16 }}>{user.email}</p>
             <div style={{ height: "0.5px", background: "rgba(255,255,255,0.07)", marginBottom: 16 }} />
 
-            <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 8 }}>닉네임</p>
+            <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 8 }}>닉네임</p>
             <input
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               className="w-full rounded-xl px-4 py-3 outline-none mb-4"
-              style={{ background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.35)", color: "#e8e0d0", fontSize: 15, fontWeight: 300 }}
+              style={{ background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.35)", color: "#e8e0d0", fontSize: 16, fontWeight: 300 }}
             />
 
             {saveError && (
-              <p style={{ fontSize: 12, color: "#f07878", marginBottom: 10 }}>{saveError}</p>
+              <p style={{ fontSize: 14, color: "#f07878", marginBottom: 10 }}>{saveError}</p>
             )}
 
             <div className="flex gap-3">
               <button onClick={handleSave} disabled={saving} className="pico-btn flex-1 py-3 rounded-xl"
-                style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
+                style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 15, fontWeight: 500 }}>
                 {saving ? (uploadLoading ? "업로드 중..." : "저장 중...") : "저장"}
               </button>
               <button onClick={() => { setEditOpen(false); setPendingFile(null); setPreviewUrl(null); }} className="pico-btn px-5 py-3 rounded-xl"
-                style={{ background: "#1c1c1c", color: "#a09688", fontSize: 14, border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                style={{ background: "#1c1c1c", color: "#e8e0d0", fontSize: 15, border: "0.5px solid rgba(255,255,255,0.1)" }}>
                 취소
               </button>
             </div>
