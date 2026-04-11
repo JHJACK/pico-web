@@ -203,7 +203,7 @@ export default function MyPage() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="nickname" style={{ fontSize: 17, fontWeight: 500, color: "#e8e0d0", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
+            <p className="nickname" style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
             <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
           </div>
           <button onClick={openEdit} className="pico-btn px-3 py-2 rounded-lg flex-shrink-0"
@@ -272,10 +272,10 @@ export default function MyPage() {
             <span style={{ fontSize: 26, flexShrink: 0 }}>{dnaType ? dnaType.emoji : "🧬"}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                <span className="dna-modifier" style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0" }}>
+                <span className="dna-modifier" style={{ fontSize: 19, fontWeight: 500, color: "#e8e0d0" }}>
                   {dnaType ? dnaType.modifier : "투자 DNA"}
                 </span>
-                <span className="dna-animal" style={{ fontSize: 20, fontWeight: 500, color: "#FACA3E" }}>
+                <span className="dna-animal" style={{ fontSize: 19, fontWeight: 500, color: "#FACA3E" }}>
                   {dnaType ? dnaType.name : "테스트 전"}
                 </span>
               </div>
@@ -288,7 +288,7 @@ export default function MyPage() {
           {/* 출석 카드 */}
           <button onClick={() => router.push("/mypage/attendance")} className="pico-btn"
             style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 12 }}>
-            <span className="card-body" style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", flex: 1, textAlign: "left" }}>출석체크 캘린더🔥</span>
+            <span className="card-body" style={{ fontSize: 19, fontWeight: 500, color: "#e8e0d0", flex: 1, textAlign: "left" }}>출석체크 캘린더🔥</span>
             <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
             </div>
