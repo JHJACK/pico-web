@@ -39,11 +39,11 @@ export default function PointsPage() {
         }}
       >
         <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>← 내 정보</Link>
-        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#EDD97A", marginLeft: 16 }}>PICO</span>
+        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 
       <div
-        className="mx-auto py-8"
+        className="page-container mx-auto py-8"
         style={{ maxWidth: 700, paddingLeft: "clamp(16px, 4vw, 24px)", paddingRight: "clamp(16px, 4vw, 24px)" }}
       >
         {/* ── 헤더 ── */}
@@ -51,7 +51,7 @@ export default function PointsPage() {
           <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             포인트 내역
           </p>
-          <p style={{ fontFamily: "var(--font-inter)", fontSize: 36, fontWeight: 500, color: "#EDD97A", letterSpacing: "-0.03em", lineHeight: 1 }}>
+          <p style={{ fontFamily: "var(--font-inter)", fontSize: 36, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.03em", lineHeight: 1 }}>
             {userRow.total_points.toLocaleString()}P
           </p>
           <p style={{ fontSize: 13, fontWeight: 300, color: "#5c5448", marginTop: 6 }}>누적 포인트</p>
@@ -77,7 +77,7 @@ export default function PointsPage() {
                     <p style={{ fontSize: 14, fontWeight: 400, color: "#a09688" }}>{item.reason}</p>
                     <p style={{ fontSize: 12, fontWeight: 300, color: "#3a3a3a", marginTop: 3 }}>{label}</p>
                   </div>
-                  <span style={{ fontFamily: "var(--font-inter)", fontSize: 16, fontWeight: 500, color: "#EDD97A", letterSpacing: "-0.02em" }}>
+                  <span style={{ fontFamily: "var(--font-inter)", fontSize: 16, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
                     +{item.points.toLocaleString()}P
                   </span>
                 </div>

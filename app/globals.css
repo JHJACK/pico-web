@@ -5,7 +5,7 @@
   --color-pico-bg2: #141414;
   --color-pico-bg3: #1c1c1c;
   --color-pico-bg4: #242424;
-  --color-pico-gold: #EDD97A;
+  --color-pico-gold: #FACA3E;
   --color-pico-text: #e8e0d0;
   --color-pico-text2: #c8bfb0;
   --color-pico-text3: #5c5448;
@@ -101,10 +101,10 @@ h1, h2, h3, h4, h5 {
 
 /* ── 골드 글로우 (배틀 선택) ── */
 @keyframes goldGlow {
-  0%   { box-shadow: 0 0 0px  rgba(237,217,122,0);    border-color: rgba(255,255,255,0.06); }
-  30%  { box-shadow: 0 0 22px rgba(237,217,122,0.6);  border-color: rgba(237,217,122,0.95); }
-  70%  { box-shadow: 0 0 12px rgba(237,217,122,0.3);  border-color: rgba(237,217,122,0.65); }
-  100% { box-shadow: 0 0 0px  rgba(237,217,122,0);    border-color: rgba(237,217,122,0.45); }
+  0%   { box-shadow: 0 0 0px  rgba(250,202,62,0);    border-color: rgba(255,255,255,0.06); }
+  30%  { box-shadow: 0 0 22px rgba(250,202,62,0.6);  border-color: rgba(250,202,62,0.95); }
+  70%  { box-shadow: 0 0 12px rgba(250,202,62,0.3);  border-color: rgba(250,202,62,0.65); }
+  100% { box-shadow: 0 0 0px  rgba(250,202,62,0);    border-color: rgba(250,202,62,0.45); }
 }
 .gold-glow { animation: goldGlow 0.7s cubic-bezier(.4,0,.2,1) forwards; }
 
@@ -143,3 +143,21 @@ h1, h2, h3, h4, h5 {
 .scroll-x { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
 .scroll-x::-webkit-scrollbar { display: none; }
 .snap-start { scroll-snap-align: start; }
+
+/* ── 모바일 반응형 (480px 이하) ── */
+@media (max-width: 480px) {
+  /* 레이아웃 */
+  .page-container { padding-left: 16px !important; padding-right: 16px !important; }
+
+  /* 폰트 */
+  .nickname     { font-size: 15px !important; }
+  .dna-modifier { font-size: 18px !important; }
+  .dna-animal   { font-size: 18px !important; }
+  .point-value  { font-size: 24px !important; }
+  .card-label   { font-size: 12px !important; }
+  .card-body    { font-size: 18px !important; }
+  .hint         { font-size: 12px !important; }
+
+  /* 버튼 */
+  .arrow-btn { width: 32px !important; height: 32px !important; min-width: 32px; min-height: 32px; }
+}

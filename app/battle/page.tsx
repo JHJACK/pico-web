@@ -88,13 +88,13 @@ export default function BattlePage() {
           ← 홈
         </Link>
         <span
-          style={{ fontFamily: "var(--font-serif)", fontSize: 16, color: "#EDD97A" }}
+          style={{ fontFamily: "var(--font-serif)", fontSize: 16, color: "#FACA3E" }}
         >
           PICO
         </span>
       </nav>
 
-      <div className="max-w-lg mx-auto px-5 pt-8 pb-16">
+      <div className="page-container max-w-lg mx-auto px-5 pt-8 pb-16">
         {/* 헤더 */}
         <div className="mb-6">
           <div

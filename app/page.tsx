@@ -469,7 +469,7 @@ export default function Home() {
       <nav className="sticky top-0 z-30 border-b" style={{ height: 64, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
         <div className="h-full flex items-center justify-between mx-auto px-5 lg:px-10" style={{ maxWidth: 1280 }}>
           {/* 로고 — DM Serif Display 유일하게 사용 */}
-          <Link href="/" style={{ fontFamily: "var(--font-serif)", fontSize: 24, color: "#EDD97A", letterSpacing: "0.01em", flexShrink: 0, textDecoration: "none" }}>
+          <Link href="/" style={{ fontFamily: "var(--font-serif)", fontSize: 24, color: "#FACA3E", letterSpacing: "0.01em", flexShrink: 0, textDecoration: "none" }}>
             PICO
           </Link>
 
