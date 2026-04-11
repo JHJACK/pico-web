@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
-import { supabase, uploadAvatar, type BattleVoteRow } from "@/app/lib/supabase";
+import { supabase, uploadAvatar } from "@/app/lib/supabase";
 import { INVESTOR_TYPES, type TypeKey } from "@/app/lib/quizTypes";
 
 
@@ -22,8 +22,6 @@ export default function MyPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading]         = useState(false);
   const [saveError,     setSaveError]             = useState("");
-  const [lastBattle,   setLastBattle]   = useState<BattleVoteRow | null | undefined>(undefined);
-
   useEffect(() => {
     if (!loading && !user) router.replace("/");
   }, [user, loading, router]);
@@ -31,21 +29,6 @@ export default function MyPage() {
   useEffect(() => {
     if (userRow) setNickname(userRow.nickname);
   }, [userRow]);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("battle_votes")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) { console.error("[mypage] lastBattle:", error.message); return; }
-        setLastBattle(data as BattleVoteRow | null);
-      });
-  }, [user]);
 
 
   function openEdit() {
@@ -209,7 +192,7 @@ export default function MyPage() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="nickname" style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
+            <p className="nickname" style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
           </div>
           <button onClick={openEdit} className="pico-btn arrow-btn flex-shrink-0"
             style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -234,39 +217,18 @@ export default function MyPage() {
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
             </div>
           </button>
-          <div className="border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "18px 20px", display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            className="pico-btn border"
+            style={{ background: "#141414", borderColor: "rgba(255,255,255,0.07)", borderRadius: 16, padding: "18px 20px", display: "flex", alignItems: "center", gap: 10, textAlign: "left", width: "100%" }}
+            onClick={() => router.push("/mypage/battles")}
+          >
             <div style={{ flex: 1 }}>
-              <p className="card-label" style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>최근 대결 결과</p>
-              {lastBattle === undefined ? null : lastBattle === null ? (
-                <p style={{ fontSize: 14, fontWeight: 400, color: "#5c5448" }}>아직 기록 없음</p>
-              ) : (
-                <>
-                  <p style={{ fontFamily: "var(--font-inter)", fontSize: 14, fontWeight: 400, color: "#e8e0d0", letterSpacing: "-0.01em" }}>
-                    {lastBattle.voted_for}
-                  </p>
-                  <p style={{
-                    fontSize: 14,
-                    fontWeight: 400,
-                    marginTop: 4,
-                    color: lastBattle.is_correct === true
-                      ? "#7ed4a0"
-                      : lastBattle.is_correct === false
-                      ? "#c8bfb0"
-                      : "#5c5448",
-                  }}>
-                    {lastBattle.is_correct === true
-                      ? "정답! 🎉"
-                      : lastBattle.is_correct === false
-                      ? "아쉽게 틀렸어요 😅"
-                      : "결과 집계 중..."}
-                  </p>
-                </>
-              )}
+              <p className="card-label" style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0" }}>오늘의 VS 대결 결과</p>
             </div>
-            <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "flex-start" }}>
+            <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "center" }}>
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* ── DNA 카드 + 출석 카드 2열 그리드 ── */}
