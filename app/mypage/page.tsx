@@ -160,6 +160,7 @@ export default function MyPage() {
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
             </div>
+            <p style={{ fontSize: 12, color: "#5c5448", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해</p>
 
             {/* 이메일 (읽기 전용) */}
             <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 4 }}>로그인 이메일</p>
