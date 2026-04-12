@@ -111,7 +111,7 @@ export default function MyPage() {
   // isMobile 분기 폰트 크기
   const FS = {
     nickname:  isMobile ? "19px" : "22px",
-    cardBody:  isMobile ? "12px" : "14px",
+    cardBody:  "14px",
     pointVal:  isMobile ? "20px" : "24px",
     cardLabel: isMobile ? "12px" : "14px",
   };
@@ -232,7 +232,7 @@ export default function MyPage() {
             onClick={() => router.push("/mypage/battles")}
           >
             <div style={{ flex: 1 }}>
-              <span style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>오늘의 VS 대결 결과</span>
+              <span style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>{isMobile ? "오늘의 대결" : "오늘의 VS 대결 결과"}</span>
             </div>
             <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "center" }}>
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
