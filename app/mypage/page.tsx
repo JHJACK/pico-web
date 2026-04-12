@@ -105,7 +105,16 @@ export default function MyPage() {
     }
   }
 
-  const dnaType     = userRow?.investor_type ? INVESTOR_TYPES[userRow.investor_type as TypeKey] : null;
+  const dnaType = userRow?.investor_type ? INVESTOR_TYPES[userRow.investor_type as TypeKey] : null;
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 480;
+
+  // isMobile 분기 폰트 크기
+  const FS = {
+    nickname:  isMobile ? "19px" : "22px",
+    cardBody:  isMobile ? "12px" : "14px",
+    pointVal:  isMobile ? "20px" : "24px",
+    cardLabel: isMobile ? "12px" : "14px",
+  };
 
   if (loading) return null;
   if (!user || !userRow) return null;
@@ -192,7 +201,7 @@ export default function MyPage() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="nickname" style={{ fontSize: "clamp(24px, 6.5vw, 27px)", fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
+            <p style={{ fontSize: FS.nickname, fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
           </div>
           <button onClick={openEdit} className="pico-btn arrow-btn flex-shrink-0"
             style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -208,8 +217,8 @@ export default function MyPage() {
             onClick={() => router.push("/mypage/points")}
           >
             <div style={{ flex: 1, textAlign: "left" }}>
-              <p className="card-label" style={{ fontSize: 14, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>누적 포인트</p>
-              <p className="point-value num" style={{ fontFamily: "var(--font-inter)", fontSize: "clamp(20px, 5vw, 22px)", fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
+              <p style={{ fontSize: FS.cardLabel, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>누적 포인트</p>
+              <p className="num" style={{ fontFamily: "var(--font-inter)", fontSize: FS.pointVal, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
                 {userRow.total_points.toLocaleString()}P
               </p>
             </div>
@@ -223,7 +232,7 @@ export default function MyPage() {
             onClick={() => router.push("/mypage/battles")}
           >
             <div style={{ flex: 1 }}>
-              <span className="card-body" style={{ fontSize: "12px", fontWeight: 500, color: "#e8e0d0" }}>오늘의 VS 대결 결과</span>
+              <span style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>오늘의 VS 대결 결과</span>
             </div>
             <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "center" }}>
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
@@ -239,10 +248,10 @@ export default function MyPage() {
             <span style={{ fontSize: "clamp(20px, 5vw, 23px)", flexShrink: 0 }}>{dnaType ? dnaType.emoji : "🧬"}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                <span className="dna-modifier" style={{ fontSize: "12px", fontWeight: 500, color: "#e8e0d0" }}>
+                <span style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>
                   {dnaType ? dnaType.modifier : "투자 DNA"}
                 </span>
-                <span className="dna-animal" style={{ fontSize: "12px", fontWeight: 500, color: "#FACA3E" }}>
+                <span style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#FACA3E" }}>
                   {dnaType ? dnaType.name : "테스트 전"}
                 </span>
               </div>
@@ -255,7 +264,7 @@ export default function MyPage() {
           {/* 출석 카드 */}
           <button onClick={() => router.push("/mypage/attendance")} className="pico-btn"
             style={{ background: "#141414", borderRadius: 16, padding: "18px 20px", border: "0.5px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 12 }}>
-            <span className="card-body" style={{ fontSize: "12px", fontWeight: 500, color: "#e8e0d0", flex: 1, textAlign: "left" }}>출석체크 캘린더🔥</span>
+            <span style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0", flex: 1, textAlign: "left" }}>출석체크 캘린더🔥</span>
             <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
             </div>

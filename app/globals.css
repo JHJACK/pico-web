@@ -149,15 +149,8 @@ h1, h2, h3, h4, h5 {
   /* 레이아웃 */
   .page-container { padding-left: 16px !important; padding-right: 16px !important; }
 
-  /* 폰트 */
-  .nickname     { font-size: 15px !important; }
-  .dna-modifier { font-size: 18px !important; }
-  .dna-animal   { font-size: 18px !important; }
-  .point-value  { font-size: 24px !important; }
-  .card-label   { font-size: 12px !important; }
-  .card-body    { font-size: 18px !important; }
-  .hint         { font-size: 12px !important; }
-
   /* 버튼 */
   .arrow-btn { width: 32px !important; height: 32px !important; min-width: 32px; min-height: 32px; }
+
+  /* 폰트는 page.tsx 인라인 isMobile 분기로 관리 — 여기서 건들지 않음 */
 }
