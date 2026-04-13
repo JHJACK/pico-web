@@ -1030,7 +1030,7 @@ export default function Home() {
               {!playSearch && (
                 <>
                   <div className="flex gap-2 mb-5 scroll-x">
-                    {(["전체", "AI·반도체", "빅테크", "테마", "브랜드", "금융"] as const).map((tab) => (
+                    {(["전체", "AI·반도체", "빅테크", "2026테마", "소비재·금융", "ETF"] as const).map((tab) => (
                       <button key={tab} onClick={() => setPlayStockTab(tab)} className="pico-btn flex-shrink-0 px-4 py-1.5 rounded-lg"
                         style={{ fontSize: 12, fontWeight: 500, background: playStockTab === tab ? "rgba(250,202,62,0.12)" : "rgba(255,255,255,0.04)", color: playStockTab === tab ? "#FACA3E" : "#5c5448", border: `0.5px solid ${playStockTab === tab ? "rgba(250,202,62,0.3)" : "rgba(255,255,255,0.06)"}` }}>
                         {tab}
