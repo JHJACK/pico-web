@@ -27,12 +27,66 @@ export type BattleVoteRow = {
   id: number;
   user_id: string;
   date: string;
-  ticker_a: string;
-  ticker_b: string;
-  voted_for: string;
+  ticker: string;           // 오늘의 선택 종목 티커
+  voted_for: string;        // 'UP' | 'DOWN'
   is_correct: boolean | null;
   points_earned: number;
 };
+
+// ── 종목 타입 ──────────────────────────────────────
+export type StockItem = {
+  ticker: string;
+  name: string;
+  category: string;
+};
+
+// ── 종목 풀 (PICO Play API 연동 전 순환 풀) ─────────
+// 나중에 battles 테이블에서 읽어오는 방식으로 교체 예정
+// 교체 시 getTodayStock / getTomorrowStock 함수만 수정하면 됨
+const STOCK_POOL: StockItem[] = [
+  { ticker: "TSLA",  name: "테슬라",         category: "전기차"    },
+  { ticker: "NVDA",  name: "엔비디아",        category: "AI·반도체" },
+  { ticker: "AAPL",  name: "애플",            category: "빅테크"    },
+  { ticker: "MSFT",  name: "마이크로소프트",   category: "빅테크"    },
+  { ticker: "ABNB",  name: "에어비앤비",       category: "숙박"      },
+  { ticker: "META",  name: "메타",            category: "빅테크"    },
+  { ticker: "GOOGL", name: "구글",            category: "빅테크"    },
+  { ticker: "AMZN",  name: "아마존",          category: "빅테크"    },
+  { ticker: "NFLX",  name: "넷플릭스",        category: "스트리밍"  },
+  { ticker: "AMD",   name: "AMD",             category: "반도체"    },
+  { ticker: "SBUX",  name: "스타벅스",        category: "소비재"    },
+  { ticker: "NKE",   name: "나이키",          category: "소비재"    },
+  { ticker: "JPM",   name: "JP모건",          category: "금융"      },
+  { ticker: "PLTR",  name: "팔란티어",        category: "AI"        },
+];
+
+// 날짜 문자열(YYYY-MM-DD) → 고정 기준일로부터 경과 일수
+function dayIndex(dateStr: string): number {
+  const epoch = new Date("2025-01-01").getTime();
+  const date  = new Date(dateStr + "T00:00:00").getTime();
+  return Math.floor((date - epoch) / 86_400_000);
+}
+
+// 오늘 종목 (날짜 기반 결정론적 순환)
+// PICO Play API 연동 시 이 함수를 battles 테이블 조회로 교체
+export function getTodayStock(): StockItem {
+  return STOCK_POOL[dayIndex(todayKST()) % STOCK_POOL.length];
+}
+
+// 내일 종목 (히스토리 페이지 "내일 예고"용)
+// PICO Play API 연동 시 이 함수를 battles 테이블 조회로 교체
+export function getTomorrowStock(): StockItem {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const tomorrowStr = d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+  return STOCK_POOL[dayIndex(tomorrowStr) % STOCK_POOL.length];
+}
+
+// 특정 날짜의 종목 (히스토리 표시용)
+// PICO Play API 연동 시 battles 테이블에서 해당 날짜 row 조회로 교체
+export function getStockForDate(dateStr: string): StockItem {
+  return STOCK_POOL[dayIndex(dateStr) % STOCK_POOL.length];
+}
 
 export type PointHistoryRow = {
   id: number;
@@ -113,23 +167,22 @@ export async function getUserRow(uid: string): Promise<UserRow | null> {
   return data as UserRow | null;
 }
 
-// ── 오늘 battle_vote 투표 수 집계 (인증 유저 전체) ──
-// ※ RLS 정책 필요: battle_votes SELECT USING (auth.role() = 'authenticated')
-export async function getTodayBattleVoteCounts(): Promise<{ votesA: number; votesB: number }> {
+// ── 오늘 선택 투표 수 집계 (UP/DOWN) ─────────────────
+export async function getTodayVoteCounts(): Promise<{ votesUp: number; votesDown: number }> {
   const { data, error } = await supabase
     .from("battle_votes")
     .select("voted_for")
     .eq("date", todayKST());
 
   if (error) {
-    console.error("[getTodayBattleVoteCounts]", error.message);
-    return { votesA: 0, votesB: 0 };
+    console.error("[getTodayVoteCounts]", error.message);
+    return { votesUp: 0, votesDown: 0 };
   }
 
-  const rows   = (data ?? []) as { voted_for: string }[];
-  const votesA = rows.filter((r) => r.voted_for === "ABNB").length;
-  const votesB = rows.filter((r) => r.voted_for === "HLT").length;
-  return { votesA, votesB };
+  const rows     = (data ?? []) as { voted_for: string }[];
+  const votesUp   = rows.filter((r) => r.voted_for === "UP").length;
+  const votesDown = rows.filter((r) => r.voted_for === "DOWN").length;
+  return { votesUp, votesDown };
 }
 
 // ── 어제 battle_vote 조회 ────────────────────────
@@ -219,26 +272,26 @@ async function addPoints(uid: string, delta: number) {
 }
 
 // ── 투표 + 출석 저장 + 포인트 처리 ───────────────
+// votedFor: 'UP' | 'DOWN', ticker: 오늘 종목 티커
+// PICO Play API 연동 후에도 이 함수 시그니처 유지 (내부만 교체)
 export async function submitVoteAndAttendance(
   uid: string,
-  votedFor: string,
-  tickerA: string,
-  tickerB: string
+  votedFor: "UP" | "DOWN",
+  ticker: string
 ): Promise<{ bonusDays: number; bonusPoints: number }> {
   if (!uid) return { bonusDays: 0, bonusPoints: 0 };
 
   // 날짜: KST 기준 YYYY-MM-DD (date 타입 컬럼과 일치)
   const today = todayKST();
 
-  console.log("1. 투표 시작", { userId: uid, voted: votedFor, today });
+  console.log("1. 투표 시작", { userId: uid, voted: votedFor, ticker, today });
 
   // 1) battle_votes 저장 (이미 있으면 무시)
   const { error: voteErr } = await supabase.from("battle_votes").insert(
     {
       user_id: uid,
       date: today,
-      ticker_a: tickerA,
-      ticker_b: tickerB,
+      ticker,
       voted_for: votedFor,
       is_correct: null,
       points_earned: 0,
@@ -369,17 +422,17 @@ export async function saveQuizResult(uid: string, investorType: string) {
   return { pointsAdded: isFirst ? 300 : 0 };
 }
 
-// ── VS 대결 정답 포인트 지급 ──────────────────────────
-// battle_votes의 is_correct가 true로 확정된 후 호출
+// ── 오늘의 선택 정답 포인트 지급 ────────────────────────
 export async function awardBattleCorrect(uid: string) {
   if (!uid) return;
   await addPoints(uid, 100);
-  await insertPointHistory(uid, 100, "VS 대결 정답");
+  await insertPointHistory(uid, 100, "오늘의 선택 정답");
 }
 
 // ── 결과 판정: 어제 미판정 투표 처리 (더미) ──────────
 // 오전 6시(KST) 이후 첫 접속 시 호출
-// 실제 주가 API 연결 후 winner 결정 로직 교체 예정
+// 실제 주가 API 연결 후 winner를 battles 테이블에서 읽어오는 방식으로 교체 예정
+// winner: 'UP' | 'DOWN'
 export async function judgeYesterdayBattle(
   uid: string
 ): Promise<{ winner: string | null; myVote: BattleVoteRow | null }> {
@@ -402,14 +455,13 @@ export async function judgeYesterdayBattle(
   if (vote.is_correct !== null) {
     const winner = vote.is_correct
       ? vote.voted_for
-      : vote.voted_for === vote.ticker_a
-      ? vote.ticker_b
-      : vote.ticker_a;
+      : vote.voted_for === "UP" ? "DOWN" : "UP";
     return { winner, myVote: vote as BattleVoteRow };
   }
 
-  // 더미 판정: 랜덤으로 승자 결정 (실제 API 연결 전 임시)
-  const winner = Math.random() < 0.5 ? vote.ticker_a : vote.ticker_b;
+  // 더미 판정: 랜덤으로 UP/DOWN 결정 (실제 주가 API 연결 전 임시)
+  // PICO Play API 연동 시 battles 테이블의 winner 컬럼으로 교체
+  const winner = Math.random() < 0.5 ? "UP" : "DOWN";
   const isCorrect = vote.voted_for === winner;
 
   await supabase

@@ -209,7 +209,7 @@ export default function MyPage() {
           </button>
         </div>
 
-        {/* ── 포인트 + 최근 대결 ── */}
+        {/* ── 포인트 + 오늘의 선택 ── */}
         <div className="grid grid-cols-2 gap-[10px] mb-[10px]">
           <button
             className="pico-btn border"
@@ -232,7 +232,7 @@ export default function MyPage() {
             onClick={() => router.push("/mypage/battles")}
           >
             <div style={{ flex: 1 }}>
-              <span style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>{isMobile ? "오늘의 대결" : "오늘의 VS 대결 결과"}</span>
+              <span style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>{isMobile ? "오늘의 선택" : "오늘의 선택 히스토리"}</span>
             </div>
             <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "center" }}>
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>

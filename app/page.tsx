@@ -6,7 +6,7 @@ import Link from "next/link";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
 import { fetchNews, NEWS_FALLBACK, type NewsItem, type NewsCat } from "@/app/lib/news";
 import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory } from "@/app/lib/stockNames";
-import { supabase, getTodayVote, submitVoteAndAttendance, getTodayBattleVoteCounts, getYesterdayVote, judgeYesterdayBattle, todayKST, type BattleVoteRow } from "@/app/lib/supabase";
+import { supabase, getTodayVote, submitVoteAndAttendance, getTodayVoteCounts, getYesterdayVote, judgeYesterdayBattle, todayKST, getTodayStock, type BattleVoteRow } from "@/app/lib/supabase";
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
 
@@ -29,9 +29,7 @@ const ANIMAL_NAMES: Record<string, { emoji: string; modifier: string; name: stri
 };
 
 const TODAY_DATE = new Date().toISOString().slice(0, 10);
-const BATTLE_KEY = `pico_battle_${TODAY_DATE}`;
-const INIT_VOTES_A = 1648;
-const INIT_VOTES_B = 1193;
+const BATTLE_KEY = `pico_selection_${TODAY_DATE}`;
 
 
 const TERMS = [
@@ -55,7 +53,7 @@ const PICO_EYE_CARDS = [
   },
   {
     ticker: "ABNB", name: "에어비앤비", logo: "https://logo.clearbit.com/airbnb.com", color: "#7ed4a0",
-    insight: "여름 여행 성수기 앞두고 예약 수요 전년 대비 +28% 증가. 숙박업 VS 배틀에서도 주목받는 종목. 단기 모멘텀이 호랑이형과 잘 맞아.",
+    insight: "여름 여행 성수기 앞두고 예약 수요 전년 대비 +28% 증가. 숙박·여가 섹터 대표주로 단기 모멘텀이 호랑이형과 잘 맞아.",
   },
 ];
 
@@ -187,9 +185,14 @@ export default function Home() {
   const [quizType,   setQuizType]   = useState<string | null>(null);
   const [popupType,  setPopupType]  = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [battleVote, setBattleVote] = useState<"a"|"b"|null>(null);
-  const [votesA, setVotesA] = useState(INIT_VOTES_A);
-  const [votesB, setVotesB] = useState(INIT_VOTES_B);
+
+  // 오늘의 선택 상태 (UP | DOWN)
+  const [battleVote, setBattleVote] = useState<"UP"|"DOWN"|null>(null);
+  const [votesUp,  setVotesUp]  = useState(0);
+  const [votesDown,setVotesDown]= useState(0);
+
+  // 오늘 종목 (날짜 기반 결정)
+  const [todayStock, setTodayStock] = useState(getTodayStock());
 
   const [modal,     setModal]    = useState<ModalType>(null);
   const [authTab,   setAuthTab]  = useState<AuthTab>("login");
@@ -199,12 +202,12 @@ export default function Home() {
   const [authError,   setAuthError]   = useState("");
   const [mounted,   setMounted]  = useState(false);
 
-  // VS 배틀 팝업
-  const [popupBattleVote, setPopupBattleVote] = useState<"a"|"b"|null>(null);
+  // 오늘의 선택 팝업
+  const [popupBattleVote, setPopupBattleVote] = useState<"UP"|"DOWN"|null>(null);
   const [popupBattleDone, setPopupBattleDone] = useState(false);
-  const [popupVotesA,     setPopupVotesA]     = useState(0);
-  const [popupVotesB,     setPopupVotesB]     = useState(0);
-  // 어제 대결 결과
+  const [popupVotesUp,   setPopupVotesUp]   = useState(0);
+  const [popupVotesDown, setPopupVotesDown] = useState(0);
+  // 어제 선택 결과
   const [yesterdayVote,   setYesterdayVote]   = useState<BattleVoteRow | null>(null);
   const [yesterdayWinner, setYesterdayWinner] = useState<string | null>(null);
   // 팝업 체크 완료 여부 (user 변경시 중복 실행 방지)
@@ -216,7 +219,7 @@ export default function Home() {
   const [mainTab, setMainTab] = useState<MainTab>("event");
   const [prevTab, setPrevTab] = useState<MainTab>("event");
 
-  const [justVoted,      setJustVoted]      = useState<"a"|"b"|null>(null);
+  const [justVoted,      setJustVoted]      = useState<"UP"|"DOWN"|null>(null);
   const [showParticlesA, setShowParticlesA] = useState(false);
   const [showParticlesB, setShowParticlesB] = useState(false);
   const [showBarAnim,    setShowBarAnim]    = useState(false);
@@ -258,9 +261,9 @@ export default function Home() {
     setBattleDone(bDone);
     if (battleData) {
       const bd = JSON.parse(battleData);
-      setBattleVote(bd.choice);
-      setVotesA(bd.votesA ?? INIT_VOTES_A);
-      setVotesB(bd.votesB ?? INIT_VOTES_B);
+      setBattleVote(bd.choice as "UP" | "DOWN");
+      setVotesUp(bd.votesUp ?? 0);
+      setVotesDown(bd.votesDown ?? 0);
       setShowBarAnim(true);
       setShowResultMsg(true);
     }
@@ -287,9 +290,12 @@ export default function Home() {
 
     getTodayVote(user.id).then((vote) => {
       if (vote) {
-        // 이미 투표함 → 배틀 상태만 복원
+        // 이미 투표함 → 선택 상태만 복원
         setBattleDone(true);
-        setBattleVote(vote.voted_for === "ABNB" ? "a" : "b");
+        const v = vote.voted_for === "UP" || vote.voted_for === "DOWN"
+          ? vote.voted_for as "UP" | "DOWN"
+          : null;
+        setBattleVote(v);
         setShowBarAnim(true);
         setShowResultMsg(true);
       } else if (!localStorage.getItem(popupKey)) {
@@ -300,9 +306,9 @@ export default function Home() {
           setYesterdayVote(myVote);
         });
         setModal("vs_battle");
-        getTodayBattleVoteCounts().then(({ votesA: a, votesB: b }) => {
-          setPopupVotesA(a);
-          setPopupVotesB(b);
+        getTodayVoteCounts().then(({ votesUp: u, votesDown: d }) => {
+          setPopupVotesUp(u);
+          setPopupVotesDown(d);
         });
         // 어제 참여 여부와 무관하게 로드
         getYesterdayVote(user.id).then((yv) => {
@@ -355,33 +361,32 @@ export default function Home() {
   }, [userRow]);
 
   const isBlurred = modal === "vs_battle";
-  const total = votesA + votesB;
-  const pctA  = total > 0 ? Math.round((votesA / total) * 100) : 50;
-  const pctB  = 100 - pctA;
+  const totalVotes = votesUp + votesDown;
+  const pctUp   = totalVotes > 0 ? Math.round((votesUp   / totalVotes) * 100) : 50;
+  const pctDown = 100 - pctUp;
 
   function switchTab(tab: MainTab) { setPrevTab(mainTab); setMainTab(tab); }
   const tabAnim = mainTab === "play"
     ? (prevTab === "event" ? "tab-enter" : "tab-enter-left")
     : (prevTab === "play"  ? "tab-enter-left" : "tab-enter");
 
-  const handleVote = useCallback((choice: "a"|"b") => {
+  const handleVote = useCallback((choice: "UP"|"DOWN") => {
     if (battleVote || battleDone) return;
     // 비로그인 시 로그인 모달 오픈
     if (!user) { openLogin("login"); return; }
 
-    const newA = choice === "a" ? votesA + 1 : votesA;
-    const newB = choice === "b" ? votesB + 1 : votesB;
+    const newUp   = choice === "UP"   ? votesUp   + 1 : votesUp;
+    const newDown = choice === "DOWN" ? votesDown + 1 : votesDown;
     setJustVoted(choice);
-    if (choice === "a") setShowParticlesA(true); else setShowParticlesB(true);
+    if (choice === "UP") setShowParticlesA(true); else setShowParticlesB(true);
     setTimeout(async () => {
       setBattleVote(choice); setBattleDone(true);
-      setVotesA(newA); setVotesB(newB); setShowBarAnim(true);
-      localStorage.setItem(BATTLE_KEY, JSON.stringify({ choice, votesA: newA, votesB: newB }));
+      setVotesUp(newUp); setVotesDown(newDown); setShowBarAnim(true);
+      localStorage.setItem(BATTLE_KEY, JSON.stringify({ choice, votesUp: newUp, votesDown: newDown }));
       localStorage.setItem("pico_battle_done", "true");
 
       // Supabase 저장
-      const votedTicker = choice === "a" ? "ABNB" : "HLT";
-      submitVoteAndAttendance(user.id, votedTicker, "ABNB", "HLT").then(({ bonusDays, bonusPoints }) => {
+      submitVoteAndAttendance(user.id, choice, todayStock.ticker).then(({ bonusDays, bonusPoints }) => {
         refreshUserRow();
         if (bonusPoints > 0) {
           showToast(`🎉 ${bonusDays}일 연속 출석! +${bonusPoints}P 추가 지급`);
@@ -393,26 +398,25 @@ export default function Home() {
       setTimeout(() => setShowResultMsg(true), 700);
     }, 300);
     setTimeout(() => { setShowParticlesA(false); setShowParticlesB(false); setJustVoted(null); }, 1000);
-  }, [battleVote, battleDone, votesA, votesB, user]);
+  }, [battleVote, battleDone, votesUp, votesDown, user, todayStock]);
 
   async function handleBattlePopupVote() {
     if (!popupBattleVote || !user || popupBattleDone) return;
-    const choice     = popupBattleVote;
-    const votedTicker = choice === "a" ? "ABNB" : "HLT";
+    const choice = popupBattleVote;
 
     // Supabase 저장
-    const { bonusDays, bonusPoints } = await submitVoteAndAttendance(user.id, votedTicker, "ABNB", "HLT");
+    const { bonusDays, bonusPoints } = await submitVoteAndAttendance(user.id, choice, todayStock.ticker);
 
-    // 메인 배틀 상태 업데이트
-    const newA = choice === "a" ? votesA + 1 : votesA;
-    const newB = choice === "b" ? votesB + 1 : votesB;
+    // 메인 선택 상태 업데이트
+    const newUp   = choice === "UP"   ? votesUp   + 1 : votesUp;
+    const newDown = choice === "DOWN" ? votesDown + 1 : votesDown;
     setBattleDone(true);
     setBattleVote(choice);
-    setVotesA(newA);
-    setVotesB(newB);
+    setVotesUp(newUp);
+    setVotesDown(newDown);
     setShowBarAnim(true);
     setShowResultMsg(true);
-    localStorage.setItem(BATTLE_KEY, JSON.stringify({ choice, votesA: newA, votesB: newB }));
+    localStorage.setItem(BATTLE_KEY, JSON.stringify({ choice, votesUp: newUp, votesDown: newDown }));
     localStorage.setItem("pico_battle_done", "true");
 
     refreshUserRow();
@@ -570,8 +574,8 @@ export default function Home() {
                 <button onClick={() => router.push("/quiz")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
                   투자 DNA 찾기 →
                 </button>
-                <button onClick={() => router.push("/battle")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "transparent", color: "#e8e0d0", fontSize: 14, fontWeight: 500, border: "0.5px solid rgba(255,255,255,0.14)" }}>
-                  오늘 배틀 참여
+                <button onClick={() => setModal("vs_battle")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "transparent", color: "#e8e0d0", fontSize: 14, fontWeight: 500, border: "0.5px solid rgba(255,255,255,0.14)" }}>
+                  오늘의 선택 참여
                 </button>
               </div>
             </div>
@@ -579,7 +583,7 @@ export default function Home() {
             {/* 통계 카드 */}
             <div className="grid grid-cols-3 lg:flex lg:flex-col gap-3 w-full lg:w-auto">
               {[
-                { num: "2,841", unit: "명",  sub: "오늘 VS 배틀 참여",    cls: "float-1", accent: "#FACA3E" },
+                { num: "2,841", unit: "명",  sub: "오늘 선택 참여",       cls: "float-1", accent: "#FACA3E" },
                 { num: "8",     unit: "가지", sub: "투자자 DNA 유형",      cls: "float-2", accent: "#7eb8f7" },
                 { num: "매일",  unit: "",     sub: "AI 인사이트 업데이트", cls: "float-3", accent: "#7ed4a0" },
               ].map((stat) => (
@@ -603,19 +607,19 @@ export default function Home() {
         {mainTab === "event" && (
           <div key="event" className={tabAnim}>
 
-            {/* ── VS 배틀 + DNA 그리드 ── */}
+            {/* ── 오늘의 선택 + DNA 그리드 ── */}
             <div className="pb-10 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
               <div className="mb-5 mt-6">
-                <p style={{ fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>오늘, 누가 오를까</p>
+                <p style={{ fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>오늘의 선택</p>
                 <p style={{ fontSize: "clamp(12px, 3vw, 14px)", color: "#a09688", fontWeight: 300 }}>하루 1번 예측 → 익일 결과 · 정답 시 100 포인트</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-                {/* 배틀 카드 (2/3) */}
+                {/* 오늘의 선택 카드 (2/3) */}
                 <div className="lg:col-span-2 rounded-2xl p-4 sm:p-6 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.18)" }}>
                   <div className="flex items-center justify-between mb-2">
-                    <SectionLabel text="오늘의 VS 배틀 — 숙박업" />
+                    <SectionLabel text={`오늘의 선택 — ${todayStock.category}`} />
                     {battleDone && (
                       <span style={{ fontSize: 11, fontWeight: 500, padding: "3px 9px", borderRadius: 4, background: "rgba(126,212,160,0.12)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.25)" }}>
                         참여완료
@@ -623,94 +627,103 @@ export default function Home() {
                     )}
                   </div>
 
-                  {!battleDone && (
-                    <div className="flex items-center gap-2 mb-4">
-                      <span style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>오늘 장 마감까지 투표 가능</span>
-                      <span style={{ ...NUM, fontSize: 13, color: "#FACA3E" }}>{countdown}</span>
+                  {/* 종목 헤더 */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <TickerLogo src={`https://logo.clearbit.com/${todayStock.ticker.toLowerCase()}.com`} ticker={todayStock.ticker} size={36} />
+                    <div>
+                      <div style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0", letterSpacing: "-0.01em" }}>{todayStock.name}</div>
+                      <div style={{ ...NUM, fontSize: 12, color: "#5c5448" }}>{todayStock.ticker}</div>
                     </div>
-                  )}
+                    {!battleDone && (
+                      <div className="flex items-center gap-2 ml-auto">
+                        <span style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>마감까지</span>
+                        <span style={{ ...NUM, fontSize: 13, color: "#FACA3E" }}>{countdown}</span>
+                      </div>
+                    )}
+                  </div>
 
-                  {/* A vs B */}
+                  {/* 현재가 */}
+                  <div className="mb-5">
+                    {stocksLoading
+                      ? <Skeleton w={120} h={16} />
+                      : <div className="flex items-baseline gap-2">
+                          <PriceDisplay ticker={todayStock.ticker} krwSize={16} usdSize={12} />
+                          <span style={{ ...NUM, fontSize: 13, color: upOf(todayStock.ticker) ? "#7ed4a0" : "#f07878" }}>
+                            {upOf(todayStock.ticker) ? "▲" : "▼"} {changeOf(todayStock.ticker)}
+                          </span>
+                        </div>
+                    }
+                  </div>
+
+                  {/* UP / DOWN 카드 */}
                   <div className="flex items-stretch gap-4 mb-5">
-                    {/* A — ABNB */}
+                    {/* 오른다 */}
                     <div className="relative flex-1">
                       <GoldParticles show={showParticlesA} />
-                      <button onClick={() => handleVote("a")} disabled={battleDone}
-                        className={`w-full rounded-xl p-5 border text-center pico-btn ${justVoted === "a" ? "gold-glow" : ""}`}
+                      <button onClick={() => handleVote("UP")} disabled={battleDone}
+                        className={`w-full rounded-xl p-5 border text-center pico-btn ${justVoted === "UP" ? "gold-glow" : ""}`}
                         style={{
-                          background: battleVote === "a" ? "rgba(250,202,62,0.06)" : "#1c1c1c",
-                          borderColor: battleVote === "a" ? "rgba(250,202,62,0.45)" : "rgba(255,255,255,0.06)",
+                          background: battleVote === "UP" ? "rgba(126,212,160,0.12)" : "#1c1c1c",
+                          borderColor: battleVote === "UP" ? "#7ed4a0" : "rgba(255,255,255,0.06)",
                           cursor: battleDone ? "default" : "pointer",
-                          opacity: battleDone && battleVote !== "a" ? 0.4 : 1,
-                          transform: battleDone && battleVote !== "a" ? "scale(0.96)" : "scale(1)",
+                          opacity: battleDone && battleVote !== "UP" ? 0.4 : 1,
+                          transform: battleDone && battleVote !== "UP" ? "scale(0.96)" : "scale(1)",
                           transition: "opacity 0.4s ease, transform 0.4s ease, border-color 0.2s, background 0.2s",
                         }}>
-                        <div className="flex justify-center mb-2">
-                          <TickerLogo src="https://logo.clearbit.com/airbnb.com" ticker="ABNB" size={32} />
-                        </div>
-                        <div style={{ ...NUM, fontSize: "clamp(16px, 4vw, 22px)", color: battleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 2 }}>ABNB</div>
-                        <div style={{ fontSize: 12, color: "#5c5448", marginBottom: 6, fontWeight: 300 }}>에어비앤비</div>
-                        {stocksLoading
-                          ? <Skeleton w={80} h={14} />
-                          : <div style={{ marginBottom: 10 }}>
-                              <div style={{ marginBottom: 3 }}><PriceDisplay ticker="ABNB" krwSize={14} usdSize={11} /></div>
-                              <div style={{ ...NUM, fontSize: 12, color: upOf("ABNB") ? "#7ed4a0" : "#f07878" }}>{upOf("ABNB") ? "▲" : "▼"} {changeOf("ABNB")}</div>
-                            </div>
-                        }
-                        <div style={{ fontSize: 11, fontWeight: 500, padding: "5px 12px", borderRadius: 5, display: "inline-block", background: battleVote === "a" ? "rgba(250,202,62,0.15)" : "rgba(255,255,255,0.04)", color: battleVote === "a" ? "#FACA3E" : "#5c5448", border: `0.5px solid ${battleVote === "a" ? "rgba(250,202,62,0.3)" : "rgba(255,255,255,0.08)"}` }}>
-                          {battleVote === "a" ? "✓ 선택함" : "선택하기"}
-                        </div>
+                        <div style={{ fontSize: 28, marginBottom: 6 }}>📈</div>
+                        <div style={{ fontSize: 17, fontWeight: 500, color: battleVote === "UP" ? "#7ed4a0" : "#e8e0d0", marginBottom: 4 }}>오른다</div>
+                        {showBarAnim && (
+                          <div style={{ ...NUM, fontSize: 13, color: "#7ed4a0", fontWeight: 500 }}>
+                            <CountUp target={pctUp} duration={1200} />%가 선택
+                          </div>
+                        )}
+                        {!showBarAnim && (
+                          <div style={{ fontSize: 11, color: "#5c5448", fontWeight: 300 }}>탭해서 선택</div>
+                        )}
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, fontSize: 14, fontWeight: 500, color: "#5c5448" }}>VS</div>
-
-                    {/* B — HLT */}
+                    {/* DOWN */}
                     <div className="relative flex-1">
                       <GoldParticles show={showParticlesB} />
-                      <button onClick={() => handleVote("b")} disabled={battleDone}
-                        className={`w-full rounded-xl p-5 border text-center pico-btn ${justVoted === "b" ? "gold-glow" : ""}`}
+                      <button onClick={() => handleVote("DOWN")} disabled={battleDone}
+                        className={`w-full rounded-xl p-5 border text-center pico-btn ${justVoted === "DOWN" ? "gold-glow" : ""}`}
                         style={{
-                          background: battleVote === "b" ? "rgba(126,184,247,0.06)" : "#1c1c1c",
-                          borderColor: battleVote === "b" ? "rgba(126,184,247,0.45)" : "rgba(255,255,255,0.06)",
+                          background: battleVote === "DOWN" ? "rgba(240,120,120,0.12)" : "#1c1c1c",
+                          borderColor: battleVote === "DOWN" ? "#f07878" : "rgba(255,255,255,0.06)",
                           cursor: battleDone ? "default" : "pointer",
-                          opacity: battleDone && battleVote !== "b" ? 0.4 : 1,
-                          transform: battleDone && battleVote !== "b" ? "scale(0.96)" : "scale(1)",
+                          opacity: battleDone && battleVote !== "DOWN" ? 0.4 : 1,
+                          transform: battleDone && battleVote !== "DOWN" ? "scale(0.96)" : "scale(1)",
                           transition: "opacity 0.4s ease, transform 0.4s ease, border-color 0.2s, background 0.2s",
                         }}>
-                        <div className="flex justify-center mb-2">
-                          <TickerLogo src="https://logo.clearbit.com/hilton.com" ticker="HLT" size={32} />
-                        </div>
-                        <div style={{ ...NUM, fontSize: "clamp(16px, 4vw, 22px)", color: battleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 2 }}>HLT</div>
-                        <div style={{ fontSize: 12, color: "#5c5448", marginBottom: 6, fontWeight: 300 }}>힐튼 호텔</div>
-                        {stocksLoading
-                          ? <Skeleton w={80} h={14} />
-                          : <div style={{ marginBottom: 10 }}>
-                              <div style={{ marginBottom: 3 }}><PriceDisplay ticker="HLT" krwSize={14} usdSize={11} /></div>
-                              <div style={{ ...NUM, fontSize: 12, color: upOf("HLT") ? "#7ed4a0" : "#f07878" }}>{upOf("HLT") ? "▲" : "▼"} {changeOf("HLT")}</div>
-                            </div>
-                        }
-                        <div style={{ fontSize: 11, fontWeight: 500, padding: "5px 12px", borderRadius: 5, display: "inline-block", background: battleVote === "b" ? "rgba(126,184,247,0.15)" : "rgba(255,255,255,0.04)", color: battleVote === "b" ? "#7eb8f7" : "#5c5448", border: `0.5px solid ${battleVote === "b" ? "rgba(126,184,247,0.3)" : "rgba(255,255,255,0.08)"}` }}>
-                          {battleVote === "b" ? "✓ 선택함" : "선택하기"}
-                        </div>
+                        <div style={{ fontSize: 28, marginBottom: 6 }}>📉</div>
+                        <div style={{ fontSize: 17, fontWeight: 500, color: battleVote === "DOWN" ? "#f07878" : "#e8e0d0", marginBottom: 4 }}>내린다</div>
+                        {showBarAnim && (
+                          <div style={{ ...NUM, fontSize: 13, color: "#f07878", fontWeight: 500 }}>
+                            <CountUp target={pctDown} duration={1200} />%가 선택
+                          </div>
+                        )}
+                        {!showBarAnim && (
+                          <div style={{ fontSize: 11, color: "#5c5448", fontWeight: 300 }}>탭해서 선택</div>
+                        )}
                       </button>
                     </div>
                   </div>
 
-                  {/* 투표 바 */}
+                  {/* 투표 바 — 선택 후 표시 */}
                   {showBarAnim ? (
                     <div className="fade-in-up">
                       <div className="rounded-full overflow-hidden mb-2" style={{ height: 3, background: "#242424" }}>
-                        <div className="h-full rounded-full" style={{ width: `${pctA}%`, background: "#FACA3E", transition: "width 1.2s cubic-bezier(.4,0,.2,1)" }} />
+                        <div className="h-full rounded-full" style={{ width: `${pctUp}%`, background: "#7ed4a0", transition: "width 1.2s cubic-bezier(.4,0,.2,1)" }} />
                       </div>
                       <div className="flex justify-between items-center">
-                        <span style={{ ...NUM, fontSize: 13, color: "#FACA3E" }}>ABNB <CountUp target={pctA} duration={1200} />%</span>
-                        <span style={{ ...NUM, fontSize: 12, color: "#5c5448" }}>총 {total.toLocaleString()}명</span>
-                        <span style={{ ...NUM, fontSize: 13, color: "#7eb8f7" }}>HLT <CountUp target={pctB} duration={1200} />%</span>
+                        <span style={{ ...NUM, fontSize: 12, color: "#7ed4a0" }}>📈 오른다 {pctUp}%</span>
+                        <span style={{ ...NUM, fontSize: 11, color: "#5c5448" }}>총 {totalVotes.toLocaleString()}명</span>
+                        <span style={{ ...NUM, fontSize: 12, color: "#f07878" }}>내린다 📉 {pctDown}%</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center" style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>선택하면 투표 현황이 공개돼</div>
+                    <div className="text-center" style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>선택하면 현황이 공개돼</div>
                   )}
 
                   {showResultMsg && (
@@ -1094,11 +1107,11 @@ export default function Home() {
         </div>
       </main>
 
-      {/* ════════ VS 배틀 팝업 (로그인 유저 첫 접속) ════════ */}
+      {/* ════════ 오늘의 선택 팝업 (로그인 유저 첫 접속) ════════ */}
       {modal === "vs_battle" && (() => {
-        const popTotal = popupVotesA + popupVotesB;
-        const popPctA  = popTotal > 0 ? Math.round((popupVotesA / popTotal) * 100) : 50;
-        const popPctB  = 100 - popPctA;
+        const popTotal   = popupVotesUp + popupVotesDown;
+        const popPctUp   = popTotal > 0 ? Math.round((popupVotesUp   / popTotal) * 100) : 50;
+        const popPctDown = 100 - popPctUp;
         return (
           <>
             <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.78)", backdropFilter: "blur(8px)" }} onClick={() => { if (popupBattleDone) setModal(null); }} />
@@ -1107,7 +1120,7 @@ export default function Home() {
 
                 {!popupBattleDone ? (
                   <>
-                    {/* 어제 대결 결과 (참여했을 때만) */}
+                    {/* 어제 선택 결과 (참여했을 때만) */}
                     {yesterdayVote && yesterdayWinner && (
                       <div
                         className="rounded-xl px-4 py-3 mb-5"
@@ -1118,125 +1131,81 @@ export default function Home() {
                       >
                         <p style={{ fontSize: 12, color: "#5c5448", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" as const, fontWeight: 500 }}>어제 결과</p>
                         <p style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>
-                          {yesterdayWinner} 승리 🏆
+                          {yesterdayWinner === "UP" ? "📈 올랐어요!" : "📉 내렸어요!"}
                         </p>
                         <p style={{ fontSize: 15, fontWeight: 500, color: yesterdayVote.is_correct ? "#7ed4a0" : "#f07878" }}>
-                          {yesterdayVote.is_correct ? "정답! 🎉  +100P 적립" : "아쉽게 틀렸어요 😅"}
+                          {yesterdayVote.is_correct ? "정답! 🎉 +100P 적립" : "아쉽게 틀렸어요 😅"}
                         </p>
                       </div>
                     )}
 
-                    {/* 헤더 */}
-                    <div className="text-center mb-6">
-                      <p style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", marginBottom: 8 }}>오늘의 대결 ⚔️</p>
-                      <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>오늘 장 마감까지 어느 쪽이 더 오를까?</p>
+                    {/* 종목 헤더 */}
+                    <div className="flex items-center gap-3 mb-1">
+                      <TickerLogo src={`https://logo.clearbit.com/${todayStock.ticker.toLowerCase()}.com`} ticker={todayStock.ticker} size={32} />
+                      <div>
+                        <span style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>{todayStock.name}</span>
+                        <span style={{ fontSize: 12, color: "#5c5448", marginLeft: 6 }}>· {todayStock.category}</span>
+                      </div>
                     </div>
 
-                    {/* 종목 카드 2개 */}
-                    <div className="flex gap-3 mb-5">
-                      {/* A — ABNB */}
+                    {/* 타이틀 */}
+                    <div className="mb-5 mt-3">
+                      <p style={{ fontSize: 19, fontWeight: 500, color: "#e8e0d0", marginBottom: 4, letterSpacing: "-0.01em" }}>
+                        오늘 {todayStock.name}, 어떻게 될까?
+                      </p>
+                      <p style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>내일 오전 결과 발표 · 정답 시 100P</p>
+                    </div>
+
+                    {/* UP / DOWN 카드 */}
+                    <div className="flex gap-3 mb-4">
+                      {/* 오른다 */}
                       <button
-                        onClick={() => setPopupBattleVote("a")}
+                        onClick={() => setPopupBattleVote("UP")}
                         className="flex-1 rounded-xl border text-center pico-btn"
                         style={{
-                          padding: "20px 12px",
-                          background: popupBattleVote === "a"
-                            ? "rgba(250,202,62,0.13)"
-                            : "#242424",
-                          borderWidth: popupBattleVote === "a" ? 1.5 : 1,
-                          borderColor: popupBattleVote === "a"
-                            ? "#FACA3E"
-                            : "rgba(255,255,255,0.13)",
+                          padding: "18px 12px",
+                          background: popupBattleVote === "UP" ? "rgba(126,212,160,0.12)" : "#242424",
+                          borderWidth: popupBattleVote === "UP" ? 1.5 : 1,
+                          borderColor: popupBattleVote === "UP" ? "#7ed4a0" : "rgba(255,255,255,0.13)",
                           transition: "all 0.18s",
                           position: "relative",
+                          opacity: popupBattleVote && popupBattleVote !== "UP" ? 0.45 : 1,
                         }}
                       >
-                        {popupBattleVote === "a" && (
-                          <div style={{
-                            position: "absolute", top: 8, right: 8,
-                            width: 20, height: 20, borderRadius: "50%",
-                            background: "#FACA3E",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 11, color: "#0d0d0d", fontWeight: 700,
-                          }}>✓</div>
+                        {popupBattleVote === "UP" && (
+                          <div style={{ position: "absolute", top: 8, right: 8, width: 18, height: 18, borderRadius: "50%", background: "#7ed4a0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#0d0d0d", fontWeight: 700 }}>✓</div>
                         )}
-                        <div style={{ fontSize: 20, fontWeight: 600, color: popupBattleVote === "a" ? "#FACA3E" : "#e8e0d0", marginBottom: 4, letterSpacing: "-0.01em" }}>ABNB</div>
-                        <div style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 14, fontWeight: 300 }}>에어비앤비</div>
-                        <div style={{
-                          fontSize: 14, fontWeight: 500,
-                          color: popupBattleVote === "a" ? "#FACA3E" : "#a09688",
-                          background: popupBattleVote === "a" ? "rgba(250,202,62,0.12)" : "rgba(255,255,255,0.05)",
-                          borderRadius: 8, padding: "4px 8px",
-                          display: "inline-block",
-                        }}>
-                          {popPctA}%
+                        <div style={{ fontSize: 24, marginBottom: 6 }}>📈</div>
+                        <div style={{ fontSize: 15, fontWeight: 500, color: popupBattleVote === "UP" ? "#7ed4a0" : "#e8e0d0", marginBottom: 6 }}>오른다</div>
+                        <div style={{ fontSize: 12, color: popupBattleVote === "UP" ? "#7ed4a0" : "#5c5448", fontWeight: 300 }}>
+                          {popPctUp}%가 선택
                         </div>
                       </button>
 
-                      {/* VS 구분자 */}
-                      <div className="flex flex-col items-center justify-center flex-shrink-0" style={{ width: 32, gap: 4 }}>
-                        <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.06)" }} />
-                        <span style={{ fontSize: 13, color: "#5c5448", fontWeight: 600, letterSpacing: "0.04em" }}>VS</span>
-                        <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.06)" }} />
-                      </div>
-
-                      {/* B — HLT */}
+                      {/* 내린다 */}
                       <button
-                        onClick={() => setPopupBattleVote("b")}
+                        onClick={() => setPopupBattleVote("DOWN")}
                         className="flex-1 rounded-xl border text-center pico-btn"
                         style={{
-                          padding: "20px 12px",
-                          background: popupBattleVote === "b"
-                            ? "rgba(126,184,247,0.13)"
-                            : "#242424",
-                          borderWidth: popupBattleVote === "b" ? 1.5 : 1,
-                          borderColor: popupBattleVote === "b"
-                            ? "#7eb8f7"
-                            : "rgba(255,255,255,0.13)",
+                          padding: "18px 12px",
+                          background: popupBattleVote === "DOWN" ? "rgba(240,120,120,0.12)" : "#242424",
+                          borderWidth: popupBattleVote === "DOWN" ? 1.5 : 1,
+                          borderColor: popupBattleVote === "DOWN" ? "#f07878" : "rgba(255,255,255,0.13)",
                           transition: "all 0.18s",
                           position: "relative",
+                          opacity: popupBattleVote && popupBattleVote !== "DOWN" ? 0.45 : 1,
                         }}
                       >
-                        {popupBattleVote === "b" && (
-                          <div style={{
-                            position: "absolute", top: 8, right: 8,
-                            width: 20, height: 20, borderRadius: "50%",
-                            background: "#7eb8f7",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 11, color: "#0d0d0d", fontWeight: 700,
-                          }}>✓</div>
+                        {popupBattleVote === "DOWN" && (
+                          <div style={{ position: "absolute", top: 8, right: 8, width: 18, height: 18, borderRadius: "50%", background: "#f07878", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#0d0d0d", fontWeight: 700 }}>✓</div>
                         )}
-                        <div style={{ fontSize: 20, fontWeight: 600, color: popupBattleVote === "b" ? "#7eb8f7" : "#e8e0d0", marginBottom: 4, letterSpacing: "-0.01em" }}>HLT</div>
-                        <div style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 14, fontWeight: 300 }}>힐튼 호텔</div>
-                        <div style={{
-                          fontSize: 14, fontWeight: 500,
-                          color: popupBattleVote === "b" ? "#7eb8f7" : "#a09688",
-                          background: popupBattleVote === "b" ? "rgba(126,184,247,0.12)" : "rgba(255,255,255,0.05)",
-                          borderRadius: 8, padding: "4px 8px",
-                          display: "inline-block",
-                        }}>
-                          {popPctB}%
+                        <div style={{ fontSize: 24, marginBottom: 6 }}>📉</div>
+                        <div style={{ fontSize: 15, fontWeight: 500, color: popupBattleVote === "DOWN" ? "#f07878" : "#e8e0d0", marginBottom: 6 }}>내린다</div>
+                        <div style={{ fontSize: 12, color: popupBattleVote === "DOWN" ? "#f07878" : "#5c5448", fontWeight: 300 }}>
+                          {popPctDown}%가 선택
                         </div>
                       </button>
                     </div>
-
-                    {/* 선택 안내 */}
-                    {!popupBattleVote && (
-                      <div style={{ textAlign: "center", marginBottom: 12 }}>
-                        <span style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: "#FACA3E",
-                          background: "rgba(250,202,62,0.1)",
-                          border: "0.5px solid rgba(250,202,62,0.3)",
-                          borderRadius: 8,
-                          padding: "6px 14px",
-                          display: "inline-block",
-                        }}>
-                          위 카드 중 하나의 종목을 선택하세요
-                        </span>
-                      </div>
-                    )}
 
                     {/* 참여 버튼 */}
                     <button
@@ -1254,35 +1223,39 @@ export default function Home() {
                         letterSpacing: "-0.01em",
                       }}
                     >
-                      {popupBattleVote ? "대결 참여하고 출석체크하기 →" : "대결 참여하고 출석체크하기"}
+                      {popupBattleVote ? "출석체크하고 선택하기 →" : "출석체크하고 선택하기"}
                     </button>
-                    <button onClick={() => setModal(null)} className="pico-btn w-full py-3" style={{ fontSize: 14, color: "#5c5448", fontWeight: 300 }}>
+                    <p style={{ textAlign: "center", fontSize: 12, color: "#3a3a3a", marginBottom: 10 }}>
+                      투표 마감 · 내일 오전 결과 발표
+                    </p>
+                    <button onClick={() => setModal(null)} className="pico-btn w-full py-2.5" style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>
                       나중에 할게
                     </button>
                   </>
                 ) : (
                   <>
-                    {/* 투표 완료 후 */}
-                    <div className="text-center mb-6">
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
-                      <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 8 }}>
+                    {/* 선택 완료 화면 */}
+                    <div className="text-center mb-5">
+                      <div style={{ fontSize: 38, marginBottom: 10 }}>🎯</div>
+                      <p style={{ fontSize: 20, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>
                         내일 오전 결과 공개!
                       </p>
-                      <p style={{ fontSize: 15, color: "#7ed4a0", fontWeight: 500 }}>오늘 출석 완료 ✓  +50P</p>
+                      <p style={{ fontSize: 14, color: "#7ed4a0", fontWeight: 500 }}>오늘 출석 완료 ✓ +50P</p>
                     </div>
 
-                    {/* 선택 종목 강조 */}
+                    {/* 선택 결과 강조 */}
                     <div
                       className="rounded-xl p-5 border text-center mb-5"
                       style={{
-                        background: popupBattleVote === "a" ? "rgba(250,202,62,0.07)" : "rgba(126,184,247,0.07)",
-                        borderColor: popupBattleVote === "a" ? "rgba(250,202,62,0.4)" : "rgba(126,184,247,0.4)",
+                        background: popupBattleVote === "UP" ? "rgba(126,212,160,0.07)" : "rgba(240,120,120,0.07)",
+                        borderColor: popupBattleVote === "UP" ? "rgba(126,212,160,0.4)" : "rgba(240,120,120,0.4)",
                       }}
                     >
-                      <div style={{ fontSize: 18, fontWeight: 600, color: popupBattleVote === "a" ? "#FACA3E" : "#7eb8f7", marginBottom: 4 }}>
-                        {popupBattleVote === "a" ? "ABNB 에어비앤비" : "HLT 힐튼 호텔"}
+                      <div style={{ fontSize: 24, marginBottom: 6 }}>{popupBattleVote === "UP" ? "📈" : "📉"}</div>
+                      <div style={{ fontSize: 17, fontWeight: 500, color: popupBattleVote === "UP" ? "#7ed4a0" : "#f07878", marginBottom: 2 }}>
+                        {todayStock.name} {popupBattleVote === "UP" ? "오른다" : "내린다"}
                       </div>
-                      <div style={{ fontSize: 14, color: "#c8bfb0", fontWeight: 300 }}>내 선택</div>
+                      <div style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>내 선택</div>
                     </div>
 
                     <button onClick={() => setModal(null)} className="pico-btn w-full rounded-xl py-3"

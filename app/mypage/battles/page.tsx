@@ -4,12 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
-import { supabase, type BattleVoteRow } from "@/app/lib/supabase";
-
-const TICKER_KOR: Record<string, string> = {
-  ABNB: "에어비앤비",
-  HLT:  "힐튼 호텔",
-};
+import { supabase, getTomorrowStock, getStockForDate, type BattleVoteRow } from "@/app/lib/supabase";
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
@@ -43,6 +38,8 @@ export default function BattlesPage() {
   if (loading) return null;
   if (!user) return null;
 
+  const tomorrow = getTomorrowStock();
+
   return (
     <main className="min-h-screen" style={{ background: "#0d0d0d" }}>
       <nav
@@ -71,9 +68,34 @@ export default function BattlesPage() {
         }}
       >
         <h1 style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", marginBottom: 24 }}>
-          대결 히스토리
+          오늘의 선택 히스토리
         </h1>
 
+        {/* 내일 예고 */}
+        <div
+          className="rounded-2xl border mb-6"
+          style={{
+            background: "#141414",
+            borderColor: "rgba(250,202,62,0.18)",
+            padding: "18px 20px",
+          }}
+        >
+          <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", fontWeight: 500, marginBottom: 10 }}>
+            내일의 선택 👀
+          </p>
+          <div className="flex items-center gap-3">
+            <div style={{ fontSize: 22 }}>📊</div>
+            <div>
+              <span style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>{tomorrow.name}</span>
+              <span style={{ fontSize: 13, color: "#5c5448", marginLeft: 8 }}>· {tomorrow.category}</span>
+            </div>
+          </div>
+          <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300, marginTop: 8 }}>
+            결과는 내일 오전 7시에 발표돼
+          </p>
+        </div>
+
+        {/* 히스토리 목록 */}
         {fetching ? null : votes.length === 0 ? (
           <div
             className="rounded-2xl border"
@@ -85,101 +107,78 @@ export default function BattlesPage() {
             }}
           >
             <p style={{ fontSize: 15, color: "#5c5448", fontWeight: 300 }}>
-              아직 대결 참여 기록이 없어요
+              아직 참여 기록이 없어요
             </p>
           </div>
         ) : (
           <div className="flex flex-col" style={{ gap: 8 }}>
             {votes.map((v) => {
-              const korName = TICKER_KOR[v.voted_for] ?? v.voted_for;
+              const isNewFormat = v.voted_for === "UP" || v.voted_for === "DOWN";
+              const stockInfo = isNewFormat ? getStockForDate(v.date) : null;
+              const stockName = v.ticker
+                ? stockInfo?.name ?? v.ticker
+                : stockInfo?.name ?? v.voted_for;
               const isCorrect = v.is_correct;
 
               return (
                 <div
                   key={v.id}
-                  className="rounded-2xl border flex items-center"
+                  className="rounded-2xl border"
                   style={{
                     background: "#141414",
                     borderColor: "rgba(255,255,255,0.07)",
                     padding: "18px 20px",
-                    gap: 16,
                   }}
                 >
-                  {/* 날짜 */}
-                  <div
-                    style={{
-                      fontFamily: "var(--font-inter)",
-                      fontSize: 14,
-                      fontWeight: 400,
-                      color: "#5c5448",
-                      flexShrink: 0,
-                      minWidth: 52,
-                    }}
-                  >
-                    {formatDate(v.date)}
-                  </div>
-
-                  {/* 구분선 */}
-                  <div style={{ width: "0.5px", alignSelf: "stretch", background: "rgba(255,255,255,0.07)", flexShrink: 0 }} />
-
-                  {/* 선택 종목 */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span
+                  <div className="flex items-center gap-4">
+                    {/* 날짜 */}
+                    <div
                       style={{
-                        fontFamily: "var(--font-inter)",
-                        fontSize: 15,
-                        fontWeight: 500,
-                        color: "#e8e0d0",
-                        letterSpacing: "-0.01em",
+                        fontSize: 13,
+                        fontWeight: 400,
+                        color: "#5c5448",
+                        flexShrink: 0,
+                        minWidth: 48,
                       }}
                     >
-                      {v.voted_for}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 300,
-                        color: "#c8bfb0",
-                        marginLeft: 8,
-                      }}
-                    >
-                      {korName}
-                    </span>
-                  </div>
+                      {formatDate(v.date)}
+                    </div>
 
-                  {/* 결과 */}
-                  <div style={{ flexShrink: 0 }}>
-                    {isCorrect === true ? (
-                      <span
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: "#7ed4a0",
-                        }}
-                      >
-                        정답 🎉 +100P
-                      </span>
-                    ) : isCorrect === false ? (
-                      <span
-                        style={{
-                          fontSize: 14,
+                    {/* 구분선 */}
+                    <div style={{ width: "0.5px", alignSelf: "stretch", background: "rgba(255,255,255,0.07)", flexShrink: 0 }} />
+
+                    {/* 종목 + 선택 */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0", marginBottom: 2 }}>
+                        {stockName}
+                      </div>
+                      {isNewFormat && (
+                        <div style={{
+                          fontSize: 13,
                           fontWeight: 400,
-                          color: "#5c5448",
-                        }}
-                      >
-                        오답 😅
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 300,
-                          color: "#3a3a3a",
-                        }}
-                      >
-                        집계 중...
-                      </span>
-                    )}
+                          color: v.voted_for === "UP" ? "#7ed4a0" : "#f07878",
+                        }}>
+                          {v.voted_for === "UP" ? "📈 오른다" : "📉 내린다"}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 결과 */}
+                    <div style={{ flexShrink: 0 }}>
+                      {isCorrect === true ? (
+                        <span style={{ fontSize: 14, fontWeight: 500, color: "#7ed4a0" }}>
+                          정답 🎉 +100P
+                        </span>
+                      ) : isCorrect === false ? (
+                        <span style={{ fontSize: 14, fontWeight: 400, color: "#5c5448" }}>
+                          오답 😅
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 13, fontWeight: 300, color: "#3a3a3a" }}>
+                          집계 중
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
