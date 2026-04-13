@@ -189,7 +189,7 @@ function StockRow({ ticker, stocks, stocksLoading, onClick }: {
 }) {
   const kr    = isKrTicker(ticker);
   const meta  = kr ? KR_STOCK_META[ticker] : STOCK_META[ticker];
-  const logo  = !kr && STOCK_META[ticker]?.logo ? `https://logo.clearbit.com/${STOCK_META[ticker].logo}` : null;
+  const logo  = !kr ? `https://financialmodelingprep.com/image-stock/${ticker}.png` : null;
   const data  = stocks[ticker];
   const up    = data?.up ?? true;
   return (
@@ -233,7 +233,7 @@ function StockDetailModal({ ticker, stocks, onClose }: {
   const [period, setPeriod] = useState<"1D"|"1W"|"1M"|"1Y">("1M");
   const kr     = isKrTicker(ticker);
   const meta   = kr ? KR_STOCK_META[ticker] : STOCK_META[ticker];
-  const logo   = !kr && STOCK_META[ticker]?.logo ? `https://logo.clearbit.com/${STOCK_META[ticker].logo}` : null;
+  const logo   = !kr ? `https://financialmodelingprep.com/image-stock/${ticker}.png` : null;
   const data   = stocks[ticker];
   const up     = data?.up ?? true;
   const exch   = kr ? "KRX" : (TV_EXCHANGE[ticker] ?? "NASDAQ");
@@ -694,8 +694,8 @@ export default function Home() {
         ))}
       </div>
 
-      {/* ══════════ 히어로 ══════════ */}
-      <section className="relative overflow-hidden border-b" style={{ minHeight: 460, borderColor: "rgba(255,255,255,0.06)", background: "radial-gradient(ellipse 70% 55% at 50% -5%, rgba(250,202,62,0.07) 0%, transparent 65%)" }}>
+      {/* ══════════ 히어로 (이벤트 탭 전용) ══════════ */}
+      {mainTab === "event" && <section className="relative overflow-hidden border-b" style={{ minHeight: 460, borderColor: "rgba(255,255,255,0.06)", background: "radial-gradient(ellipse 70% 55% at 50% -5%, rgba(250,202,62,0.07) 0%, transparent 65%)" }}>
         <div className="mx-auto px-5 lg:px-10 h-full flex items-center" style={{ maxWidth: 1280 }}>
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full gap-10 py-14 lg:py-0" style={{ minHeight: 460 }}>
             <div className="flex-1">
@@ -737,7 +737,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ══════════ 메인 콘텐츠 ══════════ */}
       <main className="mx-auto px-5 lg:px-10 pb-24" style={{ maxWidth: 1280 }}>
