@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
 import { fetchNews, NEWS_FALLBACK, type NewsItem, type NewsCat } from "@/app/lib/news";
-import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory } from "@/app/lib/stockNames";
+import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory, KR_STOCK_META, KR_TICKERS_BY_CATEGORY, ALL_KR_TICKERS, type KrStockCategory, isKrTicker } from "@/app/lib/stockNames";
 import { supabase, getTodayVote, submitVoteAndAttendance, getTodayVoteCounts, getYesterdayVote, judgeYesterdayBattle, todayKST, getTodayStock, type BattleVoteRow } from "@/app/lib/supabase";
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
@@ -173,6 +173,142 @@ function StockCard({ ticker, korName, stocks, stocksLoading }: {
   );
 }
 
+// ─── TradingView 설정 ──────────────────────────
+const TV_EXCHANGE: Record<string, string> = {
+  NVDA:"NASDAQ", AMD:"NASDAQ", MSFT:"NASDAQ", AVGO:"NASDAQ", ARM:"NASDAQ",
+  AAPL:"NASDAQ", GOOGL:"NASDAQ", AMZN:"NASDAQ", TSLA:"NASDAQ", META:"NASDAQ",
+  NFLX:"NASDAQ", PLTR:"NYSE",  ABNB:"NASDAQ", SBUX:"NASDAQ", QQQ:"NASDAQ",
+  ARKK:"AMEX",  SOXX:"NASDAQ", TSM:"NYSE", LLY:"NYSE", UBER:"NYSE",
+  SPOT:"NYSE",  NKE:"NYSE",   JPM:"NYSE",  V:"NYSE", SPY:"AMEX",
+};
+const TV_PERIOD: Record<string, string> = { "1D":"5", "1W":"60", "1M":"D", "1Y":"W" };
+
+// ─── StockRow (토스 스타일 리스트 행) ────────────
+function StockRow({ ticker, stocks, stocksLoading, onClick }: {
+  ticker: string; stocks: StocksMap; stocksLoading: boolean; onClick: () => void;
+}) {
+  const kr    = isKrTicker(ticker);
+  const meta  = kr ? KR_STOCK_META[ticker] : STOCK_META[ticker];
+  const logo  = !kr && STOCK_META[ticker]?.logo ? `https://logo.clearbit.com/${STOCK_META[ticker].logo}` : null;
+  const data  = stocks[ticker];
+  const up    = data?.up ?? true;
+  return (
+    <button onClick={onClick} className="w-full pico-btn"
+      style={{ background:"none", border:"none", padding:"14px 0",
+               borderBottom:"0.5px solid rgba(255,255,255,0.05)", cursor:"pointer" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        {logo
+          ? <TickerLogo src={logo} ticker={ticker} size={40} />
+          : <div style={{ width:40, height:40, borderRadius:10, background:"#242424", flexShrink:0,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:15, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
+        }
+        <div style={{ flex:1, minWidth:0, textAlign:"left" }}>
+          <div style={{ fontSize:15, fontWeight:500, color:"#e8e0d0", marginBottom:2,
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{meta?.name ?? ticker}</div>
+          <div style={{ fontSize:12, color:"#5c5448", fontWeight:300 }}>{meta?.category ?? ticker}</div>
+        </div>
+        <div style={{ textAlign:"right", flexShrink:0 }}>
+          {stocksLoading
+            ? <><Skeleton w={70} h={14}/><div style={{height:4}}/><Skeleton w={50} h={12}/></>
+            : <>
+              <div style={{ ...NUM_MONO, fontSize:15, color:"#e8e0d0", marginBottom:2 }}>
+                {kr ? (data?.formattedPrice ?? "—") : (data?.formattedKRW ?? "—")}
+              </div>
+              <div style={{ ...NUM_MONO, fontSize:13, color: up?"#7ed4a0":"#f07878" }}>
+                {up?"▲":"▼"} {data?.formattedChange ?? "—"}
+              </div>
+            </>
+          }
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// ─── StockDetailModal (바텀 시트 + TradingView) ──
+function StockDetailModal({ ticker, stocks, onClose }: {
+  ticker: string; stocks: StocksMap; onClose: () => void;
+}) {
+  const [period, setPeriod] = useState<"1D"|"1W"|"1M"|"1Y">("1M");
+  const kr     = isKrTicker(ticker);
+  const meta   = kr ? KR_STOCK_META[ticker] : STOCK_META[ticker];
+  const logo   = !kr && STOCK_META[ticker]?.logo ? `https://logo.clearbit.com/${STOCK_META[ticker].logo}` : null;
+  const data   = stocks[ticker];
+  const up     = data?.up ?? true;
+  const exch   = kr ? "KRX" : (TV_EXCHANGE[ticker] ?? "NASDAQ");
+  const tvSym  = encodeURIComponent(`${exch}:${ticker}`);
+  const tvUrl  = `https://s.tradingview.com/widgetembed/?hideideas=1&symbol=${tvSym}&interval=${TV_PERIOD[period]}&hidesidetoolbar=1&hidetoptoolbar=1&theme=dark&style=3&locale=kr&backgroundColor=%230d0d0d`;
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
+      <div onClick={onClose}
+        style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.72)", backdropFilter:"blur(4px)" }} />
+      <div style={{ position:"relative", background:"#141414", borderRadius:"20px 20px 0 0",
+        maxHeight:"90vh", display:"flex", flexDirection:"column", overflow:"hidden" }}>
+        {/* 핸들 */}
+        <div style={{ width:36, height:4, borderRadius:2, background:"#333", margin:"14px auto 0", flexShrink:0 }} />
+        {/* 헤더 */}
+        <div style={{ padding:"16px 20px 10px", flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            {logo
+              ? <TickerLogo src={logo} ticker={ticker} size={44}/>
+              : <div style={{ width:44, height:44, borderRadius:12, background:"#242424", flexShrink:0,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:18, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
+            }
+            <div>
+              <div style={{ fontSize:17, fontWeight:500, color:"#e8e0d0" }}>{meta?.name ?? ticker}</div>
+              <div style={{ fontSize:12, color:"#5c5448" }}>{ticker} · {meta?.category ?? ""}</div>
+            </div>
+            <button onClick={onClose} className="pico-btn"
+              style={{ marginLeft:"auto", color:"#5c5448", fontSize:20, background:"none", border:"none", lineHeight:1 }}>✕</button>
+          </div>
+          {/* 가격 */}
+          <div style={{ marginTop:14 }}>
+            <div style={{ ...NUM_MONO, fontSize:30, color:"#e8e0d0", marginBottom:4 }}>
+              {kr ? (data?.formattedPrice ?? "—") : (data?.formattedKRW ?? "—")}
+            </div>
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <span style={{ ...NUM_MONO, fontSize:14, color: up?"#7ed4a0":"#f07878" }}>
+                {up?"▲":"▼"} {data?.formattedChange ?? "—"}
+              </span>
+              {!kr && <span style={{ ...NUM_MONO, fontSize:13, color:"#5c5448" }}>{data?.formattedPrice ?? ""}</span>}
+            </div>
+          </div>
+        </div>
+        {/* 기간 탭 */}
+        <div style={{ display:"flex", gap:6, padding:"4px 20px 10px", flexShrink:0 }}>
+          {(["1D","1W","1M","1Y"] as const).map((p) => (
+            <button key={p} onClick={() => setPeriod(p)} className="pico-btn"
+              style={{ fontSize:12, fontWeight:500, padding:"4px 14px", borderRadius:8,
+                background: period===p ? "rgba(250,202,62,0.12)":"rgba(255,255,255,0.04)",
+                color:       period===p ? "#FACA3E":"#5c5448",
+                border:     `0.5px solid ${period===p ? "rgba(250,202,62,0.3)":"rgba(255,255,255,0.06)"}` }}>
+              {p}
+            </button>
+          ))}
+        </div>
+        {/* 차트 */}
+        <div style={{ height:260, flexShrink:0, background:"#0d0d0d" }}>
+          <iframe key={`${ticker}-${period}`} src={tvUrl}
+            style={{ width:"100%", height:"100%", border:"none" }} allowFullScreen />
+        </div>
+        {/* 하단 버튼 */}
+        <div style={{ padding:"16px 20px 36px", flexShrink:0 }}>
+          <button className="pico-btn w-full rounded-xl py-4"
+            style={{ background:"#FACA3E", color:"#0d0d0d", fontSize:15, fontWeight:500 }}>
+            모의 매수하기
+          </button>
+          <p style={{ fontSize:11, color:"#5c5448", textAlign:"center", marginTop:10 }}>
+            15분 지연 시세 · 가상 투자 참고용
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════
 // 메인 컴포넌트
 // ═══════════════════════════════════════════════
@@ -236,6 +372,9 @@ export default function Home() {
 
   // ── PICO Play
   const [playStockTab,      setPlayStockTab]      = useState<"전체" | StockCategory>("전체");
+  const [playKrCatTab,     setPlayKrCatTab]      = useState<"전체" | KrStockCategory>("전체");
+  const [playMarketTab,    setPlayMarketTab]     = useState<"해외" | "국내">("해외");
+  const [selectedTicker,   setSelectedTicker]   = useState<string | null>(null);
   const [playSearch,        setPlaySearch]        = useState("");
   const [playSearchResults, setPlaySearchResults] = useState<{ symbol: string; name: string; exchange: string }[]>([]);
   const [playSearchLoading, setPlaySearchLoading] = useState(false);
@@ -271,7 +410,7 @@ export default function Home() {
     setCountdown(getMarketCountdown());
     const timer = setInterval(() => setCountdown(getMarketCountdown()), 1000);
 
-    fetchStocks(ALL_TICKERS).then((data) => {
+    fetchStocks([...ALL_TICKERS, ...ALL_KR_TICKERS]).then((data) => {
       setStocks(data);
       setStocksLoading(false);
     });
@@ -939,33 +1078,10 @@ export default function Home() {
         {mainTab === "play" && (
           <div key="play" className={tabAnim}>
 
-            {/* 헤더 */}
-            <div className="pt-10 pb-8 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              <p style={{ fontSize: 40, fontWeight: 500, color: "#FACA3E", marginBottom: 6 }}>PICO Play</p>
-              <p style={{ fontSize: 16, color: "#a09688", fontWeight: 300 }}>가상 10만원으로 진짜처럼 투자해봐</p>
-            </div>
-
-            {/* 포트폴리오 카드 */}
-            <div className="pt-8 pb-8 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              <div className="rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.22)", maxWidth: 360 }}>
-                <SectionLabel text="내 가상 포트폴리오" />
-                <div style={{ ...NUM, fontSize: 36, color: "#FACA3E", margin: "10px 0 4px" }}>₩100,000</div>
-                <div style={{ ...NUM, fontSize: 13, color: "#5c5448", marginBottom: 20 }}>+0.00% (시작 전)</div>
-                <button className="pico-btn w-full rounded-xl py-3" style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
-                  투자 시작하기 →
-                </button>
-              </div>
-            </div>
-
-            {/* 종목 섹션 */}
-            <div className="pt-8 pb-8 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              <div className="mb-6">
-                <p style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>종목 둘러보기</p>
-                <p style={{ fontSize: 14, color: "#a09688", fontWeight: 300 }}>40개 종목 실시간 시세 · 15분 지연</p>
-              </div>
-
-              {/* 검색창 */}
-              <div className="relative mb-5" style={{ maxWidth: 400 }}>
+            {/* ── 검색 ── */}
+            <div style={{ padding:"16px 0", borderBottom:"0.5px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ position:"relative" }}>
+                <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"#5c5448", fontSize:15, pointerEvents:"none" }}>🔍</span>
                 <input
                   type="text"
                   value={playSearch}
@@ -973,23 +1089,28 @@ export default function Home() {
                     const q = e.target.value;
                     setPlaySearch(q);
                     if (!q.trim()) { setPlaySearchResults([]); return; }
-
-                    // 한글 → KOR_TO_TICKER 매핑
+                    // 한글→티커
                     const mapped = KOR_TO_TICKER[q.trim()];
                     if (mapped) {
-                      setPlaySearchResults([{ symbol: mapped, name: STOCK_META[mapped]?.name ?? mapped, exchange: "" }]);
+                      const isKr = isKrTicker(mapped);
+                      const name = isKr ? KR_STOCK_META[mapped]?.name : STOCK_META[mapped]?.name;
+                      setPlaySearchResults([{ symbol: mapped, name: name ?? mapped, exchange: isKr ? "KRX" : "" }]);
                       return;
                     }
-
-                    // 영어 티커 → 로컬 매칭
+                    // 로컬 매칭 (해외 + 국내)
                     const upper = q.trim().toUpperCase();
-                    const local = ALL_TICKERS.filter((t) => t.startsWith(upper) || STOCK_META[t]?.name.includes(q));
+                    const usHits = ALL_TICKERS.filter((t) => t.startsWith(upper) || STOCK_META[t]?.name.includes(q));
+                    const krHits = ALL_KR_TICKERS.filter((t) => KR_STOCK_META[t]?.name.includes(q));
+                    const local = [...usHits, ...krHits];
                     if (local.length > 0) {
-                      setPlaySearchResults(local.map((t) => ({ symbol: t, name: STOCK_META[t]?.name ?? t, exchange: "" })));
+                      setPlaySearchResults(local.map((t) => ({
+                        symbol: t,
+                        name: (isKrTicker(t) ? KR_STOCK_META[t]?.name : STOCK_META[t]?.name) ?? t,
+                        exchange: isKrTicker(t) ? "KRX" : "",
+                      })));
                       return;
                     }
-
-                    // 로컬 매칭 없음 → FMP search API
+                    // FMP API fallback (해외 전용)
                     setPlaySearchLoading(true);
                     fetch(`/api/stocks/search?query=${encodeURIComponent(q)}`)
                       .then((r) => r.json())
@@ -997,103 +1118,144 @@ export default function Home() {
                       .catch(() => setPlaySearchResults([]))
                       .finally(() => setPlaySearchLoading(false));
                   }}
-                  placeholder="종목명 또는 티커 검색 (예: 테슬라, NVDA)"
-                  className="w-full rounded-xl px-4 py-3 outline-none"
-                  style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)", color: "#e8e0d0", fontSize: 14, fontWeight: 300 }}
-                  onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.4)")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                  placeholder="종목명 검색  삼성전자, NVDA, 테슬라..."
+                  className="w-full rounded-xl outline-none"
+                  style={{ background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.08)",
+                    color:"#e8e0d0", fontSize:14, fontWeight:300, padding:"12px 40px 12px 42px" }}
+                  onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.35)")}
+                  onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                 />
                 {playSearch && (
-                  <button onClick={() => { setPlaySearch(""); setPlaySearchResults([]); }} className="pico-btn absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "#5c5448", fontSize: 16, background: "none", border: "none" }}>✕</button>
+                  <button onClick={() => { setPlaySearch(""); setPlaySearchResults([]); }} className="pico-btn"
+                    style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                      color:"#5c5448", fontSize:15, background:"none", border:"none" }}>✕</button>
                 )}
               </div>
+            </div>
 
-              {/* 검색 결과 */}
-              {playSearch && (
-                <div className="mb-6">
-                  {playSearchLoading
-                    ? <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {[1,2].map((i) => <div key={i} className="rounded-xl p-4 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.06)", minHeight: 90 }}><Skeleton w="60%" h={14} /><div style={{ height: 8 }} /><Skeleton w="40%" h={12} /></div>)}
+            {/* ── 검색 결과 ── */}
+            {playSearch && (
+              <div style={{ paddingTop:8 }}>
+                {playSearchLoading
+                  ? [1,2,3].map((i) => (
+                      <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 0",
+                        borderBottom:"0.5px solid rgba(255,255,255,0.05)" }}>
+                        <div style={{ width:40, height:40, borderRadius:10, background:"#242424", flexShrink:0 }} />
+                        <div style={{ flex:1 }}><Skeleton w="50%" h={14}/><div style={{height:6}}/><Skeleton w="35%" h={12}/></div>
+                        <div style={{ textAlign:"right" }}><Skeleton w={70} h={14}/><div style={{height:6}}/><Skeleton w={50} h={12}/></div>
                       </div>
-                    : playSearchResults.length > 0
-                      ? <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                          {playSearchResults.map((r) => (
-                            <StockCard key={r.symbol} ticker={r.symbol} korName={STOCK_META[r.symbol]?.name ?? r.name} stocks={stocks} stocksLoading={stocksLoading} />
-                          ))}
-                        </div>
-                      : <p style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>검색 결과가 없어요</p>
-                  }
-                </div>
-              )}
+                    ))
+                  : playSearchResults.length > 0
+                    ? playSearchResults.map((r) => (
+                        <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks} stocksLoading={stocksLoading}
+                          onClick={() => setSelectedTicker(r.symbol)} />
+                      ))
+                    : <p style={{ fontSize:13, color:"#5c5448", fontWeight:300, padding:"20px 0" }}>검색 결과가 없어요</p>
+                }
+              </div>
+            )}
 
-              {/* 카테고리 탭 */}
-              {!playSearch && (
+            {/* ── 해외 | 국내 탭 + 종목 리스트 ── */}
+            {!playSearch && (() => {
+              const usTickers = playStockTab === "전체" ? ALL_TICKERS : TICKERS_BY_CATEGORY[playStockTab as StockCategory];
+              const krTickers = playKrCatTab === "전체" ? ALL_KR_TICKERS : KR_TICKERS_BY_CATEGORY[playKrCatTab as KrStockCategory];
+              return (
                 <>
-                  <div className="flex gap-2 mb-5 scroll-x">
-                    {(["전체", "AI·반도체", "빅테크", "2026테마", "소비재·금융", "ETF"] as const).map((tab) => (
-                      <button key={tab} onClick={() => setPlayStockTab(tab)} className="pico-btn flex-shrink-0 px-4 py-1.5 rounded-lg"
-                        style={{ fontSize: 12, fontWeight: 500, background: playStockTab === tab ? "rgba(250,202,62,0.12)" : "rgba(255,255,255,0.04)", color: playStockTab === tab ? "#FACA3E" : "#5c5448", border: `0.5px solid ${playStockTab === tab ? "rgba(250,202,62,0.3)" : "rgba(255,255,255,0.06)"}` }}>
-                        {tab}
+                  {/* 마켓 탭 */}
+                  <div style={{ display:"flex", borderBottom:"0.5px solid rgba(255,255,255,0.06)", marginTop:2 }}>
+                    {(["해외", "국내"] as const).map((m) => (
+                      <button key={m} onClick={() => setPlayMarketTab(m)} className="pico-btn"
+                        style={{ flex:1, padding:"13px 0", fontSize:15, fontWeight: playMarketTab===m ? 500 : 300,
+                          color: playMarketTab===m ? "#e8e0d0" : "#5c5448", background:"none", border:"none",
+                          borderBottom:`2px solid ${playMarketTab===m ? "#FACA3E" : "transparent"}`,
+                          transition:"color 0.18s, border-color 0.18s" }}>
+                        {m}&nbsp;
+                        <span style={{ fontSize:12, color:"#5c5448", fontWeight:300 }}>
+                          {m==="해외" ? ALL_TICKERS.length : ALL_KR_TICKERS.length}
+                        </span>
                       </button>
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {(playStockTab === "전체" ? ALL_TICKERS : TICKERS_BY_CATEGORY[playStockTab as StockCategory]).map((ticker) => (
-                      <StockCard key={ticker} ticker={ticker} korName={STOCK_META[ticker]?.name ?? ticker} stocks={stocks} stocksLoading={stocksLoading} />
+                  {/* 카테고리 서브탭 */}
+                  <div className="scroll-x" style={{ display:"flex", gap:6, padding:"10px 0" }}>
+                    {(playMarketTab === "해외"
+                      ? (["전체","AI·반도체","빅테크","2026테마","소비재·금융","ETF"] as const)
+                      : (["전체","반도체·AI","플랫폼·IT","전기차·배터리","로봇·우주","바이오","엔터·소비","금융"] as const)
+                    ).map((tab) => {
+                      const active = playMarketTab === "해외" ? playStockTab === tab : playKrCatTab === tab;
+                      return (
+                        <button key={tab} className="pico-btn flex-shrink-0"
+                          onClick={() => playMarketTab === "해외"
+                            ? setPlayStockTab(tab as "전체" | StockCategory)
+                            : setPlayKrCatTab(tab as "전체" | KrStockCategory)
+                          }
+                          style={{ fontSize:12, fontWeight:500, padding:"5px 14px", borderRadius:20,
+                            background: active ? "rgba(250,202,62,0.12)":"rgba(255,255,255,0.04)",
+                            color:       active ? "#FACA3E":"#5c5448",
+                            border:     `0.5px solid ${active ? "rgba(250,202,62,0.3)":"rgba(255,255,255,0.06)"}` }}>
+                          {tab}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* 지연 안내 */}
+                  <div style={{ fontSize:11, color:"#3d3830", paddingBottom:4 }}>
+                    {playMarketTab==="해외" ? "NYSE · NASDAQ" : "KRX"} · 15분 지연
+                  </div>
+
+                  {/* 종목 리스트 */}
+                  <div>
+                    {(playMarketTab === "해외" ? usTickers : krTickers).map((ticker) => (
+                      <StockRow key={ticker} ticker={ticker} stocks={stocks} stocksLoading={stocksLoading}
+                        onClick={() => setSelectedTicker(ticker)} />
                     ))}
                   </div>
-                </>
-              )}
-            </div>
 
-            {/* ── PICO의 눈 ── */}
-            <div className="pt-10 pb-8 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              <div className="mb-6">
-                <p style={{ fontSize: 28, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>네 성향이 말하는 종목</p>
-                <p style={{ fontSize: 14, color: "#a09688", fontWeight: 300 }}>강요 없이, 살짝 밀어주는 PICO의 시각 👀</p>
-              </div>
-
-              <div className="scroll-x flex gap-4" style={{ paddingBottom: 4 }}>
-                {PICO_EYE_CARDS.map((card) => (
-                  <div key={card.ticker} className="pico-card snap-start flex-shrink-0 rounded-2xl border flex flex-col" style={{ background: "#1c1c1c", borderColor: "rgba(250,202,62,0.25)", width: 280, padding: "20px" }}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <TickerLogo src={card.logo} ticker={card.ticker} size={28} />
-                      <div>
-                        <div style={{ ...NUM, fontSize: 16, color: card.color }}>{card.ticker}</div>
-                        <div style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>{card.name}</div>
-                      </div>
-                      <div className="ml-auto text-right">
-                        {stocksLoading
-                          ? <Skeleton w={60} h={14} />
-                          : <>
-                            <PriceDisplay ticker={card.ticker} krwSize={14} usdSize={11} />
-                            <div style={{ ...NUM, fontSize: 12, color: upOf(card.ticker) ? "#7ed4a0" : "#f07878" }}>
-                              {upOf(card.ticker) ? "▲" : "▼"} {changeOf(card.ticker)}
+                  {/* ── PICO의 눈 ── */}
+                  <div className="pt-10 pb-8 border-b" style={{ borderColor:"rgba(255,255,255,0.06)" }}>
+                    <div className="mb-6">
+                      <p style={{ fontSize:22, fontWeight:500, color:"#e8e0d0", marginBottom:4 }}>네 성향이 말하는 종목</p>
+                      <p style={{ fontSize:13, color:"#a09688", fontWeight:300 }}>강요 없이, 살짝 밀어주는 PICO의 시각 👀</p>
+                    </div>
+                    <div className="scroll-x flex gap-4" style={{ paddingBottom:4 }}>
+                      {PICO_EYE_CARDS.map((card) => (
+                        <div key={card.ticker} className="pico-card snap-start flex-shrink-0 rounded-2xl border flex flex-col"
+                          style={{ background:"#1c1c1c", borderColor:"rgba(250,202,62,0.2)", width:268, padding:18 }}>
+                          <div className="flex items-center gap-3 mb-3">
+                            <TickerLogo src={card.logo} ticker={card.ticker} size={28} />
+                            <div>
+                              <div style={{ ...NUM, fontSize:15, color:card.color }}>{card.ticker}</div>
+                              <div style={{ fontSize:12, color:"#5c5448", fontWeight:300 }}>{card.name}</div>
                             </div>
-                          </>
-                        }
-                      </div>
+                            <div className="ml-auto text-right">
+                              {stocksLoading ? <Skeleton w={60} h={14}/> : <>
+                                <PriceDisplay ticker={card.ticker} krwSize={13} usdSize={11} />
+                                <div style={{ ...NUM, fontSize:12, color: upOf(card.ticker)?"#7ed4a0":"#f07878" }}>
+                                  {upOf(card.ticker)?"▲":"▼"} {changeOf(card.ticker)}
+                                </div>
+                              </>}
+                            </div>
+                          </div>
+                          <p style={{ fontSize:13, color:"#a09688", lineHeight:1.7, flex:1, marginBottom:12, fontWeight:300 }}>{card.insight}</p>
+                          <div style={{ borderTop:"0.5px solid rgba(255,255,255,0.06)", paddingTop:10, marginBottom:10 }}>
+                            <p style={{ fontSize:11, color:"#5c5448", fontWeight:300 }}>이건 PICO의 시각이야. 투자 결정은 네 몫 🤝</p>
+                          </div>
+                          <button className="pico-btn" onClick={() => setSelectedTicker(card.ticker)}
+                            style={{ fontSize:12, fontWeight:500, color:"#FACA3E" }}>차트 보기 →</button>
+                        </div>
+                      ))}
                     </div>
-                    <p style={{ fontSize: 13, color: "#a09688", lineHeight: 1.75, flex: 1, marginBottom: 14, fontWeight: 300 }}>{card.insight}</p>
-                    <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: 12, marginBottom: 12 }}>
-                      <p style={{ fontSize: 11, color: "#5c5448", lineHeight: 1.55, fontWeight: 300 }}>이건 PICO의 시각이야. 투자 결정은 네 몫 🤝</p>
-                    </div>
-                    <button className="pico-btn" style={{ fontSize: 12, fontWeight: 500, color: "#FACA3E" }}>자세히 보기 →</button>
                   </div>
-                ))}
-              </div>
-            </div>
+                </>
+              );
+            })()}
 
-            {/* AI 인사이트 */}
-            <div className="pt-10 pb-8">
-              <div className="rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.28)" }}>
-                <SectionLabel text="오늘의 한 줄" />
-                <p style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0", lineHeight: 1.8 }}>
-                  PICO Play를 시작하면 매일 AI 인사이트를 받아볼 수 있어요 ✨
-                </p>
-              </div>
-            </div>
+            {/* 종목 상세 모달 */}
+            {selectedTicker && (
+              <StockDetailModal ticker={selectedTicker} stocks={stocks} onClose={() => setSelectedTicker(null)} />
+            )}
           </div>
         )}
 
