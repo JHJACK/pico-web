@@ -108,33 +108,26 @@ export async function GET(request: Request) {
     else krMiss.push(t);
   });
 
-  // ── 2. 해외 캐시 미스 → Twelve Data ────────────────────────────────────
+  // ── 2. 해외 캐시 미스 → Twelve Data (장 마감 후에도 최신 종가 조회)
   if (usMiss.length > 0) {
-    if (isUSMarketOpen()) {
-      try {
-        const fresh = await fetchTwelveData(usMiss);
-        let successCount = 0;
-        for (const t of usMiss) {
-          if (fresh[t]) {
-            results[t] = fresh[t];
-            await setCached(`stock:us:${t}`, fresh[t], CACHE_TTL);
-            successCount++;
-          } else {
-            const fb = US_FALLBACK[t];
-            if (fb) results[t] = { price: fb.price, change: fb.change, changePercent: fb.changePercent };
-          }
-        }
-        console.log(`[STOCKS] US Twelve Data 성공 ${successCount}/${usMiss.length}개`);
-      } catch (e) {
-        console.log("[STOCKS] Twelve Data 오류:", e);
-        for (const t of usMiss) {
+    try {
+      const fresh = await fetchTwelveData(usMiss);
+      let successCount = 0;
+      for (const t of usMiss) {
+        if (fresh[t]) {
+          results[t] = fresh[t];
+          // 장 중: 15분 캐시 / 장 마감: 60분 캐시 (종가는 오래 유효)
+          const ttl = isUSMarketOpen() ? CACHE_TTL : 60 * 60;
+          await setCached(`stock:us:${t}`, fresh[t], ttl);
+          successCount++;
+        } else {
           const fb = US_FALLBACK[t];
           if (fb) results[t] = { price: fb.price, change: fb.change, changePercent: fb.changePercent };
         }
       }
-    } else {
-      // 장 마감 → 폴백 그대로 사용
-      console.log("[STOCKS] US 장 마감 → 폴백 사용");
+      console.log(`[STOCKS] US Twelve Data 성공 ${successCount}/${usMiss.length}개`);
+    } catch (e) {
+      console.log("[STOCKS] Twelve Data 오류:", e);
       for (const t of usMiss) {
         const fb = US_FALLBACK[t];
         if (fb) results[t] = { price: fb.price, change: fb.change, changePercent: fb.changePercent };

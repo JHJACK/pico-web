@@ -130,7 +130,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🦋", modifier: "예술가적 직관가", name: "나비",
     tagline: "세상의 변화를 감각으로 읽는 미래 투자자",
     desc: "직접 경험하거나 느낀 트렌드에 투자해. 친환경·AI·미래 산업 등 세상을 바꿀 테마에 공감하고 들어가는 스타일. 데이터 검증이 약점.",
-    axisR: "LOW", axisT: "SHORT", axisY: "GROWTH", color: "#EDD97A",
+    axisR: "LOW", axisT: "SHORT", axisY: "GROWTH", color: "#FACA3E",
     stocks: ["친환경 ETF", "AI 인프라", "전기차", "미래 테마"],
     allocation: [
       { label: "테마·성장주", pct: "40~50%" },
