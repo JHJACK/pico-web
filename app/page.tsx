@@ -67,6 +67,19 @@ const NUM: CSSProperties = {
 // ═══════════════════════════════════════════════
 // 유틸
 // ═══════════════════════════════════════════════
+
+// 현재 KST 기준 장 상태
+function getMarketStatus() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const day = kst.getUTCDay(); // 0=일 6=토
+  const min = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+  const isWeekday = day >= 1 && day <= 5;
+  const krOpen  = isWeekday && min >= 9 * 60 && min < 15 * 60 + 30;
+  const usOpen  = isWeekday && (min >= 23 * 60 + 30 || min < 6 * 60);
+  return { krOpen, usOpen };
+}
+
 function getMarketCountdown(): string {
   const now = new Date();
   const close = new Date();
@@ -211,7 +224,7 @@ function MiniSparkline({ up, idx = 0, width = 84, height = 28 }: { up: boolean; 
 }
 
 
-// ─── StockRow (토스 스타일 리스트 행) ────────────
+// ─── StockRow ────────────────────────────────────
 function StockRow({ ticker, stocks, stocksLoading, onClick, idx = 0 }: {
   ticker: string; stocks: StocksMap; stocksLoading: boolean; onClick: () => void; idx?: number;
 }) {
@@ -220,37 +233,41 @@ function StockRow({ ticker, stocks, stocksLoading, onClick, idx = 0 }: {
   const logo  = !kr ? `https://financialmodelingprep.com/image-stock/${ticker}.png` : null;
   const data  = stocks[ticker];
   const up    = data?.up ?? true;
+  // KR은 카테고리만, 해외는 티커심볼 표시
+  const subLabel = kr ? (meta?.category ?? "") : ticker;
   return (
     <button onClick={onClick} className="w-full pico-btn"
-      style={{ background:"none", border:"none", padding:"14px 0",
+      style={{ background:"none", border:"none", padding:"13px 0",
                borderBottom:"0.5px solid rgba(255,255,255,0.05)", cursor:"pointer" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        {/* 로고 */}
         {logo
-          ? <TickerLogo src={logo} ticker={ticker} size={40} />
-          : <div style={{ width:40, height:40, borderRadius:10, background:"#242424", flexShrink:0,
+          ? <TickerLogo src={logo} ticker={ticker} size={42} />
+          : <div style={{ width:42, height:42, borderRadius:11, background:"#1c1c1c", flexShrink:0,
               display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:15, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
+              fontSize:16, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
         }
+        {/* 종목명 + 서브라벨 */}
         <div style={{ flex:1, minWidth:0, textAlign:"left" }}>
-          <div style={{ fontSize:15, fontWeight:500, color:"#e8e0d0", marginBottom:2,
+          <div style={{ fontSize:16, fontWeight:500, color:"#e8e0d0", marginBottom:3,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{meta?.name ?? ticker}</div>
-          <div style={{ fontSize:12, color:"#5c5448", fontWeight:300 }}>{meta?.category ?? ticker}</div>
+          <div style={{ fontSize:12, color:"#4a4540", fontWeight:300 }}>{subLabel}</div>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
-          <MiniSparkline up={up} idx={idx} width={60} height={22} />
-          <div style={{ textAlign:"right" }}>
-            {stocksLoading
-              ? <><Skeleton w={70} h={14}/><div style={{height:4}}/><Skeleton w={50} h={12}/></>
-              : <>
-                <div style={{ ...NUM_MONO, fontSize:15, color:"#e8e0d0", marginBottom:2 }}>
-                  {kr ? (data?.formattedPrice ?? "—") : (data?.formattedKRW ?? "—")}
-                </div>
-                <div style={{ ...NUM_MONO, fontSize:13, color: up?"#7ed4a0":"#f07878" }}>
-                  {up?"▲":"▼"} {data?.formattedChange ?? "—"}
-                </div>
-              </>
-            }
-          </div>
+        {/* 스파크라인 */}
+        <MiniSparkline up={up} idx={idx} width={52} height={20} />
+        {/* 가격 + 등락 */}
+        <div style={{ textAlign:"right", flexShrink:0, minWidth:80 }}>
+          {stocksLoading
+            ? <><Skeleton w={72} h={14}/><div style={{height:4}}/><Skeleton w={52} h={12}/></>
+            : <>
+              <div style={{ ...NUM_MONO, fontSize:16, color:"#e8e0d0", marginBottom:3 }}>
+                {kr ? (data?.formattedPrice ?? "—") : (data?.formattedKRW ?? "—")}
+              </div>
+              <div style={{ ...NUM_MONO, fontSize:13, color: up?"#7ed4a0":"#f07878" }}>
+                {up?"▲":"▼"} {data?.formattedChange ?? "—"}
+              </div>
+            </>
+          }
         </div>
       </div>
     </button>
@@ -270,37 +287,37 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
   const up   = data?.up ?? true;
   return (
     <button onClick={onClick} className="pico-btn flex-shrink-0"
-      style={{ width:132, background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.07)",
-        borderRadius:16, padding:"14px 14px 12px", textAlign:"left", cursor:"pointer",
+      style={{ width:148, background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.07)",
+        borderRadius:16, padding:"14px 14px 13px", textAlign:"left", cursor:"pointer",
         display:"flex", flexDirection:"column", gap:0 }}>
-      {/* 로고 + 티커 */}
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+      {/* 로고 + 이름 */}
+      <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10 }}>
         {logo
-          ? <TickerLogo src={logo} ticker={ticker} size={28}/>
-          : <div style={{ width:28, height:28, borderRadius:7, background:"#242424", flexShrink:0,
+          ? <TickerLogo src={logo} ticker={ticker} size={32}/>
+          : <div style={{ width:32, height:32, borderRadius:8, background:"#242424", flexShrink:0,
               display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:12, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
+              fontSize:13, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
         }
         <div style={{ minWidth:0 }}>
-          <div style={{ fontSize:12, fontWeight:500, color:"#e8e0d0",
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:70 }}>
-            {ticker.length > 6 ? (meta?.name?.slice(0,5) ?? ticker) : ticker}
+          <div style={{ fontSize:14, fontWeight:600, color:"#e8e0d0",
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:86 }}>
+            {meta?.name?.slice(0,6) ?? ticker}
           </div>
-          <div style={{ fontSize:10, color:"#5c5448", overflow:"hidden", textOverflow:"ellipsis",
-            whiteSpace:"nowrap", maxWidth:70 }}>{meta?.name?.slice(0,7)}</div>
+          <div style={{ fontSize:11, color:"#4a4540", overflow:"hidden", textOverflow:"ellipsis",
+            whiteSpace:"nowrap", maxWidth:86 }}>{kr ? (meta?.category ?? "") : ticker}</div>
         </div>
       </div>
       {/* 스파크라인 */}
-      <MiniSparkline up={up} idx={idx} width={104} height={32}/>
+      <MiniSparkline up={up} idx={idx} width={120} height={34}/>
       {/* 가격 */}
-      <div style={{ marginTop:8 }}>
+      <div style={{ marginTop:9 }}>
         {stocksLoading
-          ? <><Skeleton w="85%" h={13}/><div style={{height:4}}/><Skeleton w="65%" h={11}/></>
+          ? <><Skeleton w="85%" h={14}/><div style={{height:4}}/><Skeleton w="65%" h={12}/></>
           : <>
-            <div style={{ ...NUM_MONO, fontSize:13, color:"#e8e0d0", marginBottom:2 }}>
+            <div style={{ ...NUM_MONO, fontSize:15, color:"#e8e0d0", marginBottom:3 }}>
               {kr ? (data?.formattedPrice ?? "—") : (data?.formattedKRW ?? "—")}
             </div>
-            <div style={{ ...NUM_MONO, fontSize:12, color: up?"#7ed4a0":"#f07878" }}>
+            <div style={{ ...NUM_MONO, fontSize:13, color: up?"#7ed4a0":"#f07878" }}>
               {up?"▲":"▼"} {data?.formattedChange ?? "—"}
             </div>
           </>
@@ -370,6 +387,7 @@ export default function Home() {
 
   const [stocks,        setStocks]        = useState<StocksMap>({});
   const [stocksLoading, setStocksLoading] = useState(true);
+  const [usdKrw,        setUsdKrw]        = useState(0);
 
   // ── PICO Play
   const [playStockTab,      setPlayStockTab]      = useState<"전체" | StockCategory>("전체");
@@ -418,6 +436,12 @@ export default function Home() {
     });
 
     fetchNews("전체").then(setNewsItems);
+
+    // 달러 환율 조회
+    fetch(`https://api.twelvedata.com/price?symbol=USD/KRW&apikey=${process.env.NEXT_PUBLIC_TWELVE_DATA_API_KEY ?? "5cff79650c334f9ea1ba974e8b9d9fd1"}`)
+      .then((r) => r.json())
+      .then((d) => { if (d?.price) setUsdKrw(Math.round(parseFloat(d.price))); })
+      .catch(() => setUsdKrw(1470)); // 네트워크 실패 시 fallback
 
     return () => clearInterval(timer);
   }, []);
@@ -649,9 +673,8 @@ export default function Home() {
           <div className="hidden sm:flex items-center gap-10">
             {(["event","play"] as MainTab[]).map((tab) => (
               <button key={tab} onClick={() => switchTab(tab)} className="pico-btn relative py-2"
-                style={{ fontSize: 14, fontWeight: 500, color: mainTab === tab ? "#e8e0d0" : "#5c5448", background: "none", border: "none", transition: "color 0.15s" }}>
+                style={{ fontSize: 14, fontWeight: mainTab === tab ? 600 : 400, color: mainTab === tab ? "#e8e0d0" : "#3a3530", background: "none", border: "none", transition: "color 0.15s" }}>
                 {tab === "event" ? "이벤트" : "PICO Play"}
-                <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: mainTab === tab ? "#FACA3E" : "transparent", borderRadius: 2, transition: "background 0.2s" }} />
               </button>
             ))}
           </div>
@@ -689,9 +712,8 @@ export default function Home() {
       <div className="sm:hidden flex border-b sticky z-20" style={{ top: 64, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(16px)", borderColor: "rgba(255,255,255,0.06)" }}>
         {(["event","play"] as MainTab[]).map((tab) => (
           <button key={tab} onClick={() => switchTab(tab)} className="flex-1 py-3 relative pico-btn"
-            style={{ fontSize: 13, fontWeight: 500, color: mainTab === tab ? "#e8e0d0" : "#5c5448", background: "none", border: "none" }}>
+            style={{ fontSize: 14, fontWeight: mainTab === tab ? 600 : 400, color: mainTab === tab ? "#e8e0d0" : "#3a3530", background: "none", border: "none" }}>
             {tab === "event" ? "이벤트" : "PICO Play"}
-            <span style={{ position: "absolute", bottom: 0, left: "25%", right: "25%", height: 2, background: mainTab === tab ? "#FACA3E" : "transparent", borderRadius: 2, transition: "background 0.2s" }} />
           </button>
         ))}
       </div>
@@ -1095,11 +1117,54 @@ export default function Home() {
           })();
           const FILTERS = ["전체","해외","국내","AI·테크","빅테크","테마","배터리·EV","바이오","금융","ETF"] as const;
 
+          const { krOpen, usOpen } = getMarketStatus();
+
           return (
             <div key="play" className={tabAnim}>
 
+              {/* ── 시장 상태 + 환율 배너 ── */}
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"14px 0 6px", gap:12 }}>
+                {/* 국내/해외 장 상태 */}
+                <div style={{ display:"flex", gap:14 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{
+                      width:7, height:7, borderRadius:"50%", flexShrink:0,
+                      background: krOpen ? "#7ed4a0" : "#f07878",
+                      boxShadow: krOpen ? "0 0 6px #7ed4a0" : "0 0 6px #f07878",
+                    }}/>
+                    <span style={{ fontSize:13, color: krOpen ? "#7ed4a0" : "#a09688", fontWeight:500 }}>
+                      국내주식
+                    </span>
+                    <span style={{ fontSize:11, color:"#3a3530" }}>
+                      {krOpen ? "장중" : "마감"}
+                    </span>
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{
+                      width:7, height:7, borderRadius:"50%", flexShrink:0,
+                      background: usOpen ? "#7ed4a0" : "#f07878",
+                      boxShadow: usOpen ? "0 0 6px #7ed4a0" : "0 0 6px #f07878",
+                    }}/>
+                    <span style={{ fontSize:13, color: usOpen ? "#7ed4a0" : "#a09688", fontWeight:500 }}>
+                      해외주식
+                    </span>
+                    <span style={{ fontSize:11, color:"#3a3530" }}>
+                      {usOpen ? "장중" : "마감"}
+                    </span>
+                  </div>
+                </div>
+                {/* 달러 환율 */}
+                <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+                  <span style={{ fontSize:11, color:"#3a3530" }}>USD</span>
+                  <span style={{ ...NUM_MONO, fontSize:13, color:"#a09688", fontWeight:400 }}>
+                    {usdKrw > 0 ? `₩${usdKrw.toLocaleString("ko-KR")}` : "₩—"}
+                  </span>
+                </div>
+              </div>
+
               {/* ── 검색창 ── */}
-              <div style={{ padding:"16px 0 12px" }}>
+              <div style={{ padding:"10px 0 12px" }}>
                 <div style={{ position:"relative" }}>
                   <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
                     color:"#5c5448", fontSize:14, pointerEvents:"none" }}>&#128269;</span>
@@ -1187,10 +1252,10 @@ export default function Home() {
                   <div className="scroll-x" style={{ display:"flex", gap:6, marginBottom:4 }}>
                     {FILTERS.map((f) => (
                       <button key={f} onClick={() => setPlayFilter(f)} className="pico-btn flex-shrink-0"
-                        style={{ fontSize:12, fontWeight:500, padding:"6px 14px", borderRadius:20,
-                          background: playFilter===f ? "rgba(250,202,62,0.13)":"rgba(255,255,255,0.04)",
-                          color:       playFilter===f ? "#FACA3E":"#5c5448",
-                          border:     `0.5px solid ${playFilter===f ? "rgba(250,202,62,0.32)":"rgba(255,255,255,0.07)"}`,
+                        style={{ fontSize:13, fontWeight: playFilter===f ? 600 : 400, padding:"6px 16px", borderRadius:20,
+                          background: playFilter===f ? "rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)",
+                          color:       playFilter===f ? "#e8e0d0":"#3a3530",
+                          border:     `0.5px solid ${playFilter===f ? "rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"}`,
                           transition:"all 0.15s" }}>
                         {f}
                       </button>
