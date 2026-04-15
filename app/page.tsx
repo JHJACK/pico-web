@@ -225,48 +225,49 @@ function MiniSparkline({ up, idx = 0, width = 84, height = 28 }: { up: boolean; 
 
 
 // ─── StockRow ────────────────────────────────────
-function StockRow({ ticker, stocks, stocksLoading, onClick, idx = 0 }: {
+function StockRow({ ticker, stocks, stocksLoading, onClick }: {
   ticker: string; stocks: StocksMap; stocksLoading: boolean; onClick: () => void; idx?: number;
 }) {
-  const kr    = isKrTicker(ticker);
-  const meta  = kr ? KR_STOCK_META[ticker] : STOCK_META[ticker];
-  const logo  = !kr ? `https://financialmodelingprep.com/image-stock/${ticker}.png` : null;
-  const data  = stocks[ticker];
-  const up    = data?.up ?? true;
-  // KR은 카테고리만, 해외는 티커심볼 표시
+  const kr       = isKrTicker(ticker);
+  const meta     = kr ? KR_STOCK_META[ticker] : STOCK_META[ticker];
+  const logo     = !kr ? `https://financialmodelingprep.com/image-stock/${ticker}.png` : null;
+  const data     = stocks[ticker];
+  const up       = data?.up ?? true;
   const subLabel = kr ? (meta?.category ?? "") : ticker;
   return (
     <button onClick={onClick} className="w-full pico-btn"
-      style={{ background:"none", border:"none", padding:"13px 0",
+      style={{ background:"none", border:"none", padding:"12px 0",
                borderBottom:"0.5px solid rgba(255,255,255,0.05)", cursor:"pointer" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12 }}>
         {/* 로고 */}
         {logo
-          ? <TickerLogo src={logo} ticker={ticker} size={42} />
-          : <div style={{ width:42, height:42, borderRadius:11, background:"#1c1c1c", flexShrink:0,
+          ? <TickerLogo src={logo} ticker={ticker} size={40} />
+          : <div style={{ width:40, height:40, borderRadius:10, background:"#1c1c1c", flexShrink:0,
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:16, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
         }
-        {/* 종목명 + 서브라벨 */}
+        {/* 종목명 + 서브라벨 — flex:1로 남은 공간 차지 */}
         <div style={{ flex:1, minWidth:0, textAlign:"left" }}>
-          <div style={{ fontSize:16, fontWeight:500, color:"#e8e0d0", marginBottom:3,
+          <div style={{ fontSize:16, fontWeight:500, color:"#e8e0d0", marginBottom:2,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{meta?.name ?? ticker}</div>
-          <div style={{ fontSize:12, color:"#4a4540", fontWeight:300 }}>{subLabel}</div>
+          <div style={{ fontSize:14, color:"#4a4540", fontWeight:300 }}>{subLabel}</div>
         </div>
-        {/* 스파크라인 */}
-        <MiniSparkline up={up} idx={idx} width={52} height={20} />
-        {/* 가격 + 등락 */}
-        <div style={{ textAlign:"right", flexShrink:0, minWidth:80 }}>
+        {/* 현재가 — 고정 너비 */}
+        <div style={{ textAlign:"right", flexShrink:0, width:100 }}>
           {stocksLoading
-            ? <><Skeleton w={72} h={14}/><div style={{height:4}}/><Skeleton w={52} h={12}/></>
-            : <>
-              <div style={{ ...NUM_MONO, fontSize:16, color:"#e8e0d0", marginBottom:3 }}>
+            ? <Skeleton w={80} h={15}/>
+            : <div style={{ ...NUM_MONO, fontSize:16, color:"#e8e0d0" }}>
                 {kr ? (data?.formattedPrice ?? "—") : (data?.formattedKRW ?? "—")}
               </div>
-              <div style={{ ...NUM_MONO, fontSize:13, color: up?"#7ed4a0":"#f07878" }}>
+          }
+        </div>
+        {/* 등락률 — 고정 너비 */}
+        <div style={{ textAlign:"right", flexShrink:0, width:72 }}>
+          {stocksLoading
+            ? <Skeleton w={52} h={15}/>
+            : <div style={{ ...NUM_MONO, fontSize:15, color: up?"#7ed4a0":"#f07878" }}>
                 {up?"▲":"▼"} {data?.formattedChange ?? "—"}
               </div>
-            </>
           }
         </div>
       </div>
@@ -303,7 +304,7 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:86 }}>
             {meta?.name?.slice(0,6) ?? ticker}
           </div>
-          <div style={{ fontSize:11, color:"#4a4540", overflow:"hidden", textOverflow:"ellipsis",
+          <div style={{ fontSize:13, color:"#4a4540", overflow:"hidden", textOverflow:"ellipsis",
             whiteSpace:"nowrap", maxWidth:86 }}>{kr ? (meta?.category ?? "") : ticker}</div>
         </div>
       </div>
@@ -437,13 +438,17 @@ export default function Home() {
 
     fetchNews("전체").then(setNewsItems);
 
-    // 달러 환율 조회
-    fetch(`https://api.twelvedata.com/price?symbol=USD/KRW&apikey=${process.env.NEXT_PUBLIC_TWELVE_DATA_API_KEY ?? "5cff79650c334f9ea1ba974e8b9d9fd1"}`)
-      .then((r) => r.json())
-      .then((d) => { if (d?.price) setUsdKrw(Math.round(parseFloat(d.price))); })
-      .catch(() => setUsdKrw(1470)); // 네트워크 실패 시 fallback
+    // 달러 환율 조회 (15분마다 갱신)
+    const fetchRate = () => {
+      fetch(`https://api.twelvedata.com/price?symbol=USD/KRW&apikey=5cff79650c334f9ea1ba974e8b9d9fd1`)
+        .then((r) => r.json())
+        .then((d) => { if (d?.price) setUsdKrw(Math.round(parseFloat(d.price))); })
+        .catch(() => setUsdKrw(1470));
+    };
+    fetchRate();
+    const rateTimer = setInterval(fetchRate, 15 * 60 * 1000);
 
-    return () => clearInterval(timer);
+    return () => { clearInterval(timer); clearInterval(rateTimer); };
   }, []);
 
   // ── 로그인 후 팝업 체크 (user가 바뀔 때마다 한 번만 실행) ──
@@ -1124,40 +1129,30 @@ export default function Home() {
 
               {/* ── 시장 상태 + 환율 배너 ── */}
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-                padding:"14px 0 6px", gap:12 }}>
+                padding:"16px 0 8px", gap:12 }}>
                 {/* 국내/해외 장 상태 */}
-                <div style={{ display:"flex", gap:14 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <span style={{
-                      width:7, height:7, borderRadius:"50%", flexShrink:0,
-                      background: krOpen ? "#7ed4a0" : "#f07878",
-                      boxShadow: krOpen ? "0 0 6px #7ed4a0" : "0 0 6px #f07878",
-                    }}/>
-                    <span style={{ fontSize:13, color: krOpen ? "#7ed4a0" : "#a09688", fontWeight:500 }}>
-                      국내주식
-                    </span>
-                    <span style={{ fontSize:11, color:"#3a3530" }}>
-                      {krOpen ? "장중" : "마감"}
-                    </span>
-                  </div>
-                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <span style={{
-                      width:7, height:7, borderRadius:"50%", flexShrink:0,
-                      background: usOpen ? "#7ed4a0" : "#f07878",
-                      boxShadow: usOpen ? "0 0 6px #7ed4a0" : "0 0 6px #f07878",
-                    }}/>
-                    <span style={{ fontSize:13, color: usOpen ? "#7ed4a0" : "#a09688", fontWeight:500 }}>
-                      해외주식
-                    </span>
-                    <span style={{ fontSize:11, color:"#3a3530" }}>
-                      {usOpen ? "장중" : "마감"}
-                    </span>
-                  </div>
+                <div style={{ display:"flex", gap:18 }}>
+                  {[
+                    { label:"국내주식", open: krOpen },
+                    { label:"해외주식", open: usOpen },
+                  ].map(({ label, open }) => (
+                    <div key={label} style={{ display:"flex", alignItems:"center", gap:7 }}>
+                      <span style={{
+                        width:8, height:8, borderRadius:"50%", flexShrink:0,
+                        background: open ? "#7ed4a0" : "#f07878",
+                        boxShadow: open ? "0 0 7px #7ed4a0" : "0 0 7px #f07878",
+                      }}/>
+                      <span style={{ fontSize:15, color:"#e8e0d0", fontWeight:500 }}>{label}</span>
+                      <span style={{ fontSize:14, color: open ? "#7ed4a0" : "#5c5448" }}>
+                        {open ? "장중" : "마감"}
+                      </span>
+                    </div>
+                  ))}
                 </div>
                 {/* 달러 환율 */}
-                <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
-                  <span style={{ fontSize:11, color:"#3a3530" }}>USD</span>
-                  <span style={{ ...NUM_MONO, fontSize:13, color:"#a09688", fontWeight:400 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+                  <span style={{ fontSize:14, color:"#5c5448" }}>USD</span>
+                  <span style={{ ...NUM_MONO, fontSize:18, color:"#e8e0d0", fontWeight:400 }}>
                     {usdKrw > 0 ? `₩${usdKrw.toLocaleString("ko-KR")}` : "₩—"}
                   </span>
                 </div>
@@ -1238,7 +1233,7 @@ export default function Home() {
                 <>
                   {/* ── 인기 종목 카드 (가로 스크롤) ── */}
                   <div style={{ marginBottom:20 }}>
-                    <p style={{ fontSize:13, fontWeight:500, color:"#5c5448",
+                    <p style={{ fontSize:14, fontWeight:500, color:"#5c5448",
                       letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:10 }}>인기 종목</p>
                     <div className="scroll-x" style={{ display:"flex", gap:8, paddingBottom:4 }}>
                       {FEATURED_TICKERS.map((t, i) => (
@@ -1262,10 +1257,24 @@ export default function Home() {
                     ))}
                   </div>
 
-                  {/* 지연 안내 */}
-                  <p style={{ fontSize:11, color:"#2e2b26", marginBottom:6, paddingTop:6 }}>
-                    NYSE · NASDAQ · KRX &nbsp;·&nbsp; 15분 지연
-                  </p>
+                  {/* ── 종목 리스트 헤더 ── */}
+                  {(() => {
+                    const now = new Date();
+                    const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+                    const hh  = String(kst.getUTCHours()).padStart(2,"0");
+                    const mm  = String(kst.getUTCMinutes()).padStart(2,"0");
+                    return (
+                      <div style={{ display:"flex", alignItems:"center", padding:"10px 0 6px",
+                        borderBottom:"0.5px solid rgba(255,255,255,0.08)" }}>
+                        <div style={{ flex:1, display:"flex", alignItems:"center", gap:8 }}>
+                          <div style={{ width:40, flexShrink:0 }}/>
+                          <span style={{ fontSize:14, color:"#3a3530" }}>오늘 {hh}:{mm} 기준</span>
+                        </div>
+                        <div style={{ width:100, textAlign:"right", fontSize:14, color:"#3a3530" }}>현재가</div>
+                        <div style={{ width:72, textAlign:"right", fontSize:14, color:"#3a3530" }}>등락률</div>
+                      </div>
+                    );
+                  })()}
 
                   {/* ── 종목 리스트 ── */}
                   <div>
