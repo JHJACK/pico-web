@@ -10,6 +10,8 @@ import {
   type IChartApi,
   type ISeriesApi,
   type SeriesType,
+  type TickMarkType,
+  type Time,
 } from "lightweight-charts";
 
 type Period = "1D" | "1W" | "1M" | "1Y";
@@ -23,8 +25,38 @@ const PERIODS: Period[] = ["1D", "1W", "1M", "1Y"];
 const UP_COLOR   = "#7ed4a0";
 const DOWN_COLOR = "#f07878";
 
+// 날짜 포맷 (한국식 YYYY-MM-DD, 장중은 HH:mm)
+function formatTime(time: Time): string {
+  if (typeof time === "object" && "year" in time) {
+    const { year, month, day } = time as { year: number; month: number; day: number };
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  }
+  if (typeof time === "string") {
+    if (time.includes(" ")) return time.split(" ")[1].slice(0, 5); // "HH:mm"
+    return time; // "YYYY-MM-DD"
+  }
+  const d = new Date((time as number) * 1000);
+  return d.toISOString().split("T")[0];
+}
+
+// x축 눈금 라벨 포맷
+function tickFormatter(time: Time, _type: TickMarkType, _locale: string): string {
+  if (typeof time === "object" && "year" in time) {
+    const t = time as { year: number; month: number; day: number };
+    return `${t.month < 10 ? "0" + t.month : t.month}-${t.day < 10 ? "0" + t.day : t.day}`;
+  }
+  if (typeof time === "string") {
+    if (time.includes(" ")) return time.split(" ")[1].slice(0, 5);
+    const parts = time.split("-");
+    return `${parts[1]}-${parts[2]}`;
+  }
+  const d = new Date((time as number) * 1000);
+  return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default function StockChart({ ticker, up }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipRef   = useRef<HTMLDivElement>(null);
   const chartRef     = useRef<IChartApi | null>(null);
   const areaRef      = useRef<ISeriesApi<SeriesType> | null>(null);
   const volRef       = useRef<ISeriesApi<SeriesType> | null>(null);
@@ -37,7 +69,7 @@ export default function StockChart({ ticker, up }: Props) {
   const lineColor = up ? UP_COLOR : DOWN_COLOR;
   const fillTop   = up ? "rgba(126,212,160,0.18)" : "rgba(240,120,120,0.18)";
 
-  // ── 차트 초기화 (마운트 1회) ─────────────────────────────────────────────
+  // ── 차트 초기화 ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -54,12 +86,12 @@ export default function StockChart({ ticker, up }: Props) {
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
-          color: "rgba(255,255,255,0.2)",
-          labelBackgroundColor: "#1e1e1e",
+          color: "rgba(255,255,255,0.25)",
+          labelBackgroundColor: "#2a2a2a",
         },
         horzLine: {
-          color: "rgba(255,255,255,0.2)",
-          labelBackgroundColor: "#1e1e1e",
+          color: "rgba(255,255,255,0.25)",
+          labelBackgroundColor: "#2a2a2a",
         },
       },
       rightPriceScale: {
@@ -67,11 +99,12 @@ export default function StockChart({ ticker, up }: Props) {
         scaleMargins: { top: 0.08, bottom: 0.22 },
       },
       timeScale: {
-        borderColor:    "rgba(255,255,255,0.06)",
-        timeVisible:    true,
-        secondsVisible: false,
-        fixLeftEdge:    true,
-        fixRightEdge:   true,
+        borderColor:       "rgba(255,255,255,0.06)",
+        timeVisible:       true,
+        secondsVisible:    false,
+        fixLeftEdge:       true,
+        fixRightEdge:      true,
+        tickMarkFormatter: tickFormatter,
       },
       handleScroll: { mouseWheel: false, pressedMouseMove: true },
       handleScale:  { mouseWheel: false, pinch: true, axisPressedMouseMove: false },
@@ -79,22 +112,23 @@ export default function StockChart({ ticker, up }: Props) {
       height: containerRef.current.clientHeight,
     });
 
-    // 에어리어 시리즈 (메인 라인)
+    // 에어리어 시리즈
     const area = chart.addSeries(AreaSeries, {
       lineColor,
       topColor:               fillTop,
       bottomColor:            "rgba(0,0,0,0)",
       lineWidth:              2,
       priceLineVisible:       false,
-      lastValueVisible:       false,
+      lastValueVisible:       true,
       crosshairMarkerVisible: true,
-      crosshairMarkerRadius:  4,
+      crosshairMarkerRadius:  5,
       crosshairMarkerBackgroundColor: lineColor,
+      crosshairMarkerBorderColor:     "#141414",
     });
 
-    // 볼륨 히스토그램 (하단 보조)
+    // 볼륨 히스토그램
     const vol = chart.addSeries(HistogramSeries, {
-      color:            "rgba(255,255,255,0.12)",
+      color:            "rgba(255,255,255,0.1)",
       priceScaleId:     "vol",
       lastValueVisible: false,
       priceLineVisible: false,
@@ -103,11 +137,40 @@ export default function StockChart({ ticker, up }: Props) {
       scaleMargins: { top: 0.82, bottom: 0 },
     });
 
+    // ── 커스텀 툴팁 (크로스헤어 이동 시) ─────────────────────────────────
+    chart.subscribeCrosshairMove((param) => {
+      const tooltip = tooltipRef.current;
+      if (!tooltip) return;
+
+      if (!param.time || !param.point || !areaRef.current) {
+        tooltip.style.opacity = "0";
+        return;
+      }
+      const raw = param.seriesData.get(areaRef.current);
+      if (!raw) { tooltip.style.opacity = "0"; return; }
+
+      const price  = (raw as { value: number }).value;
+      const dateEl = tooltip.querySelector<HTMLElement>(".tt-date");
+      const priceEl = tooltip.querySelector<HTMLElement>(".tt-price");
+      if (dateEl)  dateEl.textContent  = formatTime(param.time);
+      if (priceEl) priceEl.textContent = price >= 1 ? `$${price.toFixed(2)}` : `$${price.toFixed(4)}`;
+
+      const w = containerRef.current?.clientWidth ?? 400;
+      const tw = 130;
+      let left = param.point.x + 14;
+      if (left + tw > w - 8) left = param.point.x - tw - 14;
+      const top = Math.max(param.point.y - 44, 8);
+
+      tooltip.style.opacity = "1";
+      tooltip.style.left    = `${left}px`;
+      tooltip.style.top     = `${top}px`;
+    });
+
     chartRef.current = chart;
     areaRef.current  = area;
     volRef.current   = vol;
 
-    // 리사이즈 대응
+    // 리사이즈
     const ro = new ResizeObserver(() => {
       if (containerRef.current && chartRef.current) {
         chartRef.current.applyOptions({
@@ -129,12 +192,13 @@ export default function StockChart({ ticker, up }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── 색상 업데이트 (up 변경 시) ────────────────────────────────────────────
+  // ── 색상 업데이트 ─────────────────────────────────────────────────────────
   useEffect(() => {
     areaRef.current?.applyOptions({
       lineColor,
       topColor:    fillTop,
       bottomColor: "rgba(0,0,0,0)",
+      crosshairMarkerBackgroundColor: lineColor,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [up]);
@@ -160,8 +224,8 @@ export default function StockChart({ ticker, up }: Props) {
           time:  c.time as never,
           value: c.volume,
           color: c.close >= c.open
-            ? "rgba(126,212,160,0.25)"
-            : "rgba(240,120,120,0.25)",
+            ? "rgba(126,212,160,0.22)"
+            : "rgba(240,120,120,0.22)",
         }))
       );
       chartRef.current?.timeScale().fitContent();
@@ -172,7 +236,6 @@ export default function StockChart({ ticker, up }: Props) {
     }
   }, [ticker]);
 
-  // 기간 변경 또는 마운트 시 로드 (차트 init 대기 80ms)
   useEffect(() => {
     const t = setTimeout(() => loadData(period), 80);
     return () => clearTimeout(t);
@@ -192,9 +255,7 @@ export default function StockChart({ ticker, up }: Props) {
             style={{
               fontSize: 12, fontWeight: 500,
               padding: "5px 14px", borderRadius: 20,
-              border: `0.5px solid ${period === p
-                ? "rgba(250,202,62,0.4)"
-                : "rgba(255,255,255,0.08)"}`,
+              border: `0.5px solid ${period === p ? "rgba(250,202,62,0.4)" : "rgba(255,255,255,0.08)"}`,
               background: period === p ? "rgba(250,202,62,0.12)" : "transparent",
               color:      period === p ? "#FACA3E" : "#c8bfb0",
               cursor: "pointer",
@@ -208,7 +269,24 @@ export default function StockChart({ ticker, up }: Props) {
       <div style={{ position: "relative", height: 380 }}>
         <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
 
-        {/* 로딩 스피너 */}
+        {/* 커스텀 가격 툴팁 */}
+        <div ref={tooltipRef} style={{
+          position: "absolute",
+          pointerEvents: "none",
+          opacity: 0,
+          transition: "opacity 0.1s",
+          background: "#1e1e1e",
+          border: "0.5px solid rgba(255,255,255,0.12)",
+          borderRadius: 8,
+          padding: "7px 11px",
+          zIndex: 10,
+        }}>
+          <div className="tt-date" style={{ fontSize: 11, color: "#c8bfb0", marginBottom: 3 }} />
+          <div className="tt-price" style={{ fontSize: 14, fontWeight: 600, color: "#e8e0d0",
+            fontFamily: "var(--font-inter), monospace" }} />
+        </div>
+
+        {/* 로딩 */}
         {loading && (
           <div style={{
             position: "absolute", inset: 0, background: "#141414",

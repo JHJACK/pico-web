@@ -55,9 +55,9 @@ function Skeleton({ w, h, radius = 4 }: { w: number | string; h: number; radius?
 }
 
 // ─── 카드 박스 ────────────────────────────────────────────────────────────────
-function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function Card({ children, style, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
   return (
-    <div style={{
+    <div className={className} style={{
       background: C.card,
       borderRadius: 18,
       border: "0.5px solid rgba(255,255,255,0.07)",
@@ -114,7 +114,7 @@ export default function StockChartPage() {
   // ─── 주문창 ──────────────────────────────────────────────────────────────────
   const orderPanel = (
     <>
-      <Card>
+      <Card className="order-card">
         {/* 매수/매도 탭 */}
         <div style={{ display: "flex", borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}>
           {([["buy", "매수"], ["sell", "매도"]] as [OrderTab, string][]).map(([tab, label]) => (
@@ -265,15 +265,15 @@ export default function StockChartPage() {
         .order-tab { font-size: 14px; transition: background 0.15s, color 0.15s; }
         .quick-btn { transition: background 0.12s; }
 
-        /* ── 웹(≥768px): 14px 미만 폰트 전부 14px로 ── */
+        /* ── 웹(≥768px): 14px 미만 폰트 전부 14px로, hero 보조 텍스트 +2px ── */
         @media (min-width: 768px) {
-          .lbl      { font-size: 14px; }
-          .sec-hd   { font-size: 14px; }
-          .card-lbl { font-size: 14px; }
-          .card-val { font-size: 14px; }
-          .hdr-sub  { font-size: 14px; }
-          .hero-usd { font-size: 14px; }
-          .hero-delay { font-size: 14px; }
+          .lbl        { font-size: 14px; }
+          .sec-hd     { font-size: 14px; }
+          .card-lbl   { font-size: 14px; }
+          .card-val   { font-size: 14px; }
+          .hdr-sub    { font-size: 14px; }
+          .hero-usd   { font-size: 16px; }   /* +2px */
+          .hero-delay { font-size: 16px; }   /* +2px */
           .period-btn { font-size: 14px; }
         }
 
@@ -283,11 +283,13 @@ export default function StockChartPage() {
         .stock-left  { display: flex; flex-direction: column; gap: 12px; }
         .stock-right { display: flex; flex-direction: column; gap: 12px; }
 
+        /* 주문 카드: 데스크탑에서 차트 카드 높이에 맞춤 (기간탭 54px + 차트 380px) */
         @media (min-width: 768px) {
           .stock-outer { max-width: 1280px; margin: 0 auto; }
           .stock-body  { flex-direction: row; align-items: flex-start; padding: 16px 20px 0; gap: 16px; }
           .stock-left  { flex: 1 1 0; min-width: 0; }
           .stock-right { width: 340px; flex-shrink: 0; position: sticky; top: 70px; }
+          .order-card  { height: 434px; overflow-y: auto; }
         }
       `}</style>
 
@@ -344,6 +346,20 @@ export default function StockChartPage() {
 
             {/* 가격 히어로 */}
             <div style={{ padding: "4px 4px 0" }}>
+              {/* 종목명 */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                {logo
+                  ? <TickerLogo src={logo} ticker={ticker} size={22} />
+                  : <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#242424", flexShrink: 0,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 10, fontWeight: 600, color: C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
+                }
+                <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>
+                  {meta?.name ?? ticker}
+                </span>
+                <span style={{ fontSize: 13, color: C.text2 }}>{ticker} · {exch}</span>
+              </div>
+
               {loading ? (
                 <><Skeleton w={200} h={36} radius={8} /><div style={{ height: 8 }} /><Skeleton w={130} h={16} radius={6} /></>
               ) : (
