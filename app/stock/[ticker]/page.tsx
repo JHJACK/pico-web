@@ -5,17 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { fetchStocks, type StockData } from "@/app/lib/stocks";
 import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
 import { useAuth } from "@/app/lib/authContext";
+import StockChart from "@/app/components/StockChart";
 
-// ─── TradingView 설정 ─────────────────────────────────────────────────────────
-const TV_EXCHANGE: Record<string, string> = {
-  NVDA:"NASDAQ", AMD:"NASDAQ", MSFT:"NASDAQ", AVGO:"NASDAQ", ARM:"NASDAQ",
-  AAPL:"NASDAQ", GOOGL:"NASDAQ", AMZN:"NASDAQ", TSLA:"NASDAQ", META:"NASDAQ",
-  NFLX:"NASDAQ", PLTR:"NYSE",  ABNB:"NASDAQ", SBUX:"NASDAQ", QQQ:"NASDAQ",
-  ARKK:"AMEX",  SOXX:"NASDAQ", TSM:"NYSE", LLY:"NYSE", UBER:"NYSE",
-  SPOT:"NYSE",  NKE:"NYSE",   JPM:"NYSE",  V:"NYSE", SPY:"AMEX",
-};
-const TV_PERIOD: Record<string, string> = { "1D": "5", "1W": "60", "1M": "D", "1Y": "W" };
-type Period = "1D" | "1W" | "1M" | "1Y";
 type OrderTab = "buy" | "sell";
 
 // ─── 디자인 시스템 색상 ───────────────────────────────────────────────────────
@@ -88,25 +79,19 @@ export default function StockChartPage() {
   const kr     = isKrTicker(ticker);
   const meta   = kr ? KR_STOCK_META[ticker] : STOCK_META[ticker];
   const logo   = !kr ? `https://financialmodelingprep.com/image-stock/${ticker}.png` : null;
-  const exch   = kr ? "KRX" : (TV_EXCHANGE[ticker] ?? "NASDAQ");
-  const tvSym  = encodeURIComponent(`${exch}:${ticker}`);
+  const EXCHANGE: Record<string, string> = {
+    NVDA:"NASDAQ", AMD:"NASDAQ", MSFT:"NASDAQ", AVGO:"NASDAQ", ARM:"NASDAQ",
+    AAPL:"NASDAQ", GOOGL:"NASDAQ", AMZN:"NASDAQ", TSLA:"NASDAQ", META:"NASDAQ",
+    NFLX:"NASDAQ", PLTR:"NYSE",  ABNB:"NASDAQ", SBUX:"NASDAQ", QQQ:"NASDAQ",
+    ARKK:"AMEX",  SOXX:"NASDAQ", TSM:"NYSE", LLY:"NYSE", UBER:"NYSE",
+    SPOT:"NYSE",  NKE:"NYSE",   JPM:"NYSE",  V:"NYSE", SPY:"AMEX",
+  };
+  const exch = kr ? "KRX" : (EXCHANGE[ticker] ?? "NASDAQ");
 
-  const [period, setPeriod]     = useState<Period>("1M");
   const [data, setData]         = useState<StockData | null>(null);
   const [loading, setLoading]   = useState(true);
   const [orderTab, setOrderTab] = useState<OrderTab>("buy");
   const [orderAmt, setOrderAmt] = useState(0);
-
-  const tvUrl = [
-    "https://s.tradingview.com/widgetembed/",
-    `?symbol=${tvSym}`,
-    `&interval=${TV_PERIOD[period]}`,
-    "&theme=dark&style=3&locale=kr",
-    `&backgroundColor=%23141414`,
-    "&hideideas=1&hidesidetoolbar=1&hidetoptoolbar=1",
-    "&withdateranges=0&hide_top_toolbar=1",
-    "&saveimage=0&calendar=0&studies=[]&show_popup_button=0",
-  ].join("");
 
   useEffect(() => {
     if (!ticker) return;
@@ -385,29 +370,7 @@ export default function StockChartPage() {
 
             {/* 차트 카드 */}
             <Card>
-              <div style={{ display: "flex", gap: 4, padding: "12px 14px 10px", borderBottom: "0.5px solid rgba(255,255,255,0.05)" }}>
-                {(["1D", "1W", "1M", "1Y"] as Period[]).map((p) => (
-                  <button key={p} onClick={() => setPeriod(p)}
-                    className="period-btn"
-                    style={{
-                      fontSize: 12, fontWeight: 500, padding: "5px 14px", borderRadius: 20,
-                      border: `0.5px solid ${period === p ? "rgba(250,202,62,0.4)" : "rgba(255,255,255,0.08)"}`,
-                      background: period === p ? "rgba(250,202,62,0.12)" : "transparent",
-                      color: period === p ? "#FACA3E" : C.text2,
-                      cursor: "pointer",
-                      transition: "background 0.15s, color 0.15s",
-                    }}
-                  >{p}</button>
-                ))}
-              </div>
-              <div style={{ height: 380 }}>
-                <iframe
-                  key={`${ticker}-${period}`}
-                  src={tvUrl}
-                  style={{ width: "100%", height: "100%", border: "none", display: "block" }}
-                  allowFullScreen
-                />
-              </div>
+              <StockChart ticker={ticker} up={up} />
             </Card>
 
             {/* 종목 정보 카드 */}
