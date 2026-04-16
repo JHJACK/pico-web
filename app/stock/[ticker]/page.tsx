@@ -265,28 +265,31 @@ export default function StockChartPage() {
         .order-tab { font-size: 14px; transition: background 0.15s, color 0.15s; }
         .quick-btn { transition: background 0.12s; }
 
-        /* ── 웹(≥768px): 14px 미만 폰트 전부 14px로, hero 보조 텍스트 +2px ── */
+        /* ── 웹(≥768px) 폰트 ── */
         @media (min-width: 768px) {
           .lbl        { font-size: 14px; }
           .sec-hd     { font-size: 14px; }
           .card-lbl   { font-size: 14px; }
           .card-val   { font-size: 14px; }
-          .hdr-sub    { font-size: 14px; }
-          .hero-usd   { font-size: 16px; }   /* +2px */
-          .hero-delay { font-size: 16px; }   /* +2px */
+          .hero-usd   { font-size: 18px; }
+          .hero-delay { font-size: 18px; }
           .period-btn { font-size: 14px; }
+          /* 헤더에서 주식 정보·가격 숨김 */
+          .hdr-stock-info { display: none; }
+          .hdr-price      { display: none; }
         }
 
-        /* ── 데스크탑 2열 레이아웃 ── */
+        /* ── 레이아웃 ── */
         .stock-outer { padding-bottom: 48px; }
-        .stock-body  { padding: 14px 14px 0; display: flex; flex-direction: column; gap: 12px; }
+        .stock-hero  { padding: 14px 14px 0; }
+        .stock-body  { padding: 0 14px; display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
         .stock-left  { display: flex; flex-direction: column; gap: 12px; }
         .stock-right { display: flex; flex-direction: column; gap: 12px; }
 
-        /* 주문 카드: 데스크탑에서 차트 카드 높이에 맞춤 (기간탭 54px + 차트 380px) */
         @media (min-width: 768px) {
           .stock-outer { max-width: 1280px; margin: 0 auto; }
-          .stock-body  { flex-direction: row; align-items: flex-start; padding: 16px 20px 0; gap: 16px; }
+          .stock-hero  { padding: 16px 20px 0; }
+          .stock-body  { flex-direction: row; align-items: flex-start; padding: 0 20px; margin-top: 12px; gap: 16px; }
           .stock-left  { flex: 1 1 0; min-width: 0; }
           .stock-right { width: 340px; flex-shrink: 0; position: sticky; top: 70px; }
           .order-card  { height: 434px; overflow-y: auto; }
@@ -306,23 +309,26 @@ export default function StockChartPage() {
           padding: "6px 8px 6px 4px", color: C.text2, fontSize: 20, lineHeight: 1, flexShrink: 0,
         }}>←</button>
 
-        {logo
-          ? <TickerLogo src={logo} ticker={ticker} size={30} />
-          : <div style={{
-              width: 30, height: 30, borderRadius: "50%", background: "#242424", flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 600, color: C.text2,
-            }}>{(meta?.name ?? ticker)[0]}</div>
-        }
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {meta?.name ?? ticker}
+        {/* 모바일만 표시: 로고+종목명 */}
+        <div className="hdr-stock-info" style={{ display: "contents" }}>
+          {logo
+            ? <TickerLogo src={logo} ticker={ticker} size={30} />
+            : <div style={{
+                width: 30, height: 30, borderRadius: "50%", background: "#242424", flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 12, fontWeight: 600, color: C.text2,
+              }}>{(meta?.name ?? ticker)[0]}</div>
+          }
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {meta?.name ?? ticker}
+            </div>
+            <div style={{ fontSize: 12, color: C.text2 }}>{ticker} · {exch}</div>
           </div>
-          <div className="hdr-sub" style={{ fontSize: 12, color: C.text2 }}>{ticker} · {exch}</div>
         </div>
 
-        <div style={{ textAlign: "right", flexShrink: 0 }}>
+        {/* 모바일만 표시: 가격 */}
+        <div className="hdr-price" style={{ textAlign: "right", flexShrink: 0 }}>
           {loading
             ? <><Skeleton w={68} h={13} /><div style={{ height: 4 }} /><Skeleton w={48} h={11} /></>
             : <>
@@ -339,50 +345,51 @@ export default function StockChartPage() {
 
       {/* ── 바디 ──────────────────────────────────────────────────────────── */}
       <div className="stock-outer">
+
+        {/* ── 가격 히어로 (양쪽 컬럼 위, 전체 너비) ────────────────────────── */}
+        <div className="stock-hero">
+          {/* 종목명 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            {logo
+              ? <TickerLogo src={logo} ticker={ticker} size={22} />
+              : <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#242424", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 600, color: C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
+            }
+            <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>
+              {meta?.name ?? ticker}
+            </span>
+            <span style={{ fontSize: 13, color: C.text2 }}>{ticker} · {exch}</span>
+          </div>
+
+          {loading ? (
+            <><Skeleton w={200} h={36} radius={8} /><div style={{ height: 8 }} /><Skeleton w={130} h={16} radius={6} /></>
+          ) : (
+            <>
+              <div style={{ ...NUM_MONO, fontSize: 38, fontWeight: 300, color: C.text, lineHeight: 1.1 }}>
+                {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+                <span style={{ ...NUM_MONO, fontSize: 14, color: accentColor, background: accentBg, padding: "4px 12px", borderRadius: 20 }}>
+                  {up ? "▲" : "▼"} {data?.formattedChange ?? "—"}
+                </span>
+                {!kr && (
+                  <span className="hero-usd" style={{ ...NUM_MONO, fontSize: 13, color: C.text2 }}>
+                    {data?.formattedPrice ?? ""} 달러
+                  </span>
+                )}
+                <span className="hero-delay" style={{ fontSize: 12, color: C.text2, marginLeft: "auto" }}>
+                  15분 지연
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+
         <div className="stock-body">
 
-          {/* ── 왼쪽: 가격 + 차트 + 종목정보 ─────────────────────────────── */}
+          {/* ── 왼쪽: 차트 + 종목정보 ─────────────────────────────────────── */}
           <div className="stock-left">
-
-            {/* 가격 히어로 */}
-            <div style={{ padding: "4px 4px 0" }}>
-              {/* 종목명 */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                {logo
-                  ? <TickerLogo src={logo} ticker={ticker} size={22} />
-                  : <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#242424", flexShrink: 0,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 10, fontWeight: 600, color: C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
-                }
-                <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>
-                  {meta?.name ?? ticker}
-                </span>
-                <span style={{ fontSize: 13, color: C.text2 }}>{ticker} · {exch}</span>
-              </div>
-
-              {loading ? (
-                <><Skeleton w={200} h={36} radius={8} /><div style={{ height: 8 }} /><Skeleton w={130} h={16} radius={6} /></>
-              ) : (
-                <>
-                  <div style={{ ...NUM_MONO, fontSize: 38, fontWeight: 300, color: C.text, lineHeight: 1.1 }}>
-                    {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
-                  </div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
-                    <span style={{ ...NUM_MONO, fontSize: 14, color: accentColor, background: accentBg, padding: "4px 12px", borderRadius: 20 }}>
-                      {up ? "▲" : "▼"} {data?.formattedChange ?? "—"}
-                    </span>
-                    {!kr && (
-                      <span className="hero-usd" style={{ ...NUM_MONO, fontSize: 13, color: C.text2 }}>
-                        {data?.formattedPrice ?? ""}
-                      </span>
-                    )}
-                    <span className="hero-delay" style={{ fontSize: 12, color: C.text2, marginLeft: "auto" }}>
-                      15분 지연
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
 
             {/* 차트 카드 */}
             <Card>
