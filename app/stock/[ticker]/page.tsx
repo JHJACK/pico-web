@@ -45,7 +45,7 @@ function TickerLogo({ src, ticker, size = 30 }: { src: string; ticker: string; s
   );
   return (
     <img src={src} alt={ticker} width={size} height={size}
-      style={{ width: size, height: size, borderRadius: 8, objectFit: "contain", background: "#fff", flexShrink: 0 }}
+      style={{ width: size, height: size, borderRadius: "50%", objectFit: "contain", background: "#fff", flexShrink: 0 }}
       onError={() => setErr(true)}
     />
   );
@@ -322,7 +322,7 @@ export default function StockChartPage() {
         {logo
           ? <TickerLogo src={logo} ticker={ticker} size={30} />
           : <div style={{
-              width: 30, height: 30, borderRadius: 8, background: "#242424", flexShrink: 0,
+              width: 30, height: 30, borderRadius: "50%", background: "#242424", flexShrink: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 12, fontWeight: 600, color: C.text2,
             }}>{(meta?.name ?? ticker)[0]}</div>

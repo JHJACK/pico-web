@@ -99,13 +99,13 @@ function getMarketCountdown(): string {
 function TickerLogo({ src, ticker, size = 28 }: { src: string; ticker: string; size?: number }) {
   const [err, setErr] = useState(false);
   if (err) return (
-    <div style={{ width: size, height: size, borderRadius: 6, background: "#242424", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.4, fontWeight: 500, color: "#a09688", flexShrink: 0 }}>
+    <div style={{ width: size, height: size, borderRadius: "50%", background: "#242424", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.4, fontWeight: 500, color: "#a09688", flexShrink: 0 }}>
       {ticker[0]}
     </div>
   );
   return (
     <img src={src} alt={ticker} width={size} height={size}
-      style={{ width: size, height: size, borderRadius: 6, objectFit: "contain", background: "#fff", flexShrink: 0 }}
+      style={{ width: size, height: size, borderRadius: "50%", objectFit: "contain", background: "#fff", flexShrink: 0 }}
       onError={() => setErr(true)}
     />
   );
@@ -242,7 +242,7 @@ function StockRow({ ticker, stocks, stocksLoading, onClick }: {
         {/* 로고 */}
         {logo
           ? <TickerLogo src={logo} ticker={ticker} size={40} />
-          : <div style={{ width:40, height:40, borderRadius:10, background:"#1c1c1c", flexShrink:0,
+          : <div style={{ width:40, height:40, borderRadius:"50%", background:"#1c1c1c", flexShrink:0,
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:16, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
         }
@@ -295,7 +295,7 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
       <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10 }}>
         {logo
           ? <TickerLogo src={logo} ticker={ticker} size={32}/>
-          : <div style={{ width:32, height:32, borderRadius:8, background:"#242424", flexShrink:0,
+          : <div style={{ width:32, height:32, borderRadius:"50%", background:"#242424", flexShrink:0,
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:13, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
         }
@@ -1218,7 +1218,7 @@ export default function Home() {
                     ? [1,2,3].map((i) => (
                         <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 0",
                           borderBottom:"0.5px solid rgba(255,255,255,0.05)" }}>
-                          <div style={{ width:40, height:40, borderRadius:10, background:"#242424", flexShrink:0 }}/>
+                          <div style={{ width:40, height:40, borderRadius:"50%", background:"#242424", flexShrink:0 }}/>
                           <div style={{ flex:1 }}><Skeleton w="50%" h={14}/><div style={{height:5}}/><Skeleton w="30%" h={11}/></div>
                           <div><Skeleton w={70} h={14}/><div style={{height:5}}/><Skeleton w={50} h={11}/></div>
                         </div>))
