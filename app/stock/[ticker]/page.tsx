@@ -88,10 +88,11 @@ export default function StockChartPage() {
   };
   const exch = kr ? "KRX" : (EXCHANGE[ticker] ?? "NASDAQ");
 
-  const [data, setData]         = useState<StockData | null>(null);
-  const [loading, setLoading]   = useState(true);
-  const [orderTab, setOrderTab] = useState<OrderTab>("buy");
-  const [orderAmt, setOrderAmt] = useState(0);
+  const [data, setData]             = useState<StockData | null>(null);
+  const [loading, setLoading]       = useState(true);
+  const [orderTab, setOrderTab]     = useState<OrderTab>("buy");
+  const [orderAmt, setOrderAmt]     = useState(0);
+  const [exchangeRate, setExchangeRate] = useState(1470);
 
   useEffect(() => {
     if (!ticker) return;
@@ -101,6 +102,14 @@ export default function StockChartPage() {
       setLoading(false);
     });
   }, [ticker]);
+
+  useEffect(() => {
+    if (kr) return; // 한국 주식은 환율 불필요
+    fetch("/api/exchange-rate")
+      .then((r) => r.json())
+      .then((d) => { if (d?.rate) setExchangeRate(d.rate); })
+      .catch(() => {});
+  }, [kr]);
 
   const up          = data?.up ?? true;
   const accentColor = up ? "#7ed4a0" : "#f07878";
@@ -362,7 +371,7 @@ export default function StockChartPage() {
 
             {/* 차트 카드 */}
             <Card>
-              <StockChart ticker={ticker} up={up} isKr={kr} />
+              <StockChart ticker={ticker} up={up} isKr={kr} exchangeRate={exchangeRate} />
             </Card>
 
             {/* 종목 정보 카드 */}
