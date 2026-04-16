@@ -1127,31 +1127,32 @@ export default function Home() {
           return (
             <div key="play" className={tabAnim}>
 
-              {/* ── 시장 상태 + 환율 배너 ── */}
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-                padding:"16px 0 8px", gap:12 }}>
+              {/* ── 시장 상태 + 환율 — 한 줄 ── */}
+              <div style={{ display:"flex", alignItems:"center", flexWrap:"wrap",
+                padding:"16px 0 8px", gap:"6px 16px" }}>
                 {/* 국내/해외 장 상태 */}
-                <div style={{ display:"flex", gap:18 }}>
-                  {[
-                    { label:"국내주식", open: krOpen },
-                    { label:"해외주식", open: usOpen },
-                  ].map(({ label, open }) => (
-                    <div key={label} style={{ display:"flex", alignItems:"center", gap:7 }}>
-                      <span style={{
-                        width:8, height:8, borderRadius:"50%", flexShrink:0,
-                        background: open ? "#7ed4a0" : "#f07878",
-                        boxShadow: open ? "0 0 7px #7ed4a0" : "0 0 7px #f07878",
-                      }}/>
-                      <span style={{ fontSize:15, color:"#e8e0d0", fontWeight:500 }}>{label}</span>
-                      <span style={{ fontSize:14, color: open ? "#7ed4a0" : "#c8bfb0" }}>
-                        {open ? "장중" : "마감"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                {/* 달러 환율: "1,477원 USD" */}
-                <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-                  <span style={{ ...NUM_MONO, fontSize:18, color:"#e8e0d0", fontWeight:400 }}>
+                {[
+                  { label:"국내주식", open: krOpen },
+                  { label:"해외주식", open: usOpen },
+                ].map(({ label, open }) => (
+                  <div key={label} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{
+                      width:8, height:8, borderRadius:"50%", flexShrink:0,
+                      background: open ? "#7ed4a0" : "#f07878",
+                      boxShadow: open ? "0 0 6px " + (open ? "#7ed4a0" : "#f07878") : "0 0 6px #f07878",
+                    }}/>
+                    <span style={{ fontSize:15, color:"#e8e0d0", fontWeight:500 }}>{label}</span>
+                    <span style={{ fontSize:14, color: open ? "#7ed4a0" : "#c8bfb0" }}>
+                      {open ? "장중" : "마감"}
+                    </span>
+                  </div>
+                ))}
+                {/* 구분선 */}
+                <span style={{ color:"rgba(255,255,255,0.12)", fontSize:16 }}>|</span>
+                {/* 달러 환율 */}
+                <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <span style={{ fontSize:14, color:"#c8bfb0" }}>달러 환율</span>
+                  <span style={{ ...NUM_MONO, fontSize:17, color:"#e8e0d0", fontWeight:400 }}>
                     {usdKrw > 0 ? `${usdKrw.toLocaleString("ko-KR")}원` : "—"}
                   </span>
                   <span style={{ fontSize:14, color:"#c8bfb0" }}>USD</span>
@@ -1264,13 +1265,17 @@ export default function Home() {
                     const hh  = String(kst.getUTCHours()).padStart(2,"0");
                     const mm  = String(kst.getUTCMinutes()).padStart(2,"0");
                     return (
-                      <div style={{ display:"flex", alignItems:"center", padding:"10px 0 6px",
-                        borderBottom:"0.5px solid rgba(255,255,255,0.08)" }}>
-                        <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"center", gap:8 }}>
-                          <div style={{ width:40, flexShrink:0 }}/>
+                      <div style={{ display:"flex", alignItems:"center", gap:12,
+                        padding:"10px 0 6px", borderBottom:"0.5px solid rgba(255,255,255,0.08)" }}>
+                        {/* 로고 자리 (StockRow와 동일: 40px) */}
+                        <div style={{ width:40, flexShrink:0 }}/>
+                        {/* 이름 자리 (StockRow와 동일: flex:1 maxWidth:220) */}
+                        <div style={{ flex:1, minWidth:0, maxWidth:220 }}>
                           <span style={{ fontSize:14, color:"#c8bfb0" }}>오늘 {hh}:{mm} 기준</span>
                         </div>
+                        {/* 현재가 (StockRow와 동일: 110px) */}
                         <div style={{ width:110, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>현재가</div>
+                        {/* 등락률 (StockRow와 동일: 80px) */}
                         <div style={{ width:80, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>등락률</div>
                       </div>
                     );
