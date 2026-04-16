@@ -264,6 +264,8 @@ export default function StockChartPage() {
         .card-val{ font-size: 13px; }
         .order-tab { font-size: 14px; transition: background 0.15s, color 0.15s; }
         .quick-btn { transition: background 0.12s; }
+        .hero-usd   { font-size: 14px; }
+        .hero-delay { font-size: 14px; }
 
         /* ── 웹(≥768px) 폰트 ── */
         @media (min-width: 768px) {
@@ -308,39 +310,6 @@ export default function StockChartPage() {
           background: "none", border: "none", cursor: "pointer",
           padding: "6px 8px 6px 4px", color: C.text2, fontSize: 20, lineHeight: 1, flexShrink: 0,
         }}>←</button>
-
-        {/* 모바일만 표시: 로고+종목명 */}
-        <div className="hdr-stock-info" style={{ display: "contents" }}>
-          {logo
-            ? <TickerLogo src={logo} ticker={ticker} size={30} />
-            : <div style={{
-                width: 30, height: 30, borderRadius: "50%", background: "#242424", flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 12, fontWeight: 600, color: C.text2,
-              }}>{(meta?.name ?? ticker)[0]}</div>
-          }
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {meta?.name ?? ticker}
-            </div>
-            <div style={{ fontSize: 12, color: C.text2 }}>{ticker} · {exch}</div>
-          </div>
-        </div>
-
-        {/* 모바일만 표시: 가격 */}
-        <div className="hdr-price" style={{ textAlign: "right", flexShrink: 0 }}>
-          {loading
-            ? <><Skeleton w={68} h={13} /><div style={{ height: 4 }} /><Skeleton w={48} h={11} /></>
-            : <>
-              <div style={{ ...NUM_MONO, fontSize: 14, color: C.text }}>
-                {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
-              </div>
-              <div style={{ ...NUM_MONO, fontSize: 13, color: accentColor }}>
-                {up ? "▲" : "▼"} {data?.formattedChange ?? "—"}
-              </div>
-            </>
-          }
-        </div>
       </div>
 
       {/* ── 바디 ──────────────────────────────────────────────────────────── */}
@@ -374,11 +343,11 @@ export default function StockChartPage() {
                   {up ? "▲" : "▼"} {data?.formattedChange ?? "—"}
                 </span>
                 {!kr && (
-                  <span className="hero-usd" style={{ ...NUM_MONO, fontSize: 13, color: C.text2 }}>
+                  <span className="hero-usd" style={{ ...NUM_MONO, color: C.text2 }}>
                     {data?.formattedPrice ?? ""} 달러
                   </span>
                 )}
-                <span className="hero-delay" style={{ fontSize: 12, color: C.text2, marginLeft: "auto" }}>
+                <span className="hero-delay" style={{ color: C.text2, marginLeft: "auto" }}>
                   15분 지연
                 </span>
               </div>
@@ -393,7 +362,7 @@ export default function StockChartPage() {
 
             {/* 차트 카드 */}
             <Card>
-              <StockChart ticker={ticker} up={up} />
+              <StockChart ticker={ticker} up={up} isKr={kr} />
             </Card>
 
             {/* 종목 정보 카드 */}

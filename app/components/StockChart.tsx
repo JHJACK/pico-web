@@ -19,6 +19,8 @@ type Period = "1D" | "1W" | "1M" | "1Y";
 type Props = {
   ticker: string;
   up: boolean;
+  isKr: boolean;
+  exchangeRate?: number;
 };
 
 const PERIODS: Period[] = ["1D", "1W", "1M", "1Y"];
@@ -54,13 +56,17 @@ function tickFormatter(time: Time, _type: TickMarkType, _locale: string): string
   return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export default function StockChart({ ticker, up }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const tooltipRef   = useRef<HTMLDivElement>(null);
-  const chartRef     = useRef<IChartApi | null>(null);
-  const areaRef      = useRef<ISeriesApi<SeriesType> | null>(null);
-  const volRef       = useRef<ISeriesApi<SeriesType> | null>(null);
-  const roRef        = useRef<ResizeObserver | null>(null);
+export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Props) {
+  const containerRef   = useRef<HTMLDivElement>(null);
+  const tooltipRef     = useRef<HTMLDivElement>(null);
+  const chartRef       = useRef<IChartApi | null>(null);
+  const areaRef        = useRef<ISeriesApi<SeriesType> | null>(null);
+  const volRef         = useRef<ISeriesApi<SeriesType> | null>(null);
+  const roRef          = useRef<ResizeObserver | null>(null);
+  const isKrRef        = useRef(isKr);
+  const exchangeRateRef = useRef(exchangeRate);
+  isKrRef.current        = isKr;
+  exchangeRateRef.current = exchangeRate;
 
   const [period, setPeriod]   = useState<Period>("1M");
   const [loading, setLoading] = useState(true);
@@ -152,8 +158,14 @@ export default function StockChart({ ticker, up }: Props) {
       const price  = (raw as { value: number }).value;
       const dateEl = tooltip.querySelector<HTMLElement>(".tt-date");
       const priceEl = tooltip.querySelector<HTMLElement>(".tt-price");
-      if (dateEl)  dateEl.textContent  = formatTime(param.time);
-      if (priceEl) priceEl.textContent = price >= 1 ? `$${price.toFixed(2)}` : `$${price.toFixed(4)}`;
+      if (dateEl) dateEl.textContent = formatTime(param.time);
+      if (priceEl) {
+        if (isKrRef.current) {
+          priceEl.textContent = Math.round(price).toLocaleString("ko-KR") + "원";
+        } else {
+          priceEl.textContent = Math.round(price * exchangeRateRef.current).toLocaleString("ko-KR") + "원";
+        }
+      }
 
       const w = containerRef.current?.clientWidth ?? 400;
       const tw = 130;

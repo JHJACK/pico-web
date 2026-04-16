@@ -374,6 +374,12 @@ export default function Home() {
   const [mainTab, setMainTab] = useState<MainTab>("event");
   const [prevTab, setPrevTab] = useState<MainTab>("event");
 
+  // URL ?tab=play 로 복원 (stock 상세에서 뒤로가기 시)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "play") setMainTab("play");
+  }, []);
+
   const [justVoted,      setJustVoted]      = useState<"UP"|"DOWN"|null>(null);
   const [showParticlesA, setShowParticlesA] = useState(false);
   const [showParticlesB, setShowParticlesB] = useState(false);
@@ -535,7 +541,11 @@ export default function Home() {
   const pctUp   = totalVotes > 0 ? Math.round((votesUp   / totalVotes) * 100) : 50;
   const pctDown = 100 - pctUp;
 
-  function switchTab(tab: MainTab) { setPrevTab(mainTab); setMainTab(tab); }
+  function switchTab(tab: MainTab) {
+    setPrevTab(mainTab);
+    setMainTab(tab);
+    router.replace(tab === "play" ? "/?tab=play" : "/");
+  }
   const tabAnim = mainTab === "play"
     ? (prevTab === "event" ? "tab-enter" : "tab-enter-left")
     : (prevTab === "play"  ? "tab-enter-left" : "tab-enter");
