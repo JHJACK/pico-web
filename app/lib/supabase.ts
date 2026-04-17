@@ -477,6 +477,148 @@ export async function judgeYesterdayBattle(
   return { winner, myVote: judged as BattleVoteRow };
 }
 
+// ── 모의 투자 타입 ────────────────────────────────────
+export type MockInvestmentRow = {
+  id: string;
+  user_id: string;
+  ticker: string;
+  invested_points: number;
+  buy_price: number;
+  buy_at: string;
+  sell_price: number | null;
+  sell_at: string | null;
+  status: "holding" | "sold";
+  final_points: number | null;
+};
+
+// ── 모의 매수 ─────────────────────────────────────────
+// 주의: 포인트 먼저 차감 → 투자 기록 순서로 진행 (실패 시 환불)
+export async function buyStock(
+  uid: string,
+  ticker: string,
+  investedPoints: number,
+  buyPrice: number
+): Promise<{ ok: boolean; investment?: MockInvestmentRow; error?: string }> {
+  if (!uid) return { ok: false, error: "로그인이 필요해요" };
+  if (investedPoints < 100) return { ok: false, error: "최소 100P 이상 투자해 주세요" };
+
+  // 1) 현재 포인트 확인
+  const { data: userRow, error: selErr } = await supabase
+    .from("users")
+    .select("total_points")
+    .eq("id", uid)
+    .single();
+  if (selErr || !userRow) return { ok: false, error: "유저 정보를 불러올 수 없어요" };
+  if ((userRow as { total_points: number }).total_points < investedPoints)
+    return { ok: false, error: "포인트가 부족해요" };
+
+  // 2) 포인트 차감
+  const { error: rpcErr } = await supabase.rpc("increment_user_points", {
+    uid,
+    delta: -investedPoints,
+  });
+  if (rpcErr) return { ok: false, error: "포인트 차감에 실패했어요" };
+
+  // 3) 투자 기록 저장
+  const { data: inv, error: invErr } = await supabase
+    .from("mock_investments")
+    .insert({
+      user_id: uid,
+      ticker,
+      invested_points: investedPoints,
+      buy_price: buyPrice,
+      status: "holding",
+    })
+    .select()
+    .single();
+
+  if (invErr) {
+    // 실패 시 포인트 환불
+    await supabase.rpc("increment_user_points", { uid, delta: investedPoints });
+    return { ok: false, error: "투자 기록 저장에 실패했어요" };
+  }
+
+  // 4) 포인트 내역 기록
+  await supabase.from("point_history").insert({
+    user_id: uid,
+    points: -investedPoints,
+    reason: `${ticker} 모의 매수`,
+  });
+
+  return { ok: true, investment: inv as MockInvestmentRow };
+}
+
+// ── 모의 매도 ─────────────────────────────────────────
+export async function sellStock(
+  uid: string,
+  investmentId: string,
+  sellPrice: number
+): Promise<{ ok: boolean; finalPoints?: number; profitLoss?: number; error?: string }> {
+  if (!uid) return { ok: false, error: "로그인이 필요해요" };
+
+  // 1) 투자 기록 조회
+  const { data: inv, error: selErr } = await supabase
+    .from("mock_investments")
+    .select("*")
+    .eq("id", investmentId)
+    .eq("user_id", uid)
+    .eq("status", "holding")
+    .single();
+  if (selErr || !inv) return { ok: false, error: "보유 종목을 찾을 수 없어요" };
+
+  const investment = inv as MockInvestmentRow;
+  const finalPoints = Math.max(
+    0,
+    Math.round(investment.invested_points * (sellPrice / investment.buy_price))
+  );
+  const profitLoss = finalPoints - investment.invested_points;
+
+  // 2) 투자 기록 업데이트
+  const { error: updErr } = await supabase
+    .from("mock_investments")
+    .update({
+      sell_price: sellPrice,
+      sell_at: new Date().toISOString(),
+      status: "sold",
+      final_points: finalPoints,
+    })
+    .eq("id", investmentId);
+  if (updErr) return { ok: false, error: "매도 처리에 실패했어요" };
+
+  // 3) 포인트 환급 (손실이면 finalPoints < invested_points지만 항상 >= 0)
+  await supabase.rpc("increment_user_points", { uid, delta: finalPoints });
+
+  // 4) 포인트 내역 기록
+  const reason =
+    profitLoss >= 0
+      ? `${investment.ticker} 모의 매도 (+${profitLoss}P 수익)`
+      : `${investment.ticker} 모의 매도 (${profitLoss}P 손실)`;
+  await supabase.from("point_history").insert({
+    user_id: uid,
+    points: finalPoints,
+    reason,
+  });
+
+  return { ok: true, finalPoints, profitLoss };
+}
+
+// ── 보유 종목 조회 ────────────────────────────────────
+export async function getUserHoldings(
+  uid: string,
+  ticker?: string
+): Promise<MockInvestmentRow[]> {
+  if (!uid) return [];
+  let query = supabase
+    .from("mock_investments")
+    .select("*")
+    .eq("user_id", uid)
+    .order("buy_at", { ascending: false });
+  if (ticker) query = query.eq("ticker", ticker);
+  const { data, error } = await query;
+  if (error) { console.error("[getUserHoldings]", error.message); return []; }
+  return (data ?? []) as MockInvestmentRow[];
+}
+
 // ── 출석만 처리 (대결 없이) ──────────────────────────
 export async function submitAttendanceOnly(
   uid: string

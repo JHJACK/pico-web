@@ -61,8 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       else setUserRow(null);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // 매수/매도 후 포인트 즉시 반영
+    const onPointsRefresh = () => { if (user) loadUserRow(user); };
+    window.addEventListener("pico:points:refresh", onPointsRefresh);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("pico:points:refresh", onPointsRefresh);
+    };
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, userRow, loading, refreshUserRow, signOut }}>

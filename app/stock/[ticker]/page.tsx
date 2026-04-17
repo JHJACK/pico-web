@@ -1,18 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { fetchStocks, type StockData } from "@/app/lib/stocks";
 import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
 import { useAuth } from "@/app/lib/authContext";
+import { supabase, type MockInvestmentRow } from "@/app/lib/supabase";
 import StockChart from "@/app/components/StockChart";
 
 type OrderTab = "buy" | "sell";
 
+// 현재 평가 포인트가 enriched된 holding
+type HoldingEnriched = MockInvestmentRow & {
+  currentPrice?: number;
+  currentValue: number;
+  profitLoss: number;
+  profitRate?: number;
+};
+
 // ─── 디자인 시스템 색상 ───────────────────────────────────────────────────────
 const C = {
-  text:  "#e8e0d0",   // 본문 주력
-  text2: "#c8bfb0",   // 라벨·보조 텍스트
+  text:  "#e8e0d0",
+  text2: "#c8bfb0",
   bg:    "#0d0d0d",
   card:  "#141414",
   inner: "#0d0d0d",
@@ -94,6 +103,39 @@ export default function StockChartPage() {
   const [orderAmt, setOrderAmt]     = useState(0);
   const [exchangeRate, setExchangeRate] = useState(1470);
 
+  // 투자 관련 상태
+  const [holdings, setHoldings]       = useState<HoldingEnriched[]>([]);
+  const [holdingsLoading, setHoldingsLoading] = useState(false);
+  const [buying, setBuying]           = useState(false);
+  const [selling, setSelling]         = useState<string | null>(null); // investmentId
+  const [toast, setToast]             = useState<{ msg: string; ok: boolean } | null>(null);
+
+  // 토스트 표시 헬퍼
+  const showToast = (msg: string, ok: boolean) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // 보유 현황 조회
+  const fetchHoldings = useCallback(async () => {
+    if (!userRow?.id) return;
+    setHoldingsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+      const res = await fetch(`/api/investments/holdings?ticker=${ticker}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (json.holdings) setHoldings(json.holdings as HoldingEnriched[]);
+    } catch {
+      // silent
+    } finally {
+      setHoldingsLoading(false);
+    }
+  }, [userRow?.id, ticker]);
+
   useEffect(() => {
     if (!ticker) return;
     setLoading(true);
@@ -104,12 +146,16 @@ export default function StockChartPage() {
   }, [ticker]);
 
   useEffect(() => {
-    if (kr) return; // 한국 주식은 환율 불필요
+    if (kr) return;
     fetch("/api/exchange-rate")
       .then((r) => r.json())
       .then((d) => { if (d?.rate) setExchangeRate(d.rate); })
       .catch(() => {});
   }, [kr]);
+
+  useEffect(() => {
+    fetchHoldings();
+  }, [fetchHoldings]);
 
   const up          = data?.up ?? true;
   const accentColor = up ? "#7ed4a0" : "#f07878";
@@ -119,6 +165,69 @@ export default function StockChartPage() {
   function addAmount(n: number) { setOrderAmt((p) => Math.min(p + n, totalPoints)); }
   function setAll()              { setOrderAmt(totalPoints); }
   function clearAmount()         { setOrderAmt(0); }
+
+  // 매수 실행
+  async function handleBuy() {
+    if (orderAmt < 100 || buying) return;
+    setBuying(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { showToast("로그인이 필요해요", false); return; }
+
+      const res = await fetch("/api/investments/buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ticker, investedPoints: orderAmt }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        showToast(json.error ?? "매수에 실패했어요", false);
+        return;
+      }
+      showToast(`${orderAmt.toLocaleString("ko-KR")}P 매수 완료!`, true);
+      setOrderAmt(0);
+      // userRow 포인트 갱신은 authContext가 자동으로 처리; holdings 갱신
+      await fetchHoldings();
+      // 페이지 새로고침 없이 userRow 갱신을 위해 window 이벤트 활용
+      window.dispatchEvent(new Event("pico:points:refresh"));
+    } finally {
+      setBuying(false);
+    }
+  }
+
+  // 매도 실행
+  async function handleSell(investmentId: string) {
+    if (selling) return;
+    setSelling(investmentId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { showToast("로그인이 필요해요", false); return; }
+
+      const res = await fetch("/api/investments/sell", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ investmentId, ticker }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        showToast(json.error ?? "매도에 실패했어요", false);
+        return;
+      }
+      const { finalPoints, profitLoss } = json;
+      const sign = profitLoss >= 0 ? "+" : "";
+      showToast(`매도 완료! ${finalPoints.toLocaleString()}P 수령 (${sign}${profitLoss.toLocaleString()}P)`, true);
+      await fetchHoldings();
+      window.dispatchEvent(new Event("pico:points:refresh"));
+    } finally {
+      setSelling(null);
+    }
+  }
+
+  // 이 종목 보유 중인 holding 목록
+  const holdingList = holdings.filter((h) => h.status === "holding");
+  const soldList    = holdings.filter((h) => h.status === "sold");
 
   // ─── 주문창 ──────────────────────────────────────────────────────────────────
   const orderPanel = (
@@ -147,113 +256,241 @@ export default function StockChartPage() {
           ))}
         </div>
 
-        <div style={{ padding: "16px 16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
+        {orderTab === "buy" ? (
+          /* ── 매수 패널 ── */
+          <div style={{ padding: "16px 16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
 
-          {/* 주문 가능 포인트 */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span className="lbl" style={{ color: C.text2 }}>주문 가능 포인트</span>
-            <span style={{ ...NUM_MONO, color: C.text }}>{totalPoints.toLocaleString("ko-KR")}P</span>
-          </div>
-
-          {/* 투자 금액 디스플레이 */}
-          <div style={{
-            background: C.inner, borderRadius: 12, padding: "14px 16px",
-            border: "0.5px solid rgba(255,255,255,0.08)",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-          }}>
-            <span className="lbl" style={{ color: C.text2 }}>투자 금액</span>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-              <span style={{ ...NUM_MONO, fontSize: 22, color: orderAmt > 0 ? C.text : C.text2 }}>
-                {orderAmt > 0 ? orderAmt.toLocaleString("ko-KR") : "0"}
-              </span>
-              <span className="lbl" style={{ color: C.text2 }}>P</span>
-              {orderAmt > 0 && (
-                <button onClick={clearAmount} style={{
-                  background: "none", border: "none", color: C.text2,
-                  fontSize: 14, cursor: "pointer", marginLeft: 6, padding: 0,
-                }}>✕</button>
-              )}
+            {/* 주문 가능 포인트 */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="lbl" style={{ color: C.text2 }}>주문 가능 포인트</span>
+              <span style={{ ...NUM_MONO, color: C.text }}>{totalPoints.toLocaleString("ko-KR")}P</span>
             </div>
-          </div>
 
-          {/* 빠른 입력 버튼 */}
-          <div style={{ display: "flex", gap: 8 }}>
-            {[100, 500, 1000].map((n) => (
-              <button key={n} onClick={() => addAmount(n)}
+            {/* 투자 금액 디스플레이 */}
+            <div style={{
+              background: C.inner, borderRadius: 12, padding: "14px 16px",
+              border: "0.5px solid rgba(255,255,255,0.08)",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <span className="lbl" style={{ color: C.text2 }}>투자 금액</span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                <span style={{ ...NUM_MONO, fontSize: 22, color: orderAmt > 0 ? C.text : C.text2 }}>
+                  {orderAmt > 0 ? orderAmt.toLocaleString("ko-KR") : "0"}
+                </span>
+                <span className="lbl" style={{ color: C.text2 }}>P</span>
+                {orderAmt > 0 && (
+                  <button onClick={clearAmount} style={{
+                    background: "none", border: "none", color: C.text2,
+                    fontSize: 14, cursor: "pointer", marginLeft: 6, padding: 0,
+                  }}>✕</button>
+                )}
+              </div>
+            </div>
+
+            {/* 빠른 입력 버튼 */}
+            <div style={{ display: "flex", gap: 8 }}>
+              {[100, 500, 1000].map((n) => (
+                <button key={n} onClick={() => addAmount(n)}
+                  className="quick-btn lbl"
+                  style={{
+                    flex: 1, padding: "9px 0", fontWeight: 500,
+                    borderRadius: 10, cursor: "pointer",
+                    border: "0.5px solid rgba(250,202,62,0.2)",
+                    background: "rgba(250,202,62,0.06)",
+                    color: C.text2,
+                  }}
+                >+{n.toLocaleString()}P</button>
+              ))}
+              <button onClick={setAll}
                 className="quick-btn lbl"
                 style={{
                   flex: 1, padding: "9px 0", fontWeight: 500,
                   borderRadius: 10, cursor: "pointer",
-                  border: "0.5px solid rgba(250,202,62,0.2)",
-                  background: "rgba(250,202,62,0.06)",
-                  color: C.text2,
+                  border: "0.5px solid rgba(250,202,62,0.3)",
+                  background: "rgba(250,202,62,0.1)",
+                  color: "#FACA3E",
                 }}
-              >+{n.toLocaleString()}P</button>
-            ))}
-            <button onClick={setAll}
-              className="quick-btn lbl"
-              style={{
-                flex: 1, padding: "9px 0", fontWeight: 500,
-                borderRadius: 10, cursor: "pointer",
-                border: "0.5px solid rgba(250,202,62,0.3)",
-                background: "rgba(250,202,62,0.1)",
-                color: "#FACA3E",
-              }}
-            >전체</button>
-          </div>
-
-          {/* 현재 등락률 미리보기 */}
-          {orderAmt >= 100 && data && (
-            <div className="lbl" style={{
-              background: "rgba(255,255,255,0.02)", borderRadius: 10, padding: "10px 14px",
-              display: "flex", justifyContent: "space-between", color: C.text2,
-            }}>
-              <span>현재 등락률</span>
-              <span style={{ color: accentColor }}>{up ? "▲" : "▼"} {data.formattedChange}</span>
+              >전체</button>
             </div>
-          )}
 
-          {/* 주문 버튼 */}
-          <button disabled={orderAmt < 100}
-            style={{
-              width: "100%",
-              background: orderAmt >= 100
-                ? (orderTab === "buy" ? "#FACA3E" : "#f07878")
-                : "#1e1e1e",
-              color: orderAmt >= 100
-                ? (orderTab === "buy" ? "#0d0d0d" : "#fff")
-                : C.text2,
-              fontSize: 15, fontWeight: 700,
-              padding: "16px 0", borderRadius: 14, border: "none",
-              cursor: orderAmt >= 100 ? "pointer" : "not-allowed",
-              transition: "background 0.15s, color 0.15s",
-            }}
-          >
-            {orderAmt < 100
-              ? "100P 이상 입력해 주세요"
-              : `${orderAmt.toLocaleString("ko-KR")}P ${orderTab === "buy" ? "매수하기" : "매도하기"}`
-            }
-          </button>
+            {/* 현재 등락률 미리보기 */}
+            {orderAmt >= 100 && data && (
+              <div className="lbl" style={{
+                background: "rgba(255,255,255,0.02)", borderRadius: 10, padding: "10px 14px",
+                display: "flex", justifyContent: "space-between", color: C.text2,
+              }}>
+                <span>현재 등락률</span>
+                <span style={{ color: accentColor }}>{up ? "▲" : "▼"} {data.formattedChange}</span>
+              </div>
+            )}
 
-          <p className="lbl" style={{ color: C.text2, textAlign: "center", margin: 0 }}>
-            가상 투자 참고용 · 실제 거래 아님
-          </p>
-        </div>
+            {/* 매수 버튼 */}
+            <button
+              disabled={orderAmt < 100 || buying || !userRow}
+              onClick={handleBuy}
+              style={{
+                width: "100%",
+                background: orderAmt >= 100 && !buying ? "#FACA3E" : "#1e1e1e",
+                color: orderAmt >= 100 && !buying ? "#0d0d0d" : C.text2,
+                fontSize: 15, fontWeight: 700,
+                padding: "16px 0", borderRadius: 14, border: "none",
+                cursor: orderAmt >= 100 && !buying ? "pointer" : "not-allowed",
+                transition: "background 0.15s, color 0.15s",
+              }}
+            >
+              {buying
+                ? "처리 중..."
+                : orderAmt < 100
+                  ? "100P 이상 입력해 주세요"
+                  : `${orderAmt.toLocaleString("ko-KR")}P 매수하기`
+              }
+            </button>
+
+            <p className="lbl" style={{ color: C.text2, textAlign: "center", margin: 0 }}>
+              가상 투자 참고용 · 실제 거래 아님
+            </p>
+          </div>
+        ) : (
+          /* ── 매도 패널 ── */
+          <div style={{ padding: "16px 16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+            {holdingsLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[1,2].map((i) => <Skeleton key={i} w="100%" h={72} radius={12} />)}
+              </div>
+            ) : holdingList.length === 0 ? (
+              <div style={{ padding: "24px 0", textAlign: "center" }}>
+                <div style={{ fontSize: 22, marginBottom: 8 }}>📭</div>
+                <p className="lbl" style={{ color: C.text2, margin: 0, lineHeight: 1.7 }}>
+                  보유 중인 {ticker} 종목이 없어요<br />
+                  <span style={{ color: C.text2 }}>매수 탭에서 투자해 보세요</span>
+                </p>
+              </div>
+            ) : (
+              holdingList.map((h) => {
+                const isProfit = h.profitLoss >= 0;
+                const pl = h.profitLoss;
+                const plColor = isProfit ? "#7ed4a0" : "#f07878";
+                const rate = h.profitRate ?? 0;
+                return (
+                  <div key={h.id} style={{
+                    background: C.inner, borderRadius: 12, padding: "14px",
+                    border: "0.5px solid rgba(255,255,255,0.07)",
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                      <div>
+                        <div className="lbl" style={{ color: C.text2, marginBottom: 2 }}>
+                          {new Date(h.buy_at).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} 매수
+                        </div>
+                        <div style={{ ...NUM_MONO, fontSize: 16, color: C.text }}>
+                          {h.invested_points.toLocaleString("ko-KR")}P 투자
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div className="lbl" style={{ color: C.text2, marginBottom: 2 }}>현재 평가</div>
+                        <div style={{ ...NUM_MONO, fontSize: 16, color: plColor }}>
+                          {h.currentValue.toLocaleString("ko-KR")}P
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span className="lbl" style={{ color: plColor }}>
+                        {isProfit ? "▲" : "▼"} {isProfit ? "+" : ""}{pl.toLocaleString("ko-KR")}P ({rate >= 0 ? "+" : ""}{rate.toFixed(2)}%)
+                      </span>
+                      <button
+                        onClick={() => handleSell(h.id)}
+                        disabled={selling === h.id}
+                        style={{
+                          padding: "8px 20px", borderRadius: 10,
+                          background: selling === h.id ? "#1e1e1e" : "rgba(240,120,120,0.15)",
+                          border: "0.5px solid rgba(240,120,120,0.3)",
+                          color: selling === h.id ? C.text2 : "#f07878",
+                          fontSize: 13, fontWeight: 600, cursor: "pointer",
+                        }}
+                      >
+                        {selling === h.id ? "처리 중..." : "매도하기"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
       </Card>
 
       {/* 내 투자 현황 */}
       <Card>
-        <div style={{ padding: "16px 16px 12px", borderBottom: "0.5px solid rgba(255,255,255,0.05)" }}>
+        <div style={{ padding: "16px 16px 12px", borderBottom: "0.5px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span className="sec-hd">내 투자 현황</span>
+          {holdingList.length > 0 && (
+            <span className="lbl" style={{ color: C.text2 }}>보유 {holdingList.length}건</span>
+          )}
         </div>
-        {/* TODO: mock_investments 테이블 연동 후 실제 보유 내역 표시 */}
-        <div style={{ padding: "28px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-          <div style={{ fontSize: 24 }}>📊</div>
-          <p className="lbl" style={{ color: C.text2, margin: 0, textAlign: "center", lineHeight: 1.7 }}>
-            아직 보유 중인 종목이 없어요<br />
-            <span style={{ color: C.text2 }}>매수하면 여기에 내역이 표시돼요</span>
-          </p>
-        </div>
+
+        {holdingsLoading ? (
+          <div style={{ padding: "16px" }}>
+            <Skeleton w="100%" h={60} radius={10} />
+          </div>
+        ) : holdingList.length === 0 && soldList.length === 0 ? (
+          <div style={{ padding: "28px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            <div style={{ fontSize: 24 }}>📊</div>
+            <p className="lbl" style={{ color: C.text2, margin: 0, textAlign: "center", lineHeight: 1.7 }}>
+              아직 보유 중인 종목이 없어요<br />
+              <span style={{ color: C.text2 }}>매수하면 여기에 내역이 표시돼요</span>
+            </p>
+          </div>
+        ) : (
+          <div style={{ padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* 보유 중 */}
+            {holdingList.map((h) => {
+              const isProfit = h.profitLoss >= 0;
+              const plColor = isProfit ? "#7ed4a0" : "#f07878";
+              return (
+                <div key={h.id} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  background: C.inner, borderRadius: 10, padding: "10px 12px",
+                  border: "0.5px solid rgba(255,255,255,0.05)",
+                }}>
+                  <div>
+                    <div className="lbl" style={{ color: C.text2 }}>보유 중</div>
+                    <div style={{ ...NUM_MONO, fontSize: 14, color: C.text }}>{h.invested_points.toLocaleString()}P</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ ...NUM_MONO, fontSize: 14, color: plColor }}>{h.currentValue.toLocaleString()}P</div>
+                    <div className="lbl" style={{ color: plColor }}>
+                      {isProfit ? "+" : ""}{h.profitLoss.toLocaleString()}P ({(h.profitRate ?? 0) >= 0 ? "+" : ""}{(h.profitRate ?? 0).toFixed(1)}%)
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {/* 최근 매도 내역 (최대 3건) */}
+            {soldList.slice(0, 3).map((h) => {
+              const pl = h.profitLoss;
+              const isProfit = pl >= 0;
+              const plColor = isProfit ? "#7ed4a0" : "#f07878";
+              return (
+                <div key={h.id} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  background: C.inner, borderRadius: 10, padding: "10px 12px",
+                  border: "0.5px solid rgba(255,255,255,0.05)",
+                  opacity: 0.6,
+                }}>
+                  <div>
+                    <div className="lbl" style={{ color: C.text2 }}>매도 완료</div>
+                    <div style={{ ...NUM_MONO, fontSize: 14, color: C.text }}>{h.invested_points.toLocaleString()}P</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ ...NUM_MONO, fontSize: 14, color: C.text }}>{(h.final_points ?? 0).toLocaleString()}P</div>
+                    <div className="lbl" style={{ color: plColor }}>
+                      {isProfit ? "+" : ""}{pl.toLocaleString()}P
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Card>
     </>
   );
@@ -265,8 +502,11 @@ export default function StockChartPage() {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
+        @keyframes slideUp {
+          from { transform: translateY(12px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
 
-        /* ── 공통 텍스트 클래스 (모바일 기본값) ── */
         .lbl     { font-size: 12px; }
         .sec-hd  { font-size: 13px; font-weight: 600; color: ${C.text2}; }
         .card-lbl{ font-size: 11px; color: ${C.text2}; margin-bottom: 6px; }
@@ -276,7 +516,6 @@ export default function StockChartPage() {
         .hero-usd   { font-size: 14px; }
         .hero-delay { font-size: 14px; }
 
-        /* ── 웹(≥768px) 폰트 ── */
         @media (min-width: 768px) {
           .lbl        { font-size: 14px; }
           .sec-hd     { font-size: 14px; }
@@ -285,12 +524,10 @@ export default function StockChartPage() {
           .hero-usd   { font-size: 18px; }
           .hero-delay { font-size: 18px; }
           .period-btn { font-size: 14px; }
-          /* 헤더에서 주식 정보·가격 숨김 */
           .hdr-stock-info { display: none; }
           .hdr-price      { display: none; }
         }
 
-        /* ── 레이아웃 ── */
         .stock-outer { padding-bottom: 48px; }
         .stock-hero  { padding: 14px 14px 0; }
         .stock-body  { padding: 0 14px; display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
@@ -306,6 +543,21 @@ export default function StockChartPage() {
           .order-card  { height: 434px; overflow-y: auto; }
         }
       `}</style>
+
+      {/* ── 토스트 알림 ───────────────────────────────────────────────────── */}
+      {toast && (
+        <div style={{
+          position: "fixed", bottom: 28, left: "50%", transform: "translateX(-50%)",
+          zIndex: 9999, background: toast.ok ? "#1a2e1a" : "#2e1a1a",
+          border: `0.5px solid ${toast.ok ? "rgba(126,212,160,0.3)" : "rgba(240,120,120,0.3)"}`,
+          color: toast.ok ? "#7ed4a0" : "#f07878",
+          padding: "12px 20px", borderRadius: 14, fontSize: 14, fontWeight: 600,
+          whiteSpace: "nowrap", animation: "slideUp 0.2s ease",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
+        }}>
+          {toast.ok ? "✓ " : "✕ "}{toast.msg}
+        </div>
+      )}
 
       {/* ── 헤더 ──────────────────────────────────────────────────────────── */}
       <div style={{
@@ -324,9 +576,8 @@ export default function StockChartPage() {
       {/* ── 바디 ──────────────────────────────────────────────────────────── */}
       <div className="stock-outer">
 
-        {/* ── 가격 히어로 (양쪽 컬럼 위, 전체 너비) ────────────────────────── */}
+        {/* ── 가격 히어로 ────────────────────────────────────────────────── */}
         <div className="stock-hero">
-          {/* 종목명 */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             {logo
               ? <TickerLogo src={logo} ticker={ticker} size={22} />
@@ -369,12 +620,10 @@ export default function StockChartPage() {
           {/* ── 왼쪽: 차트 + 종목정보 ─────────────────────────────────────── */}
           <div className="stock-left">
 
-            {/* 차트 카드 */}
             <Card>
               <StockChart ticker={ticker} up={up} isKr={kr} exchangeRate={exchangeRate} />
             </Card>
 
-            {/* 종목 정보 카드 */}
             <Card style={{ padding: 16 }}>
               <div style={{ marginBottom: 12 }}>
                 <span className="sec-hd">종목 정보</span>
