@@ -240,6 +240,21 @@ export default function MyPage() {
           </button>
         </div>
 
+        {/* ── 퀘스트 카드 ── */}
+        <button
+          className="pico-btn border w-full mb-[10px]"
+          style={{ background: "#141414", borderColor: "rgba(250,202,62,0.2)", borderRadius: 16, padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, textAlign: "left" }}
+          onClick={() => router.push("/mypage/quests")}
+        >
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: FS.cardLabel, fontWeight: 500, color: "#c8bfb0", marginBottom: 4 }}>퀘스트</p>
+            <p style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>미션 완료하고 포인트 받기 🎯</p>
+          </div>
+          <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
+          </div>
+        </button>
+
         {/* ── DNA 카드 + 출석 카드 2열 그리드 ── */}
         <div className="grid-2-col mb-8">
           {/* DNA 카드 */}

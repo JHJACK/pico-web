@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json({ ok: true, investment: result.investment, buyPrice });
+    return NextResponse.json({ ok: true, investment: result.investment, buyPrice, isFirstInvestment: result.isFirstInvestment ?? false });
   } catch (e) {
     console.error("[/api/investments/buy]", e);
     return NextResponse.json({ error: "서버 오류가 발생했어요" }, { status: 500 });

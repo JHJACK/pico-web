@@ -109,11 +109,18 @@ export default function StockChartPage() {
   const [buying, setBuying]           = useState(false);
   const [selling, setSelling]         = useState<string | null>(null); // investmentId
   const [toast, setToast]             = useState<{ msg: string; ok: boolean } | null>(null);
+  const [questPopup, setQuestPopup]   = useState<{ title: string; points: number } | null>(null);
 
-  // 토스트 표시 헬퍼
+  // 일반 토스트
   const showToast = (msg: string, ok: boolean) => {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // 퀘스트 완료 팝업 (3초 후 사라짐)
+  const showQuestPopup = (title: string, points: number) => {
+    setQuestPopup({ title, points });
+    setTimeout(() => setQuestPopup(null), 3500);
   };
 
   // 보유 현황 조회
@@ -186,10 +193,12 @@ export default function StockChartPage() {
         return;
       }
       showToast(`${orderAmt.toLocaleString("ko-KR")}P 매수 완료!`, true);
+      // 첫 모의투자 퀘스트 완료 팝업
+      if (json.isFirstInvestment) {
+        setTimeout(() => showQuestPopup("첫 모의투자 퀘스트 완료!", 200), 500);
+      }
       setOrderAmt(0);
-      // userRow 포인트 갱신은 authContext가 자동으로 처리; holdings 갱신
       await fetchHoldings();
-      // 페이지 새로고침 없이 userRow 갱신을 위해 window 이벤트 활용
       window.dispatchEvent(new Event("pico:points:refresh"));
     } finally {
       setBuying(false);
@@ -215,9 +224,13 @@ export default function StockChartPage() {
         showToast(json.error ?? "매도에 실패했어요", false);
         return;
       }
-      const { finalPoints, profitLoss } = json;
+      const { finalPoints, profitLoss, questBonus } = json;
       const sign = profitLoss >= 0 ? "+" : "";
       showToast(`매도 완료! ${finalPoints.toLocaleString()}P 수령 (${sign}${profitLoss.toLocaleString()}P)`, true);
+      // 수익 달성 퀘스트 완료 팝업
+      if (questBonus > 0) {
+        setTimeout(() => showQuestPopup("모의투자 수익 달성 퀘스트!", questBonus), 600);
+      }
       await fetchHoldings();
       window.dispatchEvent(new Event("pico:points:refresh"));
     } finally {
@@ -556,6 +569,37 @@ export default function StockChartPage() {
           boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
         }}>
           {toast.ok ? "✓ " : "✕ "}{toast.msg}
+        </div>
+      )}
+
+      {/* ── 퀘스트 완료 팝업 ────────────────────────────────────────────── */}
+      {questPopup && (
+        <div style={{
+          position: "fixed", top: "50%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 10000,
+          background: "#141414",
+          border: "0.5px solid rgba(250,202,62,0.4)",
+          borderRadius: 22,
+          padding: "28px 32px",
+          textAlign: "center",
+          animation: "slideUp 0.25s ease",
+          boxShadow: "0 8px 40px rgba(0,0,0,0.7)",
+          minWidth: 240,
+        }}>
+          <div style={{ fontSize: 36, marginBottom: 10 }}>🎯</div>
+          <div style={{ fontSize: 13, color: C.text2, marginBottom: 6, fontWeight: 500 }}>퀘스트 완료!</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 14 }}>{questPopup.title}</div>
+          <div style={{
+            display: "inline-block",
+            background: "rgba(250,202,62,0.12)",
+            border: "0.5px solid rgba(250,202,62,0.3)",
+            borderRadius: 12, padding: "8px 20px",
+          }}>
+            <span style={{ fontSize: 22, fontWeight: 700, color: "#FACA3E", fontFamily: "var(--font-inter)" }}>
+              +{questPopup.points}P
+            </span>
+          </div>
         </div>
       )}
 

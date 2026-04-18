@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       finalPoints: result.finalPoints,
       profitLoss: result.profitLoss,
+      questBonus: result.questBonus ?? 0,
       sellPrice,
     });
   } catch (e) {

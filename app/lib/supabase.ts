@@ -498,7 +498,7 @@ export async function buyStock(
   ticker: string,
   investedPoints: number,
   buyPrice: number
-): Promise<{ ok: boolean; investment?: MockInvestmentRow; error?: string }> {
+): Promise<{ ok: boolean; investment?: MockInvestmentRow; error?: string; isFirstInvestment?: boolean }> {
   if (!uid) return { ok: false, error: "로그인이 필요해요" };
   if (investedPoints < 100) return { ok: false, error: "최소 100P 이상 투자해 주세요" };
 
@@ -545,7 +545,20 @@ export async function buyStock(
     reason: `${ticker} 모의 매수`,
   });
 
-  return { ok: true, investment: inv as MockInvestmentRow };
+  // 5) 첫 모의투자 퀘스트 보너스 (+200P, 1회)
+  const { count } = await supabase
+    .from("mock_investments")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", uid);
+  const isFirstInvestment = (count ?? 0) === 1;
+  if (isFirstInvestment) {
+    await supabase.rpc("increment_user_points", { uid, delta: 200 });
+    await supabase.from("point_history").insert({
+      user_id: uid, points: 200, reason: "첫 모의투자 퀘스트 완료",
+    });
+  }
+
+  return { ok: true, investment: inv as MockInvestmentRow, isFirstInvestment };
 }
 
 // ── 모의 매도 ─────────────────────────────────────────
@@ -553,7 +566,7 @@ export async function sellStock(
   uid: string,
   investmentId: string,
   sellPrice: number
-): Promise<{ ok: boolean; finalPoints?: number; profitLoss?: number; error?: string }> {
+): Promise<{ ok: boolean; finalPoints?: number; profitLoss?: number; error?: string; questBonus?: number }> {
   if (!uid) return { ok: false, error: "로그인이 필요해요" };
 
   // 1) 투자 기록 조회
@@ -599,7 +612,17 @@ export async function sellStock(
     reason,
   });
 
-  return { ok: true, finalPoints, profitLoss };
+  // 5) 수익 달성 퀘스트 보너스 (+50P, 수익 발생 시마다)
+  let questBonus = 0;
+  if (profitLoss > 0) {
+    questBonus = 50;
+    await supabase.rpc("increment_user_points", { uid, delta: 50 });
+    await supabase.from("point_history").insert({
+      user_id: uid, points: 50, reason: "모의투자 수익 달성 퀘스트",
+    });
+  }
+
+  return { ok: true, finalPoints, profitLoss, questBonus };
 }
 
 // ── 보유 종목 조회 ────────────────────────────────────
