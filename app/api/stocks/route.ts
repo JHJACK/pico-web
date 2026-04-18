@@ -2,31 +2,12 @@ import { setCached, mgetCached } from "@/app/lib/cache";
 import { US_FALLBACK, KR_FALLBACK } from "@/app/lib/stocks";
 import { fetchKisStocks } from "@/app/lib/kis";
 import { isKrTicker } from "@/app/lib/stockNames";
+import { isKrMarketOpen, isUSMarketOpen } from "@/app/lib/marketStatus";
 
 const CACHE_TTL = 15 * 60; // 15분
 
-// ─── 장 운영시간 체크 (KST 기준) ─────────────────────────────────────────────
-
-function nowKST(): { day: number; minutes: number } {
-  const now = new Date();
-  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  const day = kst.getUTCDay(); // 0=일, 6=토
-  const minutes = kst.getUTCHours() * 60 + kst.getUTCMinutes();
-  return { day, minutes };
-}
-
-function isKoreanMarketOpen(): boolean {
-  const { day, minutes } = nowKST();
-  if (day === 0 || day === 6) return false;
-  return minutes >= 9 * 60 && minutes < 15 * 60 + 30;
-}
-
-function isUSMarketOpen(): boolean {
-  const { day, minutes } = nowKST();
-  if (day === 0 || day === 6) return false;
-  // 23:30~23:59 또는 00:00~06:00 KST
-  return minutes >= 23 * 60 + 30 || minutes < 6 * 60;
-}
+// 공유 유틸 래핑 (기존 호출 이름 유지)
+const isKoreanMarketOpen = isKrMarketOpen;
 
 // ─── Twelve Data 해외주식 조회 ───────────────────────────────────────────────
 

@@ -21,6 +21,8 @@ type Props = {
   up: boolean;
   isKr: boolean;
   exchangeRate?: number;
+  marketClosed?: boolean;
+  closedSubText?: string;
 };
 
 const PERIODS: Period[] = ["1D", "1W", "1M", "1Y"];
@@ -56,7 +58,7 @@ function tickFormatter(time: Time, _type: TickMarkType, _locale: string): string
   return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Props) {
+export default function StockChart({ ticker, up, isKr, exchangeRate = 1370, marketClosed = false, closedSubText }: Props) {
   const containerRef   = useRef<HTMLDivElement>(null);
   const tooltipRef     = useRef<HTMLDivElement>(null);
   const chartRef       = useRef<IChartApi | null>(null);
@@ -324,6 +326,33 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
             <span className="lbl" style={{ color: "#c8bfb0" }}>
               차트 데이터를 불러올 수 없어요
             </span>
+          </div>
+        )}
+
+        {/* 휴장 오버레이 */}
+        {marketClosed && !loading && (
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "rgba(13,13,13,0.82)",
+            backdropFilter: "blur(3px)",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            gap: 10, padding: "0 24px", textAlign: "center",
+            zIndex: 5,
+          }}>
+            <span style={{ fontSize: 36 }}>🌙</span>
+            <span style={{
+              fontSize: 17, fontWeight: 700, color: "#e8e0d0", lineHeight: 1.4,
+            }}>
+              지금은 거래소 불이 꺼졌어요
+            </span>
+            {closedSubText && (
+              <span className="lbl" style={{
+                color: "#c8bfb0", lineHeight: 1.6, maxWidth: 260,
+              }}>
+                {closedSubText}
+              </span>
+            )}
           </div>
         )}
       </div>

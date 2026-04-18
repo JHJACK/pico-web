@@ -6,6 +6,7 @@ import { fetchStocks, type StockData } from "@/app/lib/stocks";
 import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase, type MockInvestmentRow } from "@/app/lib/supabase";
+import { isKrMarketOpen, isUSMarketOpen, getClosedText, getMarketClosedTooltip } from "@/app/lib/marketStatus";
 import StockChart from "@/app/components/StockChart";
 
 type OrderTab = "buy" | "sell";
@@ -102,6 +103,20 @@ export default function StockChartPage() {
   const [orderTab, setOrderTab]     = useState<OrderTab>("buy");
   const [orderAmt, setOrderAmt]     = useState(0);
   const [exchangeRate, setExchangeRate] = useState(1470);
+
+  // 장 운영 상태 (1분마다 갱신)
+  const [marketOpen, setMarketOpen] = useState(() =>
+    kr ? isKrMarketOpen() : isUSMarketOpen()
+  );
+  useEffect(() => {
+    const check = () => setMarketOpen(kr ? isKrMarketOpen() : isUSMarketOpen());
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, [kr]);
+
+  const closedInfo   = getClosedText(kr);
+  const closedTooltip = getMarketClosedTooltip(kr);
 
   // 투자 관련 상태
   const [holdings, setHoldings]       = useState<HoldingEnriched[]>([]);
@@ -338,26 +353,41 @@ export default function StockChartPage() {
             )}
 
             {/* 매수 버튼 */}
-            <button
-              disabled={orderAmt < 100 || buying || !userRow}
-              onClick={handleBuy}
-              style={{
-                width: "100%",
-                background: orderAmt >= 100 && !buying ? "#FACA3E" : "#1e1e1e",
-                color: orderAmt >= 100 && !buying ? "#0d0d0d" : C.text2,
-                fontSize: 15, fontWeight: 700,
-                padding: "16px 0", borderRadius: 14, border: "none",
-                cursor: orderAmt >= 100 && !buying ? "pointer" : "not-allowed",
-                transition: "background 0.15s, color 0.15s",
-              }}
-            >
-              {buying
-                ? "처리 중..."
-                : orderAmt < 100
-                  ? "100P 이상 입력해 주세요"
-                  : `${orderAmt.toLocaleString("ko-KR")}P 매수하기`
-              }
-            </button>
+            <div style={{ position: "relative" }}>
+              <button
+                disabled={orderAmt < 100 || buying || !userRow || !marketOpen}
+                onClick={handleBuy}
+                title={!marketOpen ? closedTooltip : undefined}
+                style={{
+                  width: "100%",
+                  background: !marketOpen
+                    ? "#1e1e1e"
+                    : orderAmt >= 100 && !buying ? "#FACA3E" : "#1e1e1e",
+                  color: !marketOpen
+                    ? "#555"
+                    : orderAmt >= 100 && !buying ? "#0d0d0d" : C.text2,
+                  fontSize: 15, fontWeight: 700,
+                  padding: "16px 0", borderRadius: 14,
+                  border: !marketOpen ? "0.5px solid rgba(255,255,255,0.06)" : "none",
+                  cursor: (!marketOpen || orderAmt < 100 || buying) ? "not-allowed" : "pointer",
+                  transition: "background 0.15s, color 0.15s",
+                }}
+              >
+                {!marketOpen
+                  ? "지금은 휴장 시간이에요 🌙"
+                  : buying
+                    ? "처리 중..."
+                    : orderAmt < 100
+                      ? "100P 이상 입력해 주세요"
+                      : `${orderAmt.toLocaleString("ko-KR")}P 매수하기`
+                }
+              </button>
+              {!marketOpen && (
+                <p className="lbl" style={{ color: "#555", textAlign: "center", margin: "6px 0 0" }}>
+                  {closedTooltip}
+                </p>
+              )}
+            </div>
 
             <p className="lbl" style={{ color: C.text2, textAlign: "center", margin: 0 }}>
               가상 투자 참고용 · 실제 거래 아님
@@ -410,17 +440,21 @@ export default function StockChartPage() {
                         {isProfit ? "▲" : "▼"} {isProfit ? "+" : ""}{pl.toLocaleString("ko-KR")}P ({rate >= 0 ? "+" : ""}{rate.toFixed(2)}%)
                       </span>
                       <button
-                        onClick={() => handleSell(h.id)}
-                        disabled={selling === h.id}
+                        onClick={() => !marketOpen ? undefined : handleSell(h.id)}
+                        disabled={selling === h.id || !marketOpen}
+                        title={!marketOpen ? closedTooltip : undefined}
                         style={{
                           padding: "8px 20px", borderRadius: 10,
-                          background: selling === h.id ? "#1e1e1e" : "rgba(240,120,120,0.15)",
-                          border: "0.5px solid rgba(240,120,120,0.3)",
-                          color: selling === h.id ? C.text2 : "#f07878",
-                          fontSize: 13, fontWeight: 600, cursor: "pointer",
+                          background: !marketOpen || selling === h.id
+                            ? "#1e1e1e"
+                            : "rgba(240,120,120,0.15)",
+                          border: `0.5px solid ${!marketOpen ? "rgba(255,255,255,0.06)" : "rgba(240,120,120,0.3)"}`,
+                          color: !marketOpen || selling === h.id ? "#555" : "#f07878",
+                          fontSize: 13, fontWeight: 600,
+                          cursor: !marketOpen || selling === h.id ? "not-allowed" : "pointer",
                         }}
                       >
-                        {selling === h.id ? "처리 중..." : "매도하기"}
+                        {selling === h.id ? "처리 중..." : !marketOpen ? "휴장 중" : "매도하기"}
                       </button>
                     </div>
                   </div>
@@ -665,7 +699,11 @@ export default function StockChartPage() {
           <div className="stock-left">
 
             <Card>
-              <StockChart ticker={ticker} up={up} isKr={kr} exchangeRate={exchangeRate} />
+              <StockChart
+                ticker={ticker} up={up} isKr={kr} exchangeRate={exchangeRate}
+                marketClosed={!marketOpen}
+                closedSubText={closedInfo.sub}
+              />
             </Card>
 
             <Card style={{ padding: 16 }}>
