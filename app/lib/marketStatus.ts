@@ -59,6 +59,17 @@ export function isUSMarketOpen(): boolean {
   return eveningOpen || overnightOpen;
 }
 
+// ─── 미국장 다음 개장 요일 텍스트 ────────────────────────────────────────────
+function usNextOpenText(openStr: string): string {
+  const { day } = nowKST();
+  // 일요일 → 내일(월요일) 밤
+  if (day === 0) return `내일(월요일) 밤 ${openStr}에 거래가 시작됩니다.`;
+  // 토요일 05:00 이후 → 월요일 밤 (토요일 05:00 이전은 금요일 장 중이라 이 함수 호출 안 됨)
+  if (day === 6) return `월요일 밤 ${openStr}에 거래가 시작됩니다.`;
+  // 평일 낮 → 오늘 밤
+  return `오늘 밤 ${openStr}에 거래가 시작됩니다.`;
+}
+
 // ─── 다음 개장 안내 텍스트 ────────────────────────────────────────────────────
 export function getClosedText(isKr: boolean): { main: string; sub: string } {
   if (isKr) {
@@ -71,7 +82,7 @@ export function getClosedText(isKr: boolean): { main: string; sub: string } {
   const openStr = dst ? "22:30" : "23:30";
   return {
     main: "지금은 거래소 불이 꺼졌어요🌙",
-    sub:  `오늘 밤 ${openStr}에 거래가 시작됩니다.`,
+    sub:  usNextOpenText(openStr),
   };
 }
 

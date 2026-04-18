@@ -382,11 +382,6 @@ export default function StockChartPage() {
                       : `${orderAmt.toLocaleString("ko-KR")}P 매수하기`
                 }
               </button>
-              {!marketOpen && (
-                <p className="lbl" style={{ color: "#555", textAlign: "center", margin: "6px 0 0" }}>
-                  {closedTooltip}
-                </p>
-              )}
             </div>
 
             <p className="lbl" style={{ color: C.text2, textAlign: "center", margin: 0 }}>
