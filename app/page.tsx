@@ -692,6 +692,11 @@ export default function Home() {
                 {tab === "event" ? "이벤트" : "PICO Play"}
               </button>
             ))}
+            <Link href="/ranking" style={{ fontSize: 14, fontWeight: 400, color: "#3a3530", textDecoration: "none", transition: "color 0.15s" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#e8e0d0")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#3a3530")}>
+              🏆 랭킹
+            </Link>
           </div>
 
           {user && userRow ? (
@@ -731,6 +736,10 @@ export default function Home() {
             {tab === "event" ? "이벤트" : "PICO Play"}
           </button>
         ))}
+        <Link href="/ranking" className="flex-1 py-3 flex items-center justify-center"
+          style={{ fontSize: 14, color: "#3a3530", textDecoration: "none" }}>
+          🏆 랭킹
+        </Link>
       </div>
 
       {/* ══════════ 히어로 (이벤트 탭 전용) ══════════ */}
