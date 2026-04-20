@@ -124,6 +124,9 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
   // ── 차트 초기화 ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
+    // React style prop에 opacity가 없으므로 DOM으로 초기 숨김 처리
+    if (maxLabelRef.current) maxLabelRef.current.style.opacity = "0";
+    if (minLabelRef.current) minLabelRef.current.style.opacity = "0";
 
     const chart = createChart(containerRef.current, {
       layout: {
@@ -271,7 +274,6 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
     setEmpty(false);
     setMaxPrice(null);
     setMinPrice(null);
-    // 이전 레이블 숨기기
     if (maxLabelRef.current) maxLabelRef.current.style.opacity = "0";
     if (minLabelRef.current) minLabelRef.current.style.opacity = "0";
     try {
@@ -364,9 +366,9 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
             fontFamily: "var(--font-inter), monospace" }} />
         </div>
 
-        {/* 최고가 레이블 — positionLabels()가 좌표 계산 후 opacity:1로 전환 */}
+        {/* 최고가 레이블 — opacity는 React style prop에서 제외, positionLabels()가 DOM 직접 제어 */}
         <div ref={maxLabelRef} style={{
-          position: "absolute", opacity: 0, pointerEvents: "none",
+          position: "absolute", pointerEvents: "none",
           display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
           transition: "opacity 0.2s",
         }}>
@@ -386,7 +388,7 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
 
         {/* 최저가 레이블 */}
         <div ref={minLabelRef} style={{
-          position: "absolute", opacity: 0, pointerEvents: "none",
+          position: "absolute", pointerEvents: "none",
           display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
           transition: "opacity 0.2s",
         }}>
