@@ -671,13 +671,18 @@ export default function StockChartPage() {
               <div style={{ ...NUM_MONO, fontSize: 38, fontWeight: 300, color: C.text, lineHeight: 1.1 }}>
                 {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
               </div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, flexWrap: "wrap" }}>
                 <span style={{ ...NUM_MONO, fontSize: 14, color: accentColor, background: accentBg, padding: "4px 12px", borderRadius: 20 }}>
                   {up ? "▲" : "▼"} {data?.formattedChange ?? "—"}
                 </span>
                 {!kr && (
                   <span className="hero-usd" style={{ ...NUM_MONO, color: C.text2 }}>
                     {data?.formattedPrice ?? ""} 달러
+                  </span>
+                )}
+                {!marketOpen && (
+                  <span className="lbl" style={{ color: C.text2 }}>
+                    🌙 {closedInfo.main.replace("🌙", "").trim()} · {closedInfo.sub}
                   </span>
                 )}
                 <span className="hero-delay" style={{ color: C.text2, marginLeft: "auto" }}>
@@ -696,8 +701,6 @@ export default function StockChartPage() {
             <Card>
               <StockChart
                 ticker={ticker} up={up} isKr={kr} exchangeRate={exchangeRate}
-                marketClosed={!marketOpen}
-                closedSubText={closedInfo.sub}
               />
             </Card>
 
