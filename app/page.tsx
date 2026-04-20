@@ -9,6 +9,7 @@ import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type Stock
 import { supabase, getTodayVote, submitVoteAndAttendance, getTodayVoteCounts, getYesterdayVote, judgeYesterdayBattle, todayKST, getTodayStock, type BattleVoteRow } from "@/app/lib/supabase";
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
+import { isKrMarketOpen, isUSMarketOpen } from "@/app/lib/marketStatus";
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
@@ -67,16 +68,9 @@ const NUM: CSSProperties = {
 // 유틸
 // ═══════════════════════════════════════════════
 
-// 현재 KST 기준 장 상태
+// 현재 KST 기준 장 상태 (marketStatus.ts 공용 함수 사용 — DST 반영)
 function getMarketStatus() {
-  const now = new Date();
-  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  const day = kst.getUTCDay(); // 0=일 6=토
-  const min = kst.getUTCHours() * 60 + kst.getUTCMinutes();
-  const isWeekday = day >= 1 && day <= 5;
-  const krOpen  = isWeekday && min >= 9 * 60 && min < 15 * 60 + 30;
-  const usOpen  = isWeekday && (min >= 23 * 60 + 30 || min < 6 * 60);
-  return { krOpen, usOpen };
+  return { krOpen: isKrMarketOpen(), usOpen: isUSMarketOpen() };
 }
 
 function getMarketCountdown(): string {

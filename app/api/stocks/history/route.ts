@@ -55,12 +55,16 @@ export async function GET(request: Request) {
   }
 
   const cfg = PERIOD_CONFIG[period] ?? PERIOD_CONFIG["1M"];
+  // 1D/1W 는 인트라데이 — Twelve Data datetime이 "YYYY-MM-DD HH:mm:ss" (ET 로컬) 형식으로 옴
+  // Lightweight Charts 는 이 형식을 인식 못하므로, timezone=UTC 요청 후 Unix timestamp(초)로 변환
+  const isIntraday = period === "1D" || period === "1W";
   try {
     const url = [
       "https://api.twelvedata.com/time_series",
       `?symbol=${ticker}`,
       `&interval=${cfg.interval}`,
       `&outputsize=${cfg.outputsize}`,
+      isIntraday ? "&timezone=UTC" : "",
       "&order=ASC",
       `&apikey=${apiKey}`,
     ].join("");
@@ -84,14 +88,23 @@ export async function GET(request: Request) {
       return Response.json([]);
     }
 
-    const candles: CandleData[] = json.values.map((v) => ({
-      time:   v.datetime,
-      open:   parseFloat(v.open),
-      high:   parseFloat(v.high),
-      low:    parseFloat(v.low),
-      close:  parseFloat(v.close),
-      volume: parseFloat(v.volume ?? "0"),
-    }));
+    const candles: CandleData[] = json.values.map((v) => {
+      // 인트라데이: "2026-04-20 13:30:00" (UTC) → Unix timestamp(초) + KST 보정(+9h)
+      // 한국 주식과 동일하게 +9h 처리 → 차트 툴팁이 KST 기준으로 표시됨
+      // (예: NYSE 개장 UTC 13:30 → KST 22:30 표시)
+      // 일봉/주봉:  "2026-04-20" → 문자열 그대로
+      const time: string | number = isIntraday
+        ? Math.floor(new Date(v.datetime.replace(" ", "T") + "Z").getTime() / 1000) + 9 * 3600
+        : v.datetime.split(" ")[0];
+      return {
+        time,
+        open:   parseFloat(v.open),
+        high:   parseFloat(v.high),
+        low:    parseFloat(v.low),
+        close:  parseFloat(v.close),
+        volume: parseFloat(v.volume ?? "0"),
+      };
+    });
 
     await setCached(cacheKey, candles, cfg.cacheTTL);
     return Response.json(candles);
