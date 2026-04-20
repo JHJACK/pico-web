@@ -1,5 +1,6 @@
 import { setCached, mgetCached } from "@/app/lib/cache";
 import { isKrTicker } from "@/app/lib/stockNames";
+import { fetchKisHistory } from "@/app/lib/kis";
 
 export type CandleData = {
   time: string;   // "2024-01-15" or "2024-01-15 09:30:00"
@@ -32,18 +33,30 @@ export async function GET(request: Request) {
   const cached = (await mgetCached<CandleData[]>([cacheKey]))[0];
   if (cached) return Response.json(cached);
 
-  // ── Twelve Data 히스토리컬 조회 ──────────────────────────────────────────
+  // ── 한국 종목 → KIS 히스토리컬 조회 ────────────────────────────────────────
+  if (isKrTicker(ticker)) {
+    try {
+      const candles = await fetchKisHistory(ticker, period);
+      if (candles.length) {
+        await setCached(cacheKey, candles, cfg.cacheTTL);
+      }
+      return Response.json(candles);
+    } catch (e) {
+      console.error("[HISTORY] KIS 오류:", e);
+      return Response.json([]);
+    }
+  }
+
+  // ── 해외 종목 → Twelve Data 히스토리컬 조회 ─────────────────────────────────
   const apiKey = process.env.TWELVE_DATA_API_KEY ?? "";
   if (!apiKey || apiKey === "여기에키입력") {
     return Response.json([], { status: 200 });
   }
 
   try {
-    // 한국 종목은 KRX 거래소 코드 붙여야 Twelve Data가 인식함
-    const symbol = isKrTicker(ticker) ? `${ticker}:KRX` : ticker;
     const url = [
       "https://api.twelvedata.com/time_series",
-      `?symbol=${symbol}`,
+      `?symbol=${ticker}`,
       `&interval=${cfg.interval}`,
       `&outputsize=${cfg.outputsize}`,
       "&order=ASC",
