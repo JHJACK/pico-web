@@ -31,6 +31,20 @@ h1, h2, h3, h4, h5 {
 }
 
 
+/* ── 로그인 입력창 다크 강제 (autofill 포함) ── */
+input.pico-input {
+  background-color: #1e1e1e !important;
+  color: #e8e0d0 !important;
+}
+input.pico-input:-webkit-autofill,
+input.pico-input:-webkit-autofill:hover,
+input.pico-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #1e1e1e inset !important;
+  -webkit-text-fill-color: #e8e0d0 !important;
+  caret-color: #e8e0d0;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* ── 숫자 전용 폰트 (Inter) ── */
 .num,
 [class*="price"],
