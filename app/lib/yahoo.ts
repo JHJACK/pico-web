@@ -2,6 +2,131 @@
 // 공식 API 없음. IP 제한 없음, API 키 불필요, 무료.
 // 리스크: Yahoo 구조 변경 시 중단 가능. Redis 캐시로 호출 최소화 필요.
 
+// ─── 해외주식 현재가 (Yahoo Finance, API 키 불필요) ───────────────────────────
+
+export async function fetchYahooUsPrices(
+  tickers: string[]
+): Promise<Record<string, { price: number; change: number; changePercent: number }>> {
+  if (!tickers.length) return {};
+
+  const entries = await Promise.all(
+    tickers.map(async (ticker) => {
+      const url =
+        `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}` +
+        `?interval=1d&range=1d&includePrePost=false`;
+      try {
+        const res = await fetch(url, {
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; PICO/1.0)" },
+          cache: "no-store",
+        });
+        if (!res.ok) return [ticker, null] as const;
+
+        const json = await res.json() as {
+          chart?: { result?: Array<{ meta?: Record<string, number> }> };
+        };
+        const meta = json?.chart?.result?.[0]?.meta;
+        if (!meta?.regularMarketPrice) return [ticker, null] as const;
+
+        const price         = parseFloat(meta.regularMarketPrice.toFixed(2));
+        const prev          = meta.previousClose ?? meta.chartPreviousClose ?? price;
+        const change        = parseFloat((price - prev).toFixed(2));
+        const changePercent = parseFloat(((change / prev) * 100).toFixed(2));
+
+        return [ticker, { price, change, changePercent }] as const;
+      } catch {
+        return [ticker, null] as const;
+      }
+    })
+  );
+
+  const results: Record<string, { price: number; change: number; changePercent: number }> = {};
+  for (const [ticker, data] of entries) {
+    if (data) results[ticker] = data;
+  }
+  return results;
+}
+
+// ─── 해외주식 히스토리 (Yahoo Finance) ────────────────────────────────────────
+// KST 보정(+9h) 포함 → 차트 툴팁이 KST 기준으로 표시됨
+
+export async function fetchYahooUsHistory(
+  ticker: string,
+  period: string
+): Promise<YahooCandleData[]> {
+  const cfg = PERIOD_TO_YAHOO[period] ?? PERIOD_TO_YAHOO["1M"];
+  const includeTime = period === "1D" || period === "1W";
+
+  const url =
+    `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}` +
+    `?interval=${cfg.interval}&range=${cfg.range}&includePrePost=false`;
+
+  const res = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; PICO/1.0)" },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    console.log(`[YAHOO-US] ${ticker} 히스토리 ${res.status}`);
+    return [];
+  }
+
+  const json = await res.json() as {
+    chart?: {
+      result?: Array<{
+        timestamp?: number[];
+        indicators?: {
+          quote?: Array<{
+            open?: (number | null)[];
+            high?: (number | null)[];
+            low?: (number | null)[];
+            close?: (number | null)[];
+            volume?: (number | null)[];
+          }>;
+        };
+      }>;
+      error?: { code: string; description: string };
+    };
+  };
+
+  if (json.chart?.error) {
+    console.log(`[YAHOO-US] ${ticker} 에러:`, json.chart.error.description);
+    return [];
+  }
+
+  const result = json?.chart?.result?.[0];
+  if (!result) return [];
+
+  const timestamps = result.timestamp ?? [];
+  const quote = result.indicators?.quote?.[0] ?? {};
+  const candles: YahooCandleData[] = [];
+
+  for (let i = 0; i < timestamps.length; i++) {
+    const o = quote.open?.[i];
+    const h = quote.high?.[i];
+    const l = quote.low?.[i];
+    const c = quote.close?.[i];
+    const v = quote.volume?.[i];
+    if (o == null || c == null) continue;
+
+    // 인트라데이: UTC timestamp + KST(+9h) 보정 → 차트에서 KST 시간으로 표시
+    // 일봉/주봉: "YYYY-MM-DD" 문자열
+    const time: string | number = includeTime
+      ? timestamps[i] + 9 * 3600
+      : toKSTString(timestamps[i], false);
+
+    candles.push({
+      time,
+      open:   parseFloat(o.toFixed(2)),
+      high:   parseFloat((h ?? o).toFixed(2)),
+      low:    parseFloat((l ?? o).toFixed(2)),
+      close:  parseFloat(c.toFixed(2)),
+      volume: v ?? 0,
+    });
+  }
+
+  return candles;
+}
+
 // ─── KOSPI(.KS) / KOSDAQ(.KQ) 구분 ─────────────────────────────────────────
 // 명시 없으면 .KS (KOSPI) 기본값
 const KOSDAQ_TICKERS = new Set([
