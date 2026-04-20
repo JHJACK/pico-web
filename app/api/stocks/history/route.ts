@@ -1,6 +1,6 @@
 import { setCached, mgetCached } from "@/app/lib/cache";
 import { isKrTicker } from "@/app/lib/stockNames";
-import { fetchKisHistory } from "@/app/lib/kis";
+import { fetchYahooKrHistory, PERIOD_TO_YAHOO } from "@/app/lib/yahoo";
 
 export type CandleData = {
   time: string;   // "2024-01-15" or "2024-01-15 09:30:00"
@@ -11,12 +11,12 @@ export type CandleData = {
   volume: number;
 };
 
-// 기간별 Twelve Data 설정
+// 기간별 Twelve Data 설정 (해외 종목용)
 const PERIOD_CONFIG: Record<string, { interval: string; outputsize: number; cacheTTL: number }> = {
-  "1D": { interval: "5min",  outputsize: 78,  cacheTTL: 5 * 60      }, // 5분봉 78개 = 6.5시간
-  "1W": { interval: "1h",    outputsize: 40,  cacheTTL: 15 * 60     }, // 1시간봉 40개 = ~주간
-  "1M": { interval: "1day",  outputsize: 30,  cacheTTL: 60 * 60     }, // 일봉 30개
-  "1Y": { interval: "1week", outputsize: 52,  cacheTTL: 6 * 60 * 60 }, // 주봉 52개
+  "1D": { interval: "5min",  outputsize: 78,  cacheTTL: 5 * 60      },
+  "1W": { interval: "1h",    outputsize: 40,  cacheTTL: 15 * 60     },
+  "1M": { interval: "1day",  outputsize: 30,  cacheTTL: 60 * 60     },
+  "1Y": { interval: "1week", outputsize: 52,  cacheTTL: 6 * 60 * 60 },
 };
 
 export async function GET(request: Request) {
@@ -26,33 +26,35 @@ export async function GET(request: Request) {
 
   if (!ticker) return Response.json({ error: "ticker required" }, { status: 400 });
 
-  const cfg = PERIOD_CONFIG[period] ?? PERIOD_CONFIG["1M"];
   const cacheKey = `history:${ticker}:${period}`;
 
   // ── 캐시 확인 ────────────────────────────────────────────────────────────
   const cached = (await mgetCached<CandleData[]>([cacheKey]))[0];
   if (cached) return Response.json(cached);
 
-  // ── 한국 종목 → KIS 히스토리컬 조회 ────────────────────────────────────────
+  // ── 한국 종목 → Yahoo Finance (KRW, KST 시간) ────────────────────────────
   if (isKrTicker(ticker)) {
     try {
-      const candles = await fetchKisHistory(ticker, period);
+      const candles = await fetchYahooKrHistory(ticker, period);
       if (candles.length) {
-        await setCached(cacheKey, candles, cfg.cacheTTL);
+        const ttl = PERIOD_TO_YAHOO[period]?.cacheTTL ?? 60 * 60;
+        await setCached(cacheKey, candles, ttl);
       }
+      console.log(`[HISTORY] Yahoo KR ${ticker} ${period} → ${candles.length}개`);
       return Response.json(candles);
     } catch (e) {
-      console.error("[HISTORY] KIS 오류:", e);
+      console.error("[HISTORY] Yahoo 오류:", e);
       return Response.json([]);
     }
   }
 
-  // ── 해외 종목 → Twelve Data 히스토리컬 조회 ─────────────────────────────────
+  // ── 해외 종목 → Twelve Data ──────────────────────────────────────────────
   const apiKey = process.env.TWELVE_DATA_API_KEY ?? "";
   if (!apiKey || apiKey === "여기에키입력") {
     return Response.json([], { status: 200 });
   }
 
+  const cfg = PERIOD_CONFIG[period] ?? PERIOD_CONFIG["1M"];
   try {
     const url = [
       "https://api.twelvedata.com/time_series",

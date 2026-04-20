@@ -1,13 +1,10 @@
 import { setCached, mgetCached } from "@/app/lib/cache";
 import { US_FALLBACK, KR_FALLBACK } from "@/app/lib/stocks";
-import { fetchKisStocks } from "@/app/lib/kis";
+import { fetchYahooKrPrices } from "@/app/lib/yahoo";
 import { isKrTicker } from "@/app/lib/stockNames";
-import { isKrMarketOpen, isUSMarketOpen } from "@/app/lib/marketStatus";
+import { isUSMarketOpen } from "@/app/lib/marketStatus";
 
 const CACHE_TTL = 15 * 60; // 15분
-
-// 공유 유틸 래핑 (기존 호출 이름 유지)
-const isKoreanMarketOpen = isKrMarketOpen;
 
 // ─── Twelve Data 해외주식 조회 ───────────────────────────────────────────────
 
@@ -116,40 +113,24 @@ export async function GET(request: Request) {
     }
   }
 
-  // ── 3. 국내 캐시 미스 → KIS API ────────────────────────────────────────
+  // ── 3. 국내 캐시 미스 → Yahoo Finance (KRW, 15분 지연) ──────────────────
   if (krMiss.length > 0) {
-    const kisKey = process.env.KIS_APP_KEY ?? "";
-    const kisSecret = process.env.KIS_APP_SECRET ?? "";
-
-    if (kisKey && kisSecret && isKoreanMarketOpen()) {
-      try {
-        const fresh = await fetchKisStocks(krMiss);
-        let successCount = 0;
-        for (const t of krMiss) {
-          if (fresh[t]) {
-            results[t] = fresh[t];
-            await setCached(`stock:kr:${t}`, fresh[t], CACHE_TTL);
-            successCount++;
-          } else {
-            const fb = KR_FALLBACK[t];
-            if (fb) results[t] = { price: fb.price, change: fb.change, changePercent: fb.changePercent };
-          }
-        }
-        console.log(`[STOCKS] KR KIS 성공 ${successCount}/${krMiss.length}개`);
-      } catch (e) {
-        console.log("[STOCKS] KIS 오류:", e);
-        for (const t of krMiss) {
+    try {
+      const fresh = await fetchYahooKrPrices(krMiss);
+      let successCount = 0;
+      for (const t of krMiss) {
+        if (fresh[t]) {
+          results[t] = fresh[t];
+          await setCached(`stock:kr:${t}`, fresh[t], CACHE_TTL);
+          successCount++;
+        } else {
           const fb = KR_FALLBACK[t];
           if (fb) results[t] = { price: fb.price, change: fb.change, changePercent: fb.changePercent };
         }
       }
-    } else {
-      // KIS 키 없거나 장 마감 → 폴백
-      if (!kisKey || !kisSecret) {
-        console.log("[STOCKS] KIS 키 없음 → 폴백");
-      } else {
-        console.log("[STOCKS] 한국 장 마감 → 폴백 사용");
-      }
+      console.log(`[STOCKS] KR Yahoo 성공 ${successCount}/${krMiss.length}개`);
+    } catch (e) {
+      console.log("[STOCKS] Yahoo 오류:", e);
       for (const t of krMiss) {
         const fb = KR_FALLBACK[t];
         if (fb) results[t] = { price: fb.price, change: fb.change, changePercent: fb.changePercent };
