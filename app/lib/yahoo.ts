@@ -30,37 +30,41 @@ export async function fetchYahooKrPrices(
 ): Promise<Record<string, YahooKrPrice>> {
   if (!tickers.length) return {};
 
-  const symbols = tickers.map(toYahooSymbol).join(",");
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,currency`;
+  // v7/quote는 인증 필요 → v8/chart 를 종목별 병렬 호출로 대체
+  const entries = await Promise.all(
+    tickers.map(async (ticker) => {
+      const symbol = toYahooSymbol(ticker);
+      const url =
+        `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}` +
+        `?interval=1d&range=1d&includePrePost=false`;
+      try {
+        const res = await fetch(url, {
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; PICO/1.0)" },
+          cache: "no-store",
+        });
+        if (!res.ok) return [ticker, null] as const;
 
-  const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; PICO/1.0)" },
-    cache: "no-store",
-  });
+        const json = await res.json() as {
+          chart?: { result?: Array<{ meta?: Record<string, number> }> };
+        };
+        const meta = json?.chart?.result?.[0]?.meta;
+        if (!meta?.regularMarketPrice) return [ticker, null] as const;
 
-  if (!res.ok) throw new Error(`Yahoo Finance ${res.status}`);
+        const price = Math.round(meta.regularMarketPrice);
+        const prev  = meta.previousClose ?? meta.chartPreviousClose ?? price;
+        const change = Math.round(price - prev);
+        const changePercent = parseFloat(((change / prev) * 100).toFixed(2));
 
-  const json = await res.json() as {
-    quoteResponse?: {
-      result?: Array<{
-        symbol: string;
-        regularMarketPrice?: number;
-        regularMarketChange?: number;
-        regularMarketChangePercent?: number;
-      }>;
-    };
-  };
+        return [ticker, { price, change, changePercent }] as const;
+      } catch {
+        return [ticker, null] as const;
+      }
+    })
+  );
 
   const results: Record<string, YahooKrPrice> = {};
-  for (const q of json?.quoteResponse?.result ?? []) {
-    if (!q.regularMarketPrice) continue;
-    // symbol에서 티커 복원 (005930.KS → 005930)
-    const ticker = q.symbol.replace(/\.(KS|KQ)$/, "");
-    results[ticker] = {
-      price: Math.round(q.regularMarketPrice),
-      change: Math.round(q.regularMarketChange ?? 0),
-      changePercent: parseFloat((q.regularMarketChangePercent ?? 0).toFixed(2)),
-    };
+  for (const [ticker, data] of entries) {
+    if (data) results[ticker] = data;
   }
   return results;
 }
