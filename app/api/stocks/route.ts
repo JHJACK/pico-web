@@ -92,8 +92,8 @@ export async function GET(request: Request) {
     }
   }
 
-  // ── X-Cache-TTL 헤더: 단일 종목 요청(상세 페이지)일 때만 실제 TTL 반환
-  // 캐시 히트 → Redis 잔여 TTL / 캐시 미스(방금 세팅) → 900초
+  // ── __ttl: 단일 종목 요청(상세 페이지)일 때만 실제 Redis 잔여 TTL을 바디에 포함
+  // 헤더 방식은 Next.js 클라이언트에서 누락되는 케이스가 있어 바디로 전달
   let cacheTTL = CACHE_TTL;
   if (tickers.length === 1) {
     const t = tickers[0];
@@ -103,10 +103,7 @@ export async function GET(request: Request) {
       const realTTL = await getTTLCached(key);
       if (realTTL > 0) cacheTTL = realTTL;
     }
-    // 캐시 미스(새로 세팅)면 CACHE_TTL(900) 그대로 사용
   }
 
-  return Response.json(results, {
-    headers: { "X-Cache-TTL": String(cacheTTL) },
-  });
+  return Response.json({ ...results, __ttl: cacheTTL });
 }

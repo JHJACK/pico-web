@@ -160,19 +160,18 @@ export default function StockChartPage() {
   }, [userRow?.id, ticker]);
 
   // 주가 조회 (초기 + 자동 갱신 공용)
-  // X-Cache-TTL 헤더로 실제 Redis 잔여 TTL을 받아 카운트다운 초기화
+  // 응답 바디의 __ttl 필드로 실제 Redis 잔여 TTL을 받아 카운트다운 초기화
   const doFetchPrice = useCallback(async (isInitial = false) => {
     if (!ticker) return;
     if (isInitial) setLoading(true);
     try {
       const res = await fetch(`/api/stocks?tickers=${ticker}`, { cache: "no-store" });
-      const json = await res.json() as Record<string, { price: number; change: number; changePercent: number }>;
-      const raw = json[ticker];
+      const json = await res.json() as Record<string, unknown>;
+      const raw = json[ticker] as { price: number; change: number; changePercent: number } | undefined;
       if (raw) setData(isKrTicker(ticker) ? formatKR(raw) : formatUS(raw));
 
-      // 서버가 내려준 실제 Redis TTL로 카운트다운 세팅
-      const ttlHeader = res.headers.get("X-Cache-TTL");
-      const ttl = ttlHeader ? Math.max(1, parseInt(ttlHeader, 10)) : 15 * 60;
+      // __ttl: 서버가 Redis TTL 조회 후 바디에 포함 (캐시 히트 → 잔여 초 / 미스 → 900)
+      const ttl = typeof json.__ttl === "number" ? Math.max(1, json.__ttl) : 15 * 60;
       setTimeLeft(ttl);
     } finally {
       if (isInitial) setLoading(false);
