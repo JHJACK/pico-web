@@ -70,11 +70,52 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
   isKrRef.current        = isKr;
   exchangeRateRef.current = exchangeRate;
 
+  // 최고/최저 레이블 DOM refs
+  const maxLabelRef = useRef<HTMLDivElement>(null);
+  const minLabelRef = useRef<HTMLDivElement>(null);
+  // 최고/최저 데이터 (시간 + 가격)
+  const maxDataRef  = useRef<{ time: CandleData["time"]; price: number } | null>(null);
+  const minDataRef  = useRef<{ time: CandleData["time"]; price: number } | null>(null);
+
   const [period, setPeriod]   = useState<Period>("1M");
   const [loading, setLoading] = useState(true);
   const [empty, setEmpty]     = useState(false);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [minPrice, setMinPrice] = useState<number | null>(null);
+
+  // ── 최고/최저 레이블 좌표 계산 (Lightweight Charts API → 픽셀 좌표) ──────────
+  const positionLabels = useCallback(() => {
+    requestAnimationFrame(() => {
+      const chart     = chartRef.current;
+      const area      = areaRef.current;
+      const container = containerRef.current;
+      if (!chart || !area || !container || !maxDataRef.current || !minDataRef.current) return;
+
+      const W       = container.clientWidth;
+      const LABEL_W = 116; // 레이블 추정 너비 (px)
+
+      const place = (
+        el: HTMLDivElement | null,
+        time: CandleData["time"],
+        price: number,
+        above: boolean,
+      ) => {
+        if (!el) return;
+        const x = chart.timeScale().timeToCoordinate(time as Time);
+        const y = area.priceToCoordinate(price);
+        if (x == null || y == null) { el.style.opacity = "0"; return; }
+        // 화면 밖으로 나가지 않도록 클램핑
+        const left = Math.max(4, Math.min(x - LABEL_W / 2, W - LABEL_W - 4));
+        el.style.left    = `${left}px`;
+        el.style.top     = above ? `${Math.max(4, y - 36)}px` : `${y + 6}px`;
+        el.style.opacity = "1";
+      };
+
+      place(maxLabelRef.current, maxDataRef.current.time, maxDataRef.current.price, true);
+      place(minLabelRef.current, minDataRef.current.time, minDataRef.current.price, false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const lineColor = up ? UP_COLOR : DOWN_COLOR;
   const fillTop   = up ? "rgba(126,212,160,0.18)" : "rgba(240,120,120,0.18)";
@@ -193,6 +234,8 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
           width:  containerRef.current.clientWidth,
           height: containerRef.current.clientHeight,
         });
+        // 리사이즈 후 레이블 재배치
+        requestAnimationFrame(() => positionLabels());
       }
     });
     ro.observe(containerRef.current);
@@ -225,6 +268,9 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
     setEmpty(false);
     setMaxPrice(null);
     setMinPrice(null);
+    // 이전 레이블 숨기기
+    if (maxLabelRef.current) maxLabelRef.current.style.opacity = "0";
+    if (minLabelRef.current) minLabelRef.current.style.opacity = "0";
     try {
       const res = await fetch(`/api/stocks/history?ticker=${ticker}&period=${p}`);
       const candles: CandleData[] = await res.json();
@@ -234,11 +280,13 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
         return;
       }
 
-      // 최고가 / 최저가 계산
-      const highs = candles.map((c) => c.high);
-      const lows  = candles.map((c) => c.low);
-      setMaxPrice(Math.max(...highs));
-      setMinPrice(Math.min(...lows));
+      // 최고/최저 candle 찾기
+      const maxCandle = candles.reduce((a, b) => b.high > a.high ? b : a);
+      const minCandle = candles.reduce((a, b) => b.low  < a.low  ? b : a);
+      maxDataRef.current = { time: maxCandle.time, price: maxCandle.high };
+      minDataRef.current = { time: minCandle.time, price: minCandle.low  };
+      setMaxPrice(maxCandle.high);
+      setMinPrice(minCandle.low);
 
       areaRef.current.setData(
         candles.map((c) => ({ time: c.time as never, value: c.close }))
@@ -253,6 +301,8 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
         }))
       );
       chartRef.current?.timeScale().fitContent();
+      // 차트가 렌더된 뒤 좌표 계산
+      positionLabels();
     } catch {
       setEmpty(true);
     } finally {
@@ -310,37 +360,45 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
             fontFamily: "var(--font-inter), monospace" }} />
         </div>
 
-        {/* 최고가 / 최저가 고정 레이블 */}
-        {!loading && !empty && maxPrice != null && minPrice != null && (
-          <>
-            <div style={{
-              position: "absolute", top: 10, left: 12,
-              fontSize: 11, color: "#7ed4a0",
-              background: "rgba(20,20,20,0.75)",
-              padding: "3px 8px", borderRadius: 6,
-              pointerEvents: "none",
-              fontFamily: "var(--font-inter), monospace",
-              letterSpacing: "-0.01em",
-            }}>
-              최고 {isKrRef.current
-                ? Math.round(maxPrice).toLocaleString("ko-KR") + "원"
-                : Math.round(maxPrice * exchangeRateRef.current).toLocaleString("ko-KR") + "원"}
-            </div>
-            <div style={{
-              position: "absolute", bottom: 52, left: 12,
-              fontSize: 11, color: "#f07878",
-              background: "rgba(20,20,20,0.75)",
-              padding: "3px 8px", borderRadius: 6,
-              pointerEvents: "none",
-              fontFamily: "var(--font-inter), monospace",
-              letterSpacing: "-0.01em",
-            }}>
-              최저 {isKrRef.current
-                ? Math.round(minPrice).toLocaleString("ko-KR") + "원"
-                : Math.round(minPrice * exchangeRateRef.current).toLocaleString("ko-KR") + "원"}
-            </div>
-          </>
-        )}
+        {/* 최고가 레이블 — positionLabels()가 좌표 계산 후 opacity:1로 전환 */}
+        <div ref={maxLabelRef} style={{
+          position: "absolute", opacity: 0, pointerEvents: "none",
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+          transition: "opacity 0.2s",
+        }}>
+          <span style={{
+            fontSize: 11, color: "#7ed4a0", whiteSpace: "nowrap",
+            background: "rgba(20,20,20,0.82)", padding: "2px 7px", borderRadius: 5,
+            fontFamily: "var(--font-inter), monospace", letterSpacing: "-0.01em",
+          }}>
+            최고 {maxPrice != null
+              ? (isKr
+                  ? Math.round(maxPrice).toLocaleString("ko-KR") + "원"
+                  : Math.round(maxPrice * exchangeRate).toLocaleString("ko-KR") + "원")
+              : ""}
+          </span>
+          <span style={{ color: "#7ed4a0", fontSize: 7, lineHeight: 1 }}>●</span>
+        </div>
+
+        {/* 최저가 레이블 */}
+        <div ref={minLabelRef} style={{
+          position: "absolute", opacity: 0, pointerEvents: "none",
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+          transition: "opacity 0.2s",
+        }}>
+          <span style={{ color: "#f07878", fontSize: 7, lineHeight: 1 }}>●</span>
+          <span style={{
+            fontSize: 11, color: "#f07878", whiteSpace: "nowrap",
+            background: "rgba(20,20,20,0.82)", padding: "2px 7px", borderRadius: 5,
+            fontFamily: "var(--font-inter), monospace", letterSpacing: "-0.01em",
+          }}>
+            최저 {minPrice != null
+              ? (isKr
+                  ? Math.round(minPrice).toLocaleString("ko-KR") + "원"
+                  : Math.round(minPrice * exchangeRate).toLocaleString("ko-KR") + "원")
+              : ""}
+          </span>
+        </div>
 
         {/* 로딩 */}
         {loading && (
