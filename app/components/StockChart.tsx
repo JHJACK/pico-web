@@ -83,38 +83,42 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [minPrice, setMinPrice] = useState<number | null>(null);
 
-  // ── 최고/최저 레이블 좌표 계산 (Lightweight Charts API → 픽셀 좌표) ──────────
-  const positionLabels = useCallback(() => {
-    // 차트 렌더 완료 후 좌표 계산을 위해 이중 rAF 사용
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+  // ── 최고/최저 레이블 좌표 계산 ───────────────────────────────────────────────
+  // priceToCoordinate가 firstValue=null 이면 null을 반환하므로, 성공할 때까지 재시도
+  const positionLabels = useCallback((retriesLeft = 8) => {
+    requestAnimationFrame(() => {
       const chart     = chartRef.current;
       const area      = areaRef.current;
       const container = containerRef.current;
       if (!chart || !area || !container || !maxDataRef.current || !minDataRef.current) return;
 
       const W       = container.clientWidth;
-      const LABEL_W = 120; // 레이블 추정 너비 (px)
+      const LABEL_W = 120;
 
-      const place = (
-        el: HTMLDivElement | null,
-        time: CandleData["time"],
-        price: number,
-        above: boolean,
-      ) => {
-        if (!el) return;
-        const x = chart.timeScale().timeToCoordinate(time as Time);
-        const y = area.priceToCoordinate(price);
-        if (x == null || y == null) { el.style.opacity = "0"; return; }
-        // 화면 밖으로 나가지 않도록 클램핑
-        const left = Math.max(4, Math.min(x - LABEL_W / 2, W - LABEL_W - 4));
-        el.style.left    = `${left}px`;
-        el.style.top     = above ? `${Math.max(4, y - 38)}px` : `${y + 8}px`;
-        el.style.opacity = "1";
-      };
+      const maxX = chart.timeScale().timeToCoordinate(maxDataRef.current.time as Time);
+      const maxY = area.priceToCoordinate(maxDataRef.current.price);
+      const minX = chart.timeScale().timeToCoordinate(minDataRef.current.time as Time);
+      const minY = area.priceToCoordinate(minDataRef.current.price);
 
-      place(maxLabelRef.current, maxDataRef.current.time, maxDataRef.current.price, true);
-      place(minLabelRef.current, minDataRef.current.time, minDataRef.current.price, false);
-    }));
+      // 좌표가 아직 null이면 재시도 (최대 8회, 간격 100ms)
+      if ((maxX == null || maxY == null || minX == null || minY == null)) {
+        if (retriesLeft > 0) setTimeout(() => positionLabels(retriesLeft - 1), 100);
+        return;
+      }
+
+      const clamp = (x: number) => Math.max(4, Math.min(x - LABEL_W / 2, W - LABEL_W - 4));
+
+      if (maxLabelRef.current) {
+        maxLabelRef.current.style.left    = `${clamp(maxX)}px`;
+        maxLabelRef.current.style.top     = `${Math.max(4, maxY - 38)}px`;
+        maxLabelRef.current.style.opacity = "1";
+      }
+      if (minLabelRef.current) {
+        minLabelRef.current.style.left    = `${clamp(minX)}px`;
+        minLabelRef.current.style.top     = `${minY + 8}px`;
+        minLabelRef.current.style.opacity = "1";
+      }
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -306,9 +310,7 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
         }))
       );
       chartRef.current?.timeScale().fitContent();
-      // fitContent 애니메이션 완료 후 좌표 계산 (이중 rAF + 100ms 보정)
       positionLabels();
-      setTimeout(() => positionLabels(), 120);
     } catch {
       setEmpty(true);
     } finally {
