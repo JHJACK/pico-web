@@ -1,4 +1,5 @@
 import { setCached, mgetCached } from "@/app/lib/cache";
+import { isKrTicker } from "@/app/lib/stockNames";
 
 export type CandleData = {
   time: string;   // "2024-01-15" or "2024-01-15 09:30:00"
@@ -38,9 +39,11 @@ export async function GET(request: Request) {
   }
 
   try {
+    // 한국 종목은 KRX 거래소 코드 붙여야 Twelve Data가 인식함
+    const symbol = isKrTicker(ticker) ? `${ticker}:KRX` : ticker;
     const url = [
       "https://api.twelvedata.com/time_series",
-      `?symbol=${ticker}`,
+      `?symbol=${symbol}`,
       `&interval=${cfg.interval}`,
       `&outputsize=${cfg.outputsize}`,
       "&order=ASC",
