@@ -100,6 +100,7 @@ export default function StockChartPage() {
 
   const [data, setData]             = useState<StockData | null>(null);
   const [loading, setLoading]       = useState(true);
+  const [timeLeft, setTimeLeft]     = useState(15 * 60); // 15분 카운트다운(초)
   const [orderTab, setOrderTab]     = useState<OrderTab>("buy");
   const [orderAmt, setOrderAmt]     = useState(0);
   const [exchangeRate, setExchangeRate] = useState(1470);
@@ -158,14 +159,34 @@ export default function StockChartPage() {
     }
   }, [userRow?.id, ticker]);
 
-  useEffect(() => {
+  // 주가 조회 (초기 + 자동 갱신 공용)
+  const doFetchPrice = useCallback(async (isInitial = false) => {
     if (!ticker) return;
-    setLoading(true);
-    fetchStocks([ticker]).then((map) => {
-      setData(map[ticker] ?? null);
-      setLoading(false);
-    });
+    if (isInitial) setLoading(true);
+    const map = await fetchStocks([ticker]);
+    setData(map[ticker] ?? null);
+    if (isInitial) setLoading(false);
+    setTimeLeft(15 * 60); // 조회 완료 시점부터 카운트다운 리셋
   }, [ticker]);
+
+  // 초기 로드
+  useEffect(() => {
+    doFetchPrice(true);
+  }, [doFetchPrice]);
+
+  // 카운트다운 (1초마다 감소, 0이 되면 가격 갱신 후 리셋)
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          doFetchPrice(false);
+          return 15 * 60;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [doFetchPrice]);
 
   useEffect(() => {
     if (kr) return;
@@ -685,8 +706,8 @@ export default function StockChartPage() {
                     🌙 {closedInfo.main.replace("🌙", "").trim()} · {closedInfo.sub}
                   </span>
                 )}
-                <span className="hero-delay" style={{ color: C.text2, marginLeft: "auto" }}>
-                  15분 지연
+                <span className="hero-delay" style={{ color: C.text2, marginLeft: "auto", fontVariantNumeric: "tabular-nums" }}>
+                  {`${String(Math.floor(timeLeft / 60)).padStart(2, "0")}:${String(timeLeft % 60).padStart(2, "0")} 후 갱신`}
                 </span>
               </div>
             </>
