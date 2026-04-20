@@ -358,6 +358,7 @@ export default function Home() {
   const [forgotPw,    setForgotPw]    = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSent,  setForgotSent]  = useState(false);
+  const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
   const [mounted,   setMounted]  = useState(false);
 
   // 오늘의 선택 팝업
@@ -1515,110 +1516,122 @@ export default function Home() {
       {/* ════════ 로그인 모달 ════════ */}
       {modal === "login" && (
         <>
-          <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }} onClick={() => setModal(null)} />
+          <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.78)", backdropFilter: "blur(10px)" }} onClick={() => setModal(null)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div className="w-full max-w-sm rounded-2xl p-6 fade-up" style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
+            <div className="w-full fade-up" style={{ maxWidth: 400, background: "#141414", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 24, padding: "36px 36px 28px", position: "relative" }} onClick={(e) => e.stopPropagation()}>
 
-              {/* 헤더 — PICO 로고 + 닫기 */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center justify-center rounded-full"
-                    style={{ width: 32, height: 32, background: "#FACA3E" }}>
-                    <span style={{ fontFamily: "var(--font-serif)", fontSize: 15, fontWeight: 700, color: "#0d0d0d", letterSpacing: "-0.03em", lineHeight: 1 }}>P</span>
-                  </div>
-                  <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 400, color: "#e8e0d0", letterSpacing: "-0.02em" }}>PICO</span>
-                </div>
-                <button onClick={() => setModal(null)} className="pico-btn flex items-center justify-center rounded-lg w-8 h-8"
-                  style={{ background: "#1c1c1c", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 14 }}>✕</button>
+              {/* 닫기 버튼 — 절대 위치 */}
+              <button onClick={() => setModal(null)}
+                className="pico-btn flex items-center justify-center"
+                style={{ position: "absolute", top: 16, right: 16, width: 32, height: 32, borderRadius: 10, background: "#1e1e1e", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 14, zIndex: 1 }}>✕</button>
+
+              {/* ── PICO 로고 — 중앙 ── */}
+              <div className="text-center" style={{ marginBottom: 32 }}>
+                <p style={{ fontFamily: "var(--font-serif)", fontSize: 36, fontWeight: 400, color: "#e8e0d0", letterSpacing: "-0.03em", lineHeight: 1 }}>PICO</p>
               </div>
 
               {forgotPw ? (
                 /* ── 비밀번호 찾기 뷰 ── */
                 <>
-                  <p style={{ fontSize: 14, color: "#e8e0d0", fontWeight: 500, marginBottom: 4 }}>비밀번호 재설정</p>
-                  <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300, marginBottom: 16, lineHeight: 1.7 }}>
+                  <p style={{ fontSize: 14, color: "#e8e0d0", fontWeight: 500, marginBottom: 6, textAlign: "center" }}>비밀번호 재설정</p>
+                  <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300, marginBottom: 20, lineHeight: 1.7, textAlign: "center" }}>
                     가입하신 이메일로 재설정 링크를 보내드려요.
                   </p>
                   {forgotSent ? (
-                    <div className="rounded-xl px-4 py-4 text-center" style={{ background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.3)" }}>
-                      <p style={{ fontSize: 13, color: "#FACA3E", fontWeight: 500, marginBottom: 4 }}>이메일을 확인해 주세요</p>
+                    <div className="rounded-xl px-4 py-5 text-center" style={{ background: "#1a1a1a", border: "0.5px solid rgba(250,202,62,0.25)" }}>
+                      <p style={{ fontSize: 13, color: "#FACA3E", fontWeight: 500, marginBottom: 6 }}>이메일을 확인해 주세요</p>
                       <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>받은 편지함에서 재설정 링크를 클릭하시면 돼요.</p>
                     </div>
                   ) : (
                     <>
                       <input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="가입한 이메일 주소"
-                        className="w-full rounded-xl px-4 py-3 outline-none mb-3"
-                        style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)", color: "#e8e0d0", fontSize: 14, fontWeight: 300 }}
-                        onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.4)")}
-                        onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                        className="w-full outline-none"
+                        style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
+                        onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
+                        onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                       />
                       {authError && <p style={{ fontSize: 12, color: "#f07878", marginBottom: 10 }}>{authError}</p>}
-                      <button onClick={handleForgotPassword} disabled={authLoading} className="pico-btn w-full rounded-xl py-3 mb-3"
-                        style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500, opacity: authLoading ? 0.7 : 1 }}>
-                        {authLoading ? "전송 중..." : "재설정 링크 받기 →"}
+                      <button onClick={handleForgotPassword} disabled={authLoading} className="pico-btn w-full"
+                        style={{ display: "block", background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 600, borderRadius: 12, padding: "14px 0", marginBottom: 10, opacity: authLoading ? 0.7 : 1 }}>
+                        {authLoading ? "전송 중..." : "재설정 링크 받기"}
                       </button>
                     </>
                   )}
                   <button onClick={() => { setForgotPw(false); setAuthError(""); setForgotSent(false); }}
-                    className="pico-btn w-full rounded-xl py-2"
-                    style={{ background: "transparent", color: "#5c5448", fontSize: 13, fontWeight: 300 }}>
+                    className="pico-btn w-full"
+                    style={{ display: "block", background: "transparent", color: "#5c5448", fontSize: 13, fontWeight: 300, borderRadius: 12, padding: "10px 0", marginTop: 4 }}>
                     ← 로그인으로 돌아가기
                   </button>
                 </>
               ) : (
                 /* ── 로그인 뷰 ── */
                 <>
-                  {/* 이메일 입력 */}
+                  {/* 이메일 */}
                   <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="이메일"
-                    className="w-full rounded-xl px-4 py-3 outline-none mb-2"
-                    style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)", color: "#e8e0d0", fontSize: 14, fontWeight: 300 }}
-                    onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.4)")}
-                    onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                    className="w-full outline-none"
+                    style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
+                    onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
+                    onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                     onKeyDown={(e) => e.key === "Enter" && handleAuth()}
                   />
-                  {/* 비밀번호 입력 */}
+                  {/* 비밀번호 */}
                   <input type="password" value={authPw} onChange={(e) => setAuthPw(e.target.value)} placeholder="비밀번호"
-                    className="w-full rounded-xl px-4 py-3 outline-none mb-3"
-                    style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)", color: "#e8e0d0", fontSize: 14, fontWeight: 300 }}
-                    onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.4)")}
-                    onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                    className="w-full outline-none"
+                    style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 12 }}
+                    onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
+                    onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                     onKeyDown={(e) => e.key === "Enter" && handleAuth()}
                   />
 
                   {/* 로그인 유지 + 비밀번호 찾기 */}
-                  <div className="flex items-center justify-between mb-4">
-                    <label className="flex items-center gap-2 cursor-pointer" style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>
+                  <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
+                    <label className="flex items-center gap-2 cursor-pointer" style={{ fontSize: 12, color: "#6b6b6b", fontWeight: 300 }}>
                       <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
                         style={{ accentColor: "#FACA3E", width: 13, height: 13 }} />
                       로그인 유지
                     </label>
                     <button onClick={() => { setForgotPw(true); setAuthError(""); }}
-                      className="pico-btn" style={{ fontSize: 12, color: "#5c5448", fontWeight: 300, background: "transparent" }}>
+                      className="pico-btn" style={{ fontSize: 12, color: "#6b6b6b", fontWeight: 300, background: "transparent" }}>
                       비밀번호 찾기
                     </button>
                   </div>
 
-                  {authError && <p style={{ fontSize: 12, color: "#f07878", marginBottom: 10 }}>{authError}</p>}
+                  {authError && <p style={{ fontSize: 12, color: "#f07878", marginBottom: 12 }}>{authError}</p>}
 
                   {/* 로그인 버튼 */}
-                  <button onClick={handleAuth} disabled={authLoading} className="pico-btn w-full rounded-xl py-3 mb-5"
-                    style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500, opacity: authLoading ? 0.7 : 1 }}>
-                    {authLoading ? "처리 중..." : "로그인 →"}
+                  <button onClick={handleAuth} disabled={authLoading} className="pico-btn w-full"
+                    style={{ display: "block", background: "#FACA3E", color: "#0d0d0d", fontSize: 15, fontWeight: 600, borderRadius: 12, padding: "14px 0", marginBottom: 22, opacity: authLoading ? 0.7 : 1, letterSpacing: "-0.01em" }}>
+                    {authLoading ? "처리 중..." : "로그인"}
                   </button>
 
                   {/* 구분선 */}
-                  <div className="flex items-center gap-3 mb-5">
-                    <div style={{ flex: 1, height: "0.5px", background: "rgba(255,255,255,0.08)" }} />
-                    <span style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>또는</span>
-                    <div style={{ flex: 1, height: "0.5px", background: "rgba(255,255,255,0.08)" }} />
+                  <div className="flex items-center gap-3" style={{ marginBottom: 20 }}>
+                    <div style={{ flex: 1, height: "0.5px", background: "rgba(255,255,255,0.07)" }} />
+                    <span style={{ fontSize: 11, color: "#484848", fontWeight: 300, letterSpacing: "0.04em" }}>또는</span>
+                    <div style={{ flex: 1, height: "0.5px", background: "rgba(255,255,255,0.07)" }} />
                   </div>
 
-                  {/* 소셜 로그인 — 원형 아이콘 */}
-                  <div className="flex items-center justify-center gap-5 mb-6">
+                  {/* 소셜 로그인 — 원형 아이콘만, 텍스트 없음 */}
+                  <div className="flex items-center justify-center" style={{ gap: 20, marginBottom: 28 }}>
                     {/* 구글 */}
-                    <div className="flex flex-col items-center gap-2">
-                      <button onClick={() => handleSocialLogin("google")} className="pico-btn flex items-center justify-center rounded-full"
-                        style={{ width: 52, height: 52, background: "#fff", position: "relative", border: lastLoginProvider === "google" ? "2px solid #FACA3E" : "2px solid transparent" }}>
+                    <div style={{ position: "relative" }}
+                      onMouseEnter={() => setHoveredSocial("google")}
+                      onMouseLeave={() => setHoveredSocial(null)}>
+                      {/* 툴팁 */}
+                      {(hoveredSocial === "google" || lastLoginProvider === "google") && hoveredSocial === "google" && lastLoginProvider === "google" && (
+                        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#FACA3E", color: "#0d0d0d", fontSize: 10, fontWeight: 600, borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap", pointerEvents: "none" }}>
+                          최근 로그인
+                          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "4px solid #FACA3E" }} />
+                        </div>
+                      )}
+                      {hoveredSocial === "google" && lastLoginProvider !== "google" && (
+                        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#2a2a2a", color: "#c8bfb0", fontSize: 10, fontWeight: 500, borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap", pointerEvents: "none", border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                          구글
+                          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "4px solid #2a2a2a" }} />
+                        </div>
+                      )}
+                      <button onClick={() => handleSocialLogin("google")} className="pico-btn flex items-center justify-center"
+                        style={{ width: 54, height: 54, borderRadius: "50%", background: "#fff", border: lastLoginProvider === "google" ? "2.5px solid #FACA3E" : "2.5px solid transparent", transition: "border-color 0.15s" }}>
                         <svg width="22" height="22" viewBox="0 0 48 48">
                           <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 7 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
                           <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 7 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
@@ -1626,30 +1639,56 @@ export default function Home() {
                           <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.2 5.3c-.4.4 6.8-5 6.8-14.8 0-1.3-.1-2.7-.4-3.9z"/>
                         </svg>
                       </button>
-                      <span style={{ fontSize: 11, color: "#5c5448", fontWeight: 300 }}>
-                        {lastLoginProvider === "google" ? <span style={{ color: "#FACA3E", fontWeight: 500 }}>최근 로그인</span> : "구글"}
-                      </span>
                     </div>
 
                     {/* 카카오 */}
-                    <div className="flex flex-col items-center gap-2">
-                      <button onClick={() => handleSocialLogin("kakao")} className="pico-btn flex items-center justify-center rounded-full"
-                        style={{ width: 52, height: 52, background: "#FEE500", border: lastLoginProvider === "kakao" ? "2px solid #FACA3E" : "2px solid transparent" }}>
+                    <div style={{ position: "relative" }}
+                      onMouseEnter={() => setHoveredSocial("kakao")}
+                      onMouseLeave={() => setHoveredSocial(null)}>
+                      {hoveredSocial === "kakao" && lastLoginProvider === "kakao" && (
+                        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#FACA3E", color: "#0d0d0d", fontSize: 10, fontWeight: 600, borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap", pointerEvents: "none" }}>
+                          최근 로그인
+                          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "4px solid #FACA3E" }} />
+                        </div>
+                      )}
+                      {hoveredSocial === "kakao" && lastLoginProvider !== "kakao" && (
+                        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#2a2a2a", color: "#c8bfb0", fontSize: 10, fontWeight: 500, borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap", pointerEvents: "none", border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                          카카오
+                          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "4px solid #2a2a2a" }} />
+                        </div>
+                      )}
+                      <button onClick={() => handleSocialLogin("kakao")} className="pico-btn flex items-center justify-center"
+                        style={{ width: 54, height: 54, borderRadius: "50%", background: "#FEE500", border: lastLoginProvider === "kakao" ? "2.5px solid #FACA3E" : "2.5px solid transparent", transition: "border-color 0.15s" }}>
                         <svg width="22" height="22" viewBox="0 0 18 18">
                           <path fill="#191600" d="M9 1.5C4.86 1.5 1.5 4.17 1.5 7.5c0 2.13 1.38 4.01 3.47 5.09l-.88 3.27a.19.19 0 0 0 .28.21L8.1 13.7a9.4 9.4 0 0 0 .9.05c4.14 0 7.5-2.67 7.5-6S13.14 1.5 9 1.5z"/>
                         </svg>
                       </button>
-                      <span style={{ fontSize: 11, color: "#5c5448", fontWeight: 300 }}>
-                        {lastLoginProvider === "kakao" ? <span style={{ color: "#FACA3E", fontWeight: 500 }}>최근 로그인</span> : "카카오"}
-                      </span>
+                    </div>
+
+                    {/* 애플 — 미구현 */}
+                    <div style={{ position: "relative" }}
+                      onMouseEnter={() => setHoveredSocial("apple")}
+                      onMouseLeave={() => setHoveredSocial(null)}>
+                      {hoveredSocial === "apple" && (
+                        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#2a2a2a", color: "#c8bfb0", fontSize: 10, fontWeight: 500, borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap", pointerEvents: "none", border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                          미구현
+                          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "4px solid #2a2a2a" }} />
+                        </div>
+                      )}
+                      <button disabled className="pico-btn flex items-center justify-center"
+                        style={{ width: 54, height: 54, borderRadius: "50%", background: "#1e1e1e", border: "2.5px solid rgba(255,255,255,0.1)", opacity: 0.55, cursor: "not-allowed" }}>
+                        <svg width="18" height="22" viewBox="0 0 16 20" fill="#e8e0d0">
+                          <path d="M13.4 10.5c0-2.7 2.1-4 2.2-4.1-1.2-1.7-3-1.9-3.7-2-1.6-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9C3 3.5 1 4.7 0 6.6c-2 3.8-.8 9.5 1.2 12.6 1 1.5 2.2 3.1 3.8 3.1 1.5 0 2.1-1 4-1s2.4 1 4 1c1.6 0 2.7-1.5 3.7-3 1.2-1.7 1.7-3.3 1.7-3.4-.1-.1-3-1.2-3-4.4zM10.6 2.4c.8-1 1.4-2.4 1.2-3.8-1.2.1-2.6.8-3.4 1.8-.8.9-1.5 2.3-1.3 3.7 1.3.1 2.7-.7 3.5-1.7z"/>
+                        </svg>
+                      </button>
                     </div>
                   </div>
 
                   {/* 회원가입 링크 */}
-                  <div className="text-center" style={{ borderTop: "0.5px solid rgba(255,255,255,0.07)", paddingTop: 16 }}>
-                    <span style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>계정이 없으신가요? </span>
+                  <div className="text-center" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: 20 }}>
+                    <span style={{ fontSize: 13, color: "#484848", fontWeight: 300 }}>계정이 없으신가요? </span>
                     <button onClick={() => { setModal(null); openLogin(); }}
-                      className="pico-btn" style={{ fontSize: 13, color: "#FACA3E", fontWeight: 500, background: "transparent" }}>
+                      className="pico-btn" style={{ fontSize: 13, color: "#c8bfb0", fontWeight: 500, background: "transparent" }}>
                       회원가입
                     </button>
                   </div>
