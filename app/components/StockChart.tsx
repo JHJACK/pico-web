@@ -85,14 +85,15 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
 
   // ── 최고/최저 레이블 좌표 계산 (Lightweight Charts API → 픽셀 좌표) ──────────
   const positionLabels = useCallback(() => {
-    requestAnimationFrame(() => {
+    // 차트 렌더 완료 후 좌표 계산을 위해 이중 rAF 사용
+    requestAnimationFrame(() => requestAnimationFrame(() => {
       const chart     = chartRef.current;
       const area      = areaRef.current;
       const container = containerRef.current;
       if (!chart || !area || !container || !maxDataRef.current || !minDataRef.current) return;
 
       const W       = container.clientWidth;
-      const LABEL_W = 116; // 레이블 추정 너비 (px)
+      const LABEL_W = 120; // 레이블 추정 너비 (px)
 
       const place = (
         el: HTMLDivElement | null,
@@ -107,13 +108,13 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
         // 화면 밖으로 나가지 않도록 클램핑
         const left = Math.max(4, Math.min(x - LABEL_W / 2, W - LABEL_W - 4));
         el.style.left    = `${left}px`;
-        el.style.top     = above ? `${Math.max(4, y - 36)}px` : `${y + 6}px`;
+        el.style.top     = above ? `${Math.max(4, y - 38)}px` : `${y + 8}px`;
         el.style.opacity = "1";
       };
 
       place(maxLabelRef.current, maxDataRef.current.time, maxDataRef.current.price, true);
       place(minLabelRef.current, minDataRef.current.time, minDataRef.current.price, false);
-    });
+    }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -227,6 +228,9 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
     areaRef.current  = area;
     volRef.current   = vol;
 
+    // 스케일 변경 시 레이블 재배치 (줌/스크롤 대응)
+    chart.timeScale().subscribeVisibleLogicalRangeChange(() => positionLabels());
+
     // 리사이즈
     const ro = new ResizeObserver(() => {
       if (containerRef.current && chartRef.current) {
@@ -234,8 +238,7 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
           width:  containerRef.current.clientWidth,
           height: containerRef.current.clientHeight,
         });
-        // 리사이즈 후 레이블 재배치
-        requestAnimationFrame(() => positionLabels());
+        positionLabels();
       }
     });
     ro.observe(containerRef.current);
@@ -280,13 +283,13 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
         return;
       }
 
-      // 최고/최저 candle 찾기
-      const maxCandle = candles.reduce((a, b) => b.high > a.high ? b : a);
-      const minCandle = candles.reduce((a, b) => b.low  < a.low  ? b : a);
-      maxDataRef.current = { time: maxCandle.time, price: maxCandle.high };
-      minDataRef.current = { time: minCandle.time, price: minCandle.low  };
-      setMaxPrice(maxCandle.high);
-      setMinPrice(minCandle.low);
+      // 최고/최저 candle 찾기 (area 차트가 close 기준이므로 close로 탐색)
+      const maxCandle = candles.reduce((a, b) => b.close > a.close ? b : a);
+      const minCandle = candles.reduce((a, b) => b.close < a.close ? b : a);
+      maxDataRef.current = { time: maxCandle.time, price: maxCandle.close };
+      minDataRef.current = { time: minCandle.time, price: minCandle.close };
+      setMaxPrice(maxCandle.close);
+      setMinPrice(minCandle.close);
 
       areaRef.current.setData(
         candles.map((c) => ({ time: c.time as never, value: c.close }))
@@ -301,8 +304,9 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
         }))
       );
       chartRef.current?.timeScale().fitContent();
-      // 차트가 렌더된 뒤 좌표 계산
+      // fitContent 애니메이션 완료 후 좌표 계산 (이중 rAF + 100ms 보정)
       positionLabels();
+      setTimeout(() => positionLabels(), 120);
     } catch {
       setEmpty(true);
     } finally {
