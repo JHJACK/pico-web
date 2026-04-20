@@ -72,7 +72,7 @@ export async function fetchYahooKrPrices(
 // ─── 차트 히스토리 조회 ──────────────────────────────────────────────────────
 
 export type YahooCandleData = {
-  time: string;   // "YYYY-MM-DD" 또는 "YYYY-MM-DD HH:mm:00" (KST)
+  time: string | number; // 1M/1Y: "YYYY-MM-DD" / 1D/1W: KST 보정 Unix timestamp(초)
   open: number;
   high: number;
   low: number;
@@ -161,8 +161,14 @@ export async function fetchYahooKrHistory(
     // null/undefined 봉 스킵 (장 중 미완성 봉 등)
     if (o == null || c == null) continue;
 
+    // 1D/1W: Lightweight Charts는 인트라데이에 숫자 타임스탬프 필요
+    // UTC 기준이므로 KST(+9h) 보정해서 차트에서 한국 시간으로 보이게 함
+    const time: string | number = includeTime
+      ? timestamps[i] + 9 * 3600
+      : toKSTString(timestamps[i], false);
+
     candles.push({
-      time:   toKSTString(timestamps[i], includeTime),
+      time,
       open:   Math.round(o),
       high:   Math.round(h ?? o),
       low:    Math.round(l ?? o),

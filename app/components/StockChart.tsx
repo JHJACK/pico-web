@@ -33,11 +33,11 @@ function formatTime(time: Time): string {
     const { year, month, day } = time as { year: number; month: number; day: number };
     return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   }
-  if (typeof time === "string") {
-    if (time.includes(" ")) return time.split(" ")[1].slice(0, 5); // "HH:mm"
-    return time; // "YYYY-MM-DD"
-  }
+  if (typeof time === "string") return time;
+  // 숫자 타임스탬프 (KST 보정된 Unix초) → UTC 기준으로 HH:mm 또는 날짜 표시
   const d = new Date((time as number) * 1000);
+  const h = d.getUTCHours(), m = d.getUTCMinutes();
+  if (h !== 0 || m !== 0) return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   return d.toISOString().split("T")[0];
 }
 
@@ -48,12 +48,14 @@ function tickFormatter(time: Time, _type: TickMarkType, _locale: string): string
     return `${t.month < 10 ? "0" + t.month : t.month}-${t.day < 10 ? "0" + t.day : t.day}`;
   }
   if (typeof time === "string") {
-    if (time.includes(" ")) return time.split(" ")[1].slice(0, 5);
     const parts = time.split("-");
     return `${parts[1]}-${parts[2]}`;
   }
+  // 숫자 타임스탬프 (KST 보정된 Unix초)
   const d = new Date((time as number) * 1000);
-  return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const h = d.getUTCHours(), m = d.getUTCMinutes();
+  if (h !== 0 || m !== 0) return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  return `${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
 }
 
 export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Props) {
@@ -71,6 +73,8 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
   const [period, setPeriod]   = useState<Period>("1M");
   const [loading, setLoading] = useState(true);
   const [empty, setEmpty]     = useState(false);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [minPrice, setMinPrice] = useState<number | null>(null);
 
   const lineColor = up ? UP_COLOR : DOWN_COLOR;
   const fillTop   = up ? "rgba(126,212,160,0.18)" : "rgba(240,120,120,0.18)";
@@ -219,6 +223,8 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
   const loadData = useCallback(async (p: Period) => {
     setLoading(true);
     setEmpty(false);
+    setMaxPrice(null);
+    setMinPrice(null);
     try {
       const res = await fetch(`/api/stocks/history?ticker=${ticker}&period=${p}`);
       const candles: CandleData[] = await res.json();
@@ -227,6 +233,12 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
         setEmpty(true);
         return;
       }
+
+      // 최고가 / 최저가 계산
+      const highs = candles.map((c) => c.high);
+      const lows  = candles.map((c) => c.low);
+      setMaxPrice(Math.max(...highs));
+      setMinPrice(Math.min(...lows));
 
       areaRef.current.setData(
         candles.map((c) => ({ time: c.time as never, value: c.close }))
@@ -297,6 +309,38 @@ export default function StockChart({ ticker, up, isKr, exchangeRate = 1370 }: Pr
           <div className="tt-price" style={{ fontSize: 14, fontWeight: 600, color: "#e8e0d0",
             fontFamily: "var(--font-inter), monospace" }} />
         </div>
+
+        {/* 최고가 / 최저가 고정 레이블 */}
+        {!loading && !empty && maxPrice != null && minPrice != null && (
+          <>
+            <div style={{
+              position: "absolute", top: 10, left: 12,
+              fontSize: 11, color: "#7ed4a0",
+              background: "rgba(20,20,20,0.75)",
+              padding: "3px 8px", borderRadius: 6,
+              pointerEvents: "none",
+              fontFamily: "var(--font-inter), monospace",
+              letterSpacing: "-0.01em",
+            }}>
+              최고 {isKrRef.current
+                ? Math.round(maxPrice).toLocaleString("ko-KR") + "원"
+                : Math.round(maxPrice * exchangeRateRef.current).toLocaleString("ko-KR") + "원"}
+            </div>
+            <div style={{
+              position: "absolute", bottom: 52, left: 12,
+              fontSize: 11, color: "#f07878",
+              background: "rgba(20,20,20,0.75)",
+              padding: "3px 8px", borderRadius: 6,
+              pointerEvents: "none",
+              fontFamily: "var(--font-inter), monospace",
+              letterSpacing: "-0.01em",
+            }}>
+              최저 {isKrRef.current
+                ? Math.round(minPrice).toLocaleString("ko-KR") + "원"
+                : Math.round(minPrice * exchangeRateRef.current).toLocaleString("ko-KR") + "원"}
+            </div>
+          </>
+        )}
 
         {/* 로딩 */}
         {loading && (

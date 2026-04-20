@@ -3,7 +3,7 @@ import { isKrTicker } from "@/app/lib/stockNames";
 import { fetchYahooKrHistory, PERIOD_TO_YAHOO } from "@/app/lib/yahoo";
 
 export type CandleData = {
-  time: string;   // "2024-01-15" or "2024-01-15 09:30:00"
+  time: string | number; // 1M/1Y: "YYYY-MM-DD" / 1D/1W: KST 보정 Unix timestamp(초)
   open: number;
   high: number;
   low: number;
