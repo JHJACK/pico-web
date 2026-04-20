@@ -32,10 +32,10 @@ type MyRank = {
 type Tier = "bronze" | "silver" | "gold" | "platinum" | "diamond";
 
 function getTier(returnRate: number): Tier {
-  if (returnRate >= 50)  return "diamond";
-  if (returnRate >= 30)  return "platinum";
-  if (returnRate >= 10)  return "gold";
-  if (returnRate >= 0)   return "silver";
+  if (returnRate >= 50) return "diamond";
+  if (returnRate >= 30) return "platinum";
+  if (returnRate >= 10) return "gold";
+  if (returnRate >= 0)  return "silver";
   return "bronze";
 }
 
@@ -56,12 +56,11 @@ const AWARD_CONFIG: Record<string, { emoji: string; title: string; subtitle: str
   mentalsteel: { emoji: "🧊", title: "냉철한 멘탈",             subtitle: "단 한 번의 손실도 없이 수익만 챙겼다", color: "#b8e0f8" },
 };
 
-// ── 숫자 포맷 ──────────────────────────────────────────────────
+// ── 공통 스타일 ───────────────────────────────────────────────
 const NUM: CSSProperties = { fontFamily: "var(--font-inter), monospace", fontWeight: 300, letterSpacing: "-0.02em" };
 
 function formatRate(r: number) {
-  const sign = r >= 0 ? "+" : "";
-  return `${sign}${r.toFixed(2)}%`;
+  return `${r >= 0 ? "+" : ""}${r.toFixed(2)}%`;
 }
 
 function timeAgo(iso: string): string {
@@ -71,17 +70,17 @@ function timeAgo(iso: string): string {
   return `${Math.floor(diff / 60)}시간 전`;
 }
 
-// ── 3D 티어 뱃지 컴포넌트 ──────────────────────────────────────
+// ── 3D 티어 뱃지 ──────────────────────────────────────────────
 function TierBadge({ tier, size = 40 }: { tier: Tier; size?: number }) {
   const cfg = TIER_CONFIG[tier];
   return (
     <div style={{
-      width: size, height: size, borderRadius: "50%",
+      width: size, height: size, borderRadius: "50%", flexShrink: 0,
       background: cfg.gradient,
       boxShadow: `0 2px 8px ${cfg.glow}, inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.25)`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.45, flexShrink: 0,
       border: `1px solid ${cfg.color}60`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.45,
     }}>
       {cfg.icon}
     </div>
@@ -103,7 +102,6 @@ export default function RankingPage() {
   const [refreshing,  setRefreshing]  = useState(false);
   const [activeTab,   setActiveTab]   = useState<"rank" | "awards">("rank");
 
-  // 데이터 로드
   const load = useCallback(async () => {
     setLoading(true);
     const uid = user?.id ?? "";
@@ -120,7 +118,6 @@ export default function RankingPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // 수동 새로고침 (2시간 간격 안내 포함)
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetch("/api/rankings/calculate", { method: "POST" });
@@ -128,12 +125,10 @@ export default function RankingPage() {
     setRefreshing(false);
   };
 
-  // 내 퍼센타일
   const myPercentile = myRank && totalUsers > 0
     ? Math.round(((totalUsers - myRank.rank_position) / totalUsers) * 100)
     : null;
 
-  // 주차 표시
   const weekLabel = weekStart
     ? `${weekStart.slice(0, 4)}년 ${parseInt(weekStart.slice(5, 7))}월 ${parseInt(weekStart.slice(8, 10))}일 주`
     : "";
@@ -143,20 +138,19 @@ export default function RankingPage() {
 
       {/* ── 헤더 ── */}
       <nav style={{
-        position: "sticky", top: 0, zIndex: 30,
-        height: 64, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)",
+        position: "sticky", top: 0, zIndex: 30, height: 64,
+        background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)",
         borderBottom: "0.5px solid rgba(255,255,255,0.06)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 20px",
+        display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px",
       }}>
         <button onClick={() => router.push("/")} style={{ background: "none", border: "none", color: "#FACA3E", fontSize: 24, fontFamily: "var(--font-serif)", cursor: "pointer", letterSpacing: "0.01em" }}>
           PICO
         </button>
-        <span style={{ fontSize: 13, color: "#a09688" }}>🏆 주간 랭킹</span>
+        <span style={{ fontSize: 15, color: "#c8bfb0" }}>🏆 주간 랭킹</span>
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          style={{ background: "none", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 12px", color: refreshing ? "#555" : "#a09688", fontSize: 12, cursor: refreshing ? "default" : "pointer" }}
+          style={{ background: "none", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 14px", color: "#c8bfb0", fontSize: 15, cursor: refreshing ? "default" : "pointer", opacity: refreshing ? 0.5 : 1 }}
         >
           {refreshing ? "계산 중..." : "새로고침"}
         </button>
@@ -164,13 +158,11 @@ export default function RankingPage() {
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px 80px" }}>
 
-        {/* ── 타이틀 섹션 ── */}
+        {/* ── 타이틀 ── */}
         <div style={{ padding: "28px 0 20px", textAlign: "center" }}>
-          <p style={{ fontSize: 12, color: "#555", marginBottom: 6, ...NUM }}>{weekLabel}</p>
-          <h1 style={{ fontSize: 22, fontWeight: 600, color: "#e8e0d0", margin: 0 }}>
-            이번 주 투자의 신 🏆
-          </h1>
-          <p style={{ fontSize: 12, color: "#555", marginTop: 8 }}>
+          <p style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 6, ...NUM }}>{weekLabel}</p>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: "#e8e0d0", margin: 0 }}>이번 주 투자의 신 🏆</h1>
+          <p style={{ fontSize: 15, color: "#c8bfb0", marginTop: 8 }}>
             {lastUpdated ? `마지막 업데이트: ${timeAgo(lastUpdated)}` : "아직 계산된 데이터가 없어요"}
           </p>
         </div>
@@ -185,22 +177,20 @@ export default function RankingPage() {
           }}>
             <TierBadge tier={getTier(myRank.return_rate)} size={48} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, color: "#FACA3E", marginBottom: 4 }}>내 랭킹</div>
+              <div style={{ fontSize: 15, color: "#FACA3E", marginBottom: 4 }}>내 랭킹</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ fontSize: 26, fontWeight: 700, ...NUM }}>
-                  #{myRank.rank_position}
-                </span>
-                <span style={{ fontSize: 13, color: myRank.return_rate >= 0 ? "#7ed4a0" : "#f07070", ...NUM }}>
+                <span style={{ fontSize: 26, fontWeight: 700, ...NUM }}>#{myRank.rank_position}</span>
+                <span style={{ fontSize: 16, color: myRank.return_rate >= 0 ? "#7ed4a0" : "#f07070", ...NUM }}>
                   {formatRate(myRank.return_rate)}
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>
+              <div style={{ fontSize: 15, color: "#c8bfb0", marginTop: 2 }}>
                 {myPercentile !== null ? `상위 ${100 - myPercentile}% · ` : ""}
                 {TIER_CONFIG[getTier(myRank.return_rate)].label} 티어
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 11, color: "#555" }}>거래</div>
+              <div style={{ fontSize: 15, color: "#c8bfb0" }}>거래</div>
               <div style={{ fontSize: 18, fontWeight: 600, ...NUM }}>{myRank.trade_count}회</div>
             </div>
           </div>
@@ -213,20 +203,20 @@ export default function RankingPage() {
           if (!above && !below) return null;
           return (
             <div style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 11, color: "#555", marginBottom: 8, textAlign: "center" }}>⚔️ 내 라이벌</p>
+              <p style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 8, textAlign: "center" }}>⚔️ 내 라이벌</p>
               <div style={{ display: "flex", gap: 8 }}>
                 {above && (
-                  <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 10, color: "#FACA3E", marginBottom: 4 }}>▲ 위</div>
-                    <div style={{ fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{above.nickname}</div>
-                    <div style={{ fontSize: 12, color: "#7ed4a0", ...NUM }}>{formatRate(above.return_rate)}</div>
+                  <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 15, color: "#FACA3E", marginBottom: 4 }}>▲ 위</div>
+                    <div style={{ fontSize: 15, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{above.nickname}</div>
+                    <div style={{ fontSize: 15, color: "#7ed4a0", ...NUM }}>{formatRate(above.return_rate)}</div>
                   </div>
                 )}
                 {below && (
-                  <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 10, color: "#f07070", marginBottom: 4 }}>▼ 아래</div>
-                    <div style={{ fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{below.nickname}</div>
-                    <div style={{ fontSize: 12, color: "#f07070", ...NUM }}>{formatRate(below.return_rate)}</div>
+                  <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 15, color: "#f07070", marginBottom: 4 }}>▼ 아래</div>
+                    <div style={{ fontSize: 15, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{below.nickname}</div>
+                    <div style={{ fontSize: 15, color: "#f07070", ...NUM }}>{formatRate(below.return_rate)}</div>
                   </div>
                 )}
               </div>
@@ -238,10 +228,10 @@ export default function RankingPage() {
         <div style={{ display: "flex", gap: 4, marginBottom: 20, background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: 4 }}>
           {(["rank", "awards"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
-              flex: 1, padding: "8px 0", borderRadius: 8, border: "none",
+              flex: 1, padding: "9px 0", borderRadius: 8, border: "none",
               background: activeTab === tab ? "rgba(250,202,62,0.12)" : "transparent",
-              color: activeTab === tab ? "#FACA3E" : "#555",
-              fontSize: 13, fontWeight: activeTab === tab ? 600 : 400, cursor: "pointer",
+              color: activeTab === tab ? "#FACA3E" : "#c8bfb0",
+              fontSize: 15, fontWeight: activeTab === tab ? 600 : 400, cursor: "pointer",
               transition: "all 0.15s",
             }}>
               {tab === "rank" ? "📊 수익률 순위" : "🏅 이번 주 수상자"}
@@ -250,72 +240,57 @@ export default function RankingPage() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: "center", padding: "60px 0", color: "#555", fontSize: 14 }}>
+          <div style={{ textAlign: "center", padding: "60px 0", color: "#c8bfb0", fontSize: 15 }}>
             랭킹 불러오는 중...
           </div>
-        ) : (
-
-          activeTab === "rank" ? (
-            /* ── 수익률 순위 탭 ── */
-            <div>
-              {rankings.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "60px 0" }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-                  <div style={{ fontSize: 14, color: "#555" }}>아직 이번 주 랭킹이 없어요</div>
-                  <div style={{ fontSize: 12, color: "#333", marginTop: 6 }}>모의투자를 시작하면 자동으로 올라가요!</div>
-                </div>
-              ) : (
-                <>
-                  {/* TOP 3 포디엄 */}
-                  {rankings.length >= 3 && (
-                    <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 8, marginBottom: 28, padding: "0 8px" }}>
-                      {/* 2위 */}
-                      <PodiumCard rank={rankings[1]} position={2} />
-                      {/* 1위 */}
-                      <PodiumCard rank={rankings[0]} position={1} />
-                      {/* 3위 */}
-                      <PodiumCard rank={rankings[2]} position={3} />
-                    </div>
-                  )}
-
-                  {/* 4위 ~ 나머지 */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {rankings.slice(3).map((row) => (
-                      <RankListRow key={row.user_id} row={row} isMe={row.user_id === user?.id} />
-                    ))}
+        ) : activeTab === "rank" ? (
+          <div>
+            {rankings.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0" }}>
+                <div style={{ fontSize: 40, marginBottom: 16 }}>📭</div>
+                <div style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 8 }}>아직 이번 주 랭킹이 없어요</div>
+                <div style={{ fontSize: 15, color: "#c8bfb0" }}>모의투자를 시작하면 자동으로 올라가요!</div>
+              </div>
+            ) : (
+              <>
+                {/* TOP 3 포디엄 */}
+                {rankings.length >= 3 && (
+                  <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 8, marginBottom: 28, padding: "0 8px" }}>
+                    <PodiumCard rank={rankings[1]} position={2} />
+                    <PodiumCard rank={rankings[0]} position={1} />
+                    <PodiumCard rank={rankings[2]} position={3} />
                   </div>
+                )}
 
-                  <p style={{ textAlign: "center", fontSize: 11, color: "#333", marginTop: 20 }}>
-                    총 {totalUsers}명 참여 · 2시간마다 업데이트
-                  </p>
-                </>
-              )}
-            </div>
-          ) : (
-            /* ── 이번 주 수상자 탭 ── */
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {Object.entries(AWARD_CONFIG).map(([cat, cfg]) => {
-                const award = awards.find(a => a.category === cat);
-                const winner = award ? rankings.find(r => r.user_id === award.user_id) : null;
-                const isMe   = award?.user_id === user?.id;
-                return (
-                  <AwardCard
-                    key={cat}
-                    cfg={cfg}
-                    winner={winner ?? null}
-                    award={award ?? null}
-                    isMe={isMe}
-                  />
-                );
-              })}
-              {awards.length === 0 && (
-                <div style={{ textAlign: "center", padding: "40px 0", color: "#555", fontSize: 14 }}>
-                  이번 주 수상자가 아직 없어요<br />
-                  <span style={{ fontSize: 12, color: "#333" }}>모의투자 후 새로고침 해보세요</span>
+                {/* 4위~ */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {rankings.slice(3).map((row) => (
+                    <RankListRow key={row.user_id} row={row} isMe={row.user_id === user?.id} />
+                  ))}
                 </div>
-              )}
-            </div>
-          )
+
+                <p style={{ textAlign: "center", fontSize: 15, color: "#c8bfb0", marginTop: 20 }}>
+                  총 {totalUsers}명 참여 · 2시간마다 업데이트
+                </p>
+              </>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {Object.entries(AWARD_CONFIG).map(([cat, cfg]) => {
+              const award  = awards.find(a => a.category === cat);
+              const winner = award ? rankings.find(r => r.user_id === award.user_id) : null;
+              return (
+                <AwardCard key={cat} cfg={cfg} winner={winner ?? null} award={award ?? null} isMe={award?.user_id === user?.id} />
+              );
+            })}
+            {awards.length === 0 && (
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
+                <div style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 8 }}>이번 주 수상자가 아직 없어요</div>
+                <div style={{ fontSize: 15, color: "#c8bfb0" }}>모의투자 후 새로고침 해보세요</div>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -324,22 +299,19 @@ export default function RankingPage() {
 
 // ── 포디엄 카드 (1~3위) ───────────────────────────────────────
 function PodiumCard({ rank, position }: { rank: RankRow; position: 1 | 2 | 3 }) {
-  const tier   = getTier(rank.return_rate);
-  const heights = { 1: 110, 2: 80, 3: 64 } as const;
-  const podiumH = heights[position];
+  const tier    = getTier(rank.return_rate);
+  const podiumH = ({ 1: 110, 2: 80, 3: 64 } as const)[position];
   const isFirst = position === 1;
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      {/* 크라운 */}
-      {isFirst && <span style={{ fontSize: 18 }}>👑</span>}
+      {isFirst && <span style={{ fontSize: 20 }}>👑</span>}
 
-      {/* 아바타 */}
       <div style={{ position: "relative" }}>
         {rank.avatar_url ? (
           <img src={rank.avatar_url} alt={rank.nickname} style={{ width: isFirst ? 52 : 42, height: isFirst ? 52 : 42, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TIER_CONFIG[tier].color}` }} />
         ) : (
-          <div style={{ width: isFirst ? 52 : 42, height: isFirst ? 52 : 42, borderRadius: "50%", background: "#242424", border: `2px solid ${TIER_CONFIG[tier].color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 20 : 16, color: "#a09688" }}>
+          <div style={{ width: isFirst ? 52 : 42, height: isFirst ? 52 : 42, borderRadius: "50%", background: "#242424", border: `2px solid ${TIER_CONFIG[tier].color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 20 : 16, color: "#c8bfb0" }}>
             {rank.nickname[0]?.toUpperCase() ?? "?"}
           </div>
         )}
@@ -348,23 +320,20 @@ function PodiumCard({ rank, position }: { rank: RankRow; position: 1 | 2 | 3 }) 
         </div>
       </div>
 
-      {/* 닉네임 */}
-      <div style={{ fontSize: 11, fontWeight: 500, maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+      <div style={{ fontSize: 15, fontWeight: 500, maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center", color: "#e8e0d0" }}>
         {rank.nickname}
       </div>
 
-      {/* 수익률 */}
-      <div style={{ fontSize: isFirst ? 14 : 12, fontWeight: 600, color: rank.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-inter), monospace" }}>
+      <div style={{ fontSize: isFirst ? 16 : 15, fontWeight: 600, color: rank.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-inter), monospace" }}>
         {formatRate(rank.return_rate)}
       </div>
 
-      {/* 포디엄 블록 */}
       <div style={{
         width: "100%", height: podiumH, borderRadius: "8px 8px 0 0",
         background: TIER_CONFIG[tier].gradient,
         boxShadow: `0 -4px 20px ${TIER_CONFIG[tier].glow}`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: isFirst ? 24 : 18, fontWeight: 700, color: "#0d0d0d",
+        fontSize: isFirst ? 24 : 20, fontWeight: 700, color: "#0d0d0d",
       }}>
         {position}
       </div>
@@ -383,37 +352,33 @@ function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
       border: `0.5px solid ${isMe ? "rgba(250,202,62,0.2)" : "rgba(255,255,255,0.05)"}`,
       borderRadius: 12, padding: "10px 14px",
     }}>
-      {/* 순위 */}
-      <div style={{ width: 28, textAlign: "center", fontSize: 13, fontWeight: 600, color: "#555", flexShrink: 0, ...{fontFamily:"var(--font-inter),monospace"} }}>
+      <div style={{ width: 28, textAlign: "center", fontSize: 15, fontWeight: 600, color: "#c8bfb0", flexShrink: 0, fontFamily: "var(--font-inter),monospace" }}>
         {row.rank_position}
       </div>
 
-      {/* 티어 뱃지 */}
       <TierBadge tier={tier} size={32} />
 
-      {/* 아바타 */}
       {row.avatar_url ? (
         <img src={row.avatar_url} alt={row.nickname} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: `1px solid ${cfg.color}40` }} />
       ) : (
-        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#1a1a1a", border: `1px solid ${cfg.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#a09688", flexShrink: 0 }}>
+        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#1a1a1a", border: `1px solid ${cfg.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, color: "#c8bfb0", flexShrink: 0 }}>
           {row.nickname[0]?.toUpperCase() ?? "?"}
         </div>
       )}
 
-      {/* 닉네임 + 티어 */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: isMe ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {row.nickname}{isMe && <span style={{ fontSize: 10, color: "#FACA3E", marginLeft: 6 }}>나</span>}
+        <div style={{ fontSize: 15, fontWeight: isMe ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#e8e0d0" }}>
+          {row.nickname}
+          {isMe && <span style={{ fontSize: 15, color: "#FACA3E", marginLeft: 6 }}>나</span>}
         </div>
-        <div style={{ fontSize: 11, color: cfg.color, marginTop: 1 }}>{cfg.label}</div>
+        <div style={{ fontSize: 15, color: cfg.color, marginTop: 2 }}>{cfg.label}</div>
       </div>
 
-      {/* 수익률 */}
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: row.return_rate >= 0 ? "#7ed4a0" : "#f07070", ...{fontFamily:"var(--font-inter),monospace"} }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: row.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-inter),monospace" }}>
           {formatRate(row.return_rate)}
         </div>
-        <div style={{ fontSize: 11, color: "#444" }}>{row.trade_count}회 거래</div>
+        <div style={{ fontSize: 15, color: "#c8bfb0" }}>{row.trade_count}회 거래</div>
       </div>
     </div>
   );
@@ -435,7 +400,6 @@ function AwardCard({
       borderRadius: 16, padding: "16px 18px",
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-        {/* 이모지 */}
         <div style={{
           width: 48, height: 48, borderRadius: 14, flexShrink: 0,
           background: award ? `${cfg.color}18` : "rgba(255,255,255,0.04)",
@@ -447,36 +411,35 @@ function AwardCard({
           {cfg.emoji}
         </div>
 
-        {/* 정보 */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: award ? cfg.color : "#555" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: award ? cfg.color : "#c8bfb0" }}>
               {cfg.title}
             </span>
             {isMe && (
-              <span style={{ fontSize: 10, background: "#FACA3E", color: "#0d0d0d", borderRadius: 4, padding: "1px 5px", fontWeight: 700 }}>
+              <span style={{ fontSize: 15, background: "#FACA3E", color: "#0d0d0d", borderRadius: 4, padding: "1px 6px", fontWeight: 700 }}>
                 나
               </span>
             )}
           </div>
-          <div style={{ fontSize: 11, color: "#555", marginBottom: 8 }}>{cfg.subtitle}</div>
+          <div style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 10 }}>{cfg.subtitle}</div>
 
           {award && winner ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {winner.avatar_url ? (
-                <img src={winner.avatar_url} alt={winner.nickname} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover" }} />
+                <img src={winner.avatar_url} alt={winner.nickname} style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
               ) : (
-                <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#242424", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#a09688" }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#242424", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, color: "#c8bfb0" }}>
                   {winner.nickname[0]?.toUpperCase()}
                 </div>
               )}
-              <span style={{ fontSize: 13, fontWeight: 500 }}>{winner.nickname}</span>
-              <span style={{ fontSize: 12, color: cfg.color, marginLeft: "auto", fontFamily: "var(--font-inter),monospace" }}>
+              <span style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0" }}>{winner.nickname}</span>
+              <span style={{ fontSize: 15, color: cfg.color, marginLeft: "auto", fontFamily: "var(--font-inter),monospace" }}>
                 {award.metric_val !== null ? `${award.metric_val >= 0 ? "+" : ""}${award.metric_val.toFixed(1)}%` : ""}
               </span>
             </div>
           ) : (
-            <div style={{ fontSize: 12, color: "#333" }}>— 아직 수상자 없음</div>
+            <div style={{ fontSize: 15, color: "#c8bfb0" }}>— 아직 수상자 없음</div>
           )}
         </div>
       </div>
