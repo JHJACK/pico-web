@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { fetchStocks, type StockData } from "@/app/lib/stocks";
+import { formatUS, formatKR, type StockData } from "@/app/lib/stocks";
 import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase, type MockInvestmentRow } from "@/app/lib/supabase";
@@ -160,13 +160,23 @@ export default function StockChartPage() {
   }, [userRow?.id, ticker]);
 
   // 주가 조회 (초기 + 자동 갱신 공용)
+  // X-Cache-TTL 헤더로 실제 Redis 잔여 TTL을 받아 카운트다운 초기화
   const doFetchPrice = useCallback(async (isInitial = false) => {
     if (!ticker) return;
     if (isInitial) setLoading(true);
-    const map = await fetchStocks([ticker]);
-    setData(map[ticker] ?? null);
-    if (isInitial) setLoading(false);
-    setTimeLeft(15 * 60); // 조회 완료 시점부터 카운트다운 리셋
+    try {
+      const res = await fetch(`/api/stocks?tickers=${ticker}`, { cache: "no-store" });
+      const json = await res.json() as Record<string, { price: number; change: number; changePercent: number }>;
+      const raw = json[ticker];
+      if (raw) setData(isKrTicker(ticker) ? formatKR(raw) : formatUS(raw));
+
+      // 서버가 내려준 실제 Redis TTL로 카운트다운 세팅
+      const ttlHeader = res.headers.get("X-Cache-TTL");
+      const ttl = ttlHeader ? Math.max(1, parseInt(ttlHeader, 10)) : 15 * 60;
+      setTimeLeft(ttl);
+    } finally {
+      if (isInitial) setLoading(false);
+    }
   }, [ticker]);
 
   // 초기 로드
@@ -180,7 +190,7 @@ export default function StockChartPage() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           doFetchPrice(false);
-          return 15 * 60;
+          return 15 * 60; // 갱신 응답 오기 전 임시값, doFetchPrice 내에서 덮어씀
         }
         return prev - 1;
       });

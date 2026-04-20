@@ -1,4 +1,4 @@
-import { setCached, mgetCached } from "@/app/lib/cache";
+import { setCached, mgetCached, getTTLCached } from "@/app/lib/cache";
 import { US_FALLBACK, KR_FALLBACK } from "@/app/lib/stocks";
 import { fetchYahooKrPrices, fetchYahooUsPrices } from "@/app/lib/yahoo";
 import { isKrTicker } from "@/app/lib/stockNames";
@@ -92,5 +92,21 @@ export async function GET(request: Request) {
     }
   }
 
-  return Response.json(results);
+  // ── X-Cache-TTL 헤더: 단일 종목 요청(상세 페이지)일 때만 실제 TTL 반환
+  // 캐시 히트 → Redis 잔여 TTL / 캐시 미스(방금 세팅) → 900초
+  let cacheTTL = CACHE_TTL;
+  if (tickers.length === 1) {
+    const t = tickers[0];
+    const key = isKrTicker(t) ? `stock:kr:${t}` : `stock:us:${t}`;
+    const wasHit = !usMiss.includes(t) && !krMiss.includes(t);
+    if (wasHit) {
+      const realTTL = await getTTLCached(key);
+      if (realTTL > 0) cacheTTL = realTTL;
+    }
+    // 캐시 미스(새로 세팅)면 CACHE_TTL(900) 그대로 사용
+  }
+
+  return Response.json(results, {
+    headers: { "X-Cache-TTL": String(cacheTTL) },
+  });
 }

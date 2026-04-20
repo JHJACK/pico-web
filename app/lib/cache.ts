@@ -32,6 +32,15 @@ export async function setCached(
   }
 }
 
+// 키의 남은 TTL(초) 반환. 키 없음 → -2, 만료 없음 → -1
+export async function getTTLCached(key: string): Promise<number> {
+  try {
+    return (await getRedis()?.ttl(key)) ?? -2;
+  } catch {
+    return -2;
+  }
+}
+
 // 여러 키를 한 번에 조회 (mget — 1 command)
 export async function mgetCached<T>(keys: string[]): Promise<(T | null)[]> {
   if (keys.length === 0) return [];
