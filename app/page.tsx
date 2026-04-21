@@ -635,7 +635,10 @@ export default function Home() {
   async function handleSocialLogin(provider: "google" | "kakao") {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+        scopes: provider === "kakao" ? "profile_nickname account_email" : undefined,
+      },
     });
     if (error) { showToast("소셜 로그인에 실패했어요. 다시 시도해 주세요."); return; }
     localStorage.setItem("pico_last_login_provider", provider);
