@@ -25,7 +25,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "인증에 실패했어요" }, { status: 401 });
     }
 
-    const holdings = await getUserHoldings(user.id, ticker);
+    // RLS 우회를 위해 service role 클라이언트 사용 (유저 인증은 위에서 완료)
+    const serviceClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const holdings = await getUserHoldings(user.id, ticker, serviceClient);
 
     // 보유 중인 종목의 현재 주가 조회해서 현재 평가금 계산
     const holdingRows = holdings.filter((h) => h.status === "holding");

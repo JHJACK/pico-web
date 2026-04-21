@@ -224,9 +224,9 @@ export async function getPointHistory(uid: string): Promise<PointHistoryRow[]> {
 }
 
 // ── 포인트 내역 삽입 (내부 헬퍼) ─────────────────────
-async function insertPointHistory(uid: string, points: number, reason: string) {
+async function insertPointHistory(uid: string, points: number, reason: string, db: typeof supabase = supabase) {
   if (!uid) return;
-  const { error } = await supabase
+  const { error } = await db
     .from("point_history")
     .insert({ user_id: uid, points, reason });
   if (error) console.error("[insertPointHistory]", error.message);
@@ -243,11 +243,11 @@ async function insertPointHistory(uid: string, points: number, reason: string) {
 //   $$;
 //
 // RPC가 없으면 select→update fallback 사용
-async function addPoints(uid: string, delta: number) {
+async function addPoints(uid: string, delta: number, db: typeof supabase = supabase) {
   if (!uid || delta === 0) return;
 
   // RPC 시도
-  const { error: rpcErr } = await supabase.rpc("increment_user_points", {
+  const { error: rpcErr } = await db.rpc("increment_user_points", {
     uid,
     delta,
   });
@@ -257,14 +257,14 @@ async function addPoints(uid: string, delta: number) {
 
   // RPC 없으면 select→update fallback
   console.warn("[addPoints] RPC fallback:", rpcErr.message);
-  const { data, error: selErr } = await supabase
+  const { data, error: selErr } = await db
     .from("users")
     .select("total_points")
     .eq("id", uid)
     .single();
   if (selErr) { console.error("[addPoints] select:", selErr.message); return; }
   const current = (data as { total_points: number } | null)?.total_points ?? 0;
-  const { error: updErr } = await supabase
+  const { error: updErr } = await db
     .from("users")
     .update({ total_points: current + delta })
     .eq("id", uid);
@@ -497,13 +497,14 @@ export async function buyStock(
   uid: string,
   ticker: string,
   investedPoints: number,
-  buyPrice: number
+  buyPrice: number,
+  db: typeof supabase = supabase
 ): Promise<{ ok: boolean; investment?: MockInvestmentRow; error?: string; isFirstInvestment?: boolean }> {
   if (!uid) return { ok: false, error: "로그인이 필요해요" };
   if (investedPoints < 100) return { ok: false, error: "최소 100P 이상 투자해 주세요" };
 
   // 1) 현재 포인트 확인
-  const { data: userRow, error: selErr } = await supabase
+  const { data: userRow, error: selErr } = await db
     .from("users")
     .select("total_points")
     .eq("id", uid)
@@ -513,14 +514,14 @@ export async function buyStock(
     return { ok: false, error: "포인트가 부족해요" };
 
   // 2) 포인트 차감
-  const { error: rpcErr } = await supabase.rpc("increment_user_points", {
+  const { error: rpcErr } = await db.rpc("increment_user_points", {
     uid,
     delta: -investedPoints,
   });
   if (rpcErr) return { ok: false, error: "포인트 차감에 실패했어요" };
 
   // 3) 투자 기록 저장
-  const { data: inv, error: invErr } = await supabase
+  const { data: inv, error: invErr } = await db
     .from("mock_investments")
     .insert({
       user_id: uid,
@@ -534,28 +535,22 @@ export async function buyStock(
 
   if (invErr) {
     // 실패 시 포인트 환불
-    await supabase.rpc("increment_user_points", { uid, delta: investedPoints });
+    await db.rpc("increment_user_points", { uid, delta: investedPoints });
     return { ok: false, error: "투자 기록 저장에 실패했어요" };
   }
 
   // 4) 포인트 내역 기록
-  await supabase.from("point_history").insert({
-    user_id: uid,
-    points: -investedPoints,
-    reason: `${ticker} 모의 매수`,
-  });
+  await insertPointHistory(uid, -investedPoints, `${ticker} 모의 매수`, db);
 
   // 5) 첫 모의투자 퀘스트 보너스 (+200P, 1회)
-  const { count } = await supabase
+  const { count } = await db
     .from("mock_investments")
     .select("*", { count: "exact", head: true })
     .eq("user_id", uid);
   const isFirstInvestment = (count ?? 0) === 1;
   if (isFirstInvestment) {
-    await supabase.rpc("increment_user_points", { uid, delta: 200 });
-    await supabase.from("point_history").insert({
-      user_id: uid, points: 200, reason: "첫 모의투자 퀘스트 완료",
-    });
+    await db.rpc("increment_user_points", { uid, delta: 200 });
+    await insertPointHistory(uid, 200, "첫 모의투자 퀘스트 완료", db);
   }
 
   return { ok: true, investment: inv as MockInvestmentRow, isFirstInvestment };
@@ -565,12 +560,13 @@ export async function buyStock(
 export async function sellStock(
   uid: string,
   investmentId: string,
-  sellPrice: number
+  sellPrice: number,
+  db: typeof supabase = supabase
 ): Promise<{ ok: boolean; finalPoints?: number; profitLoss?: number; error?: string; questBonus?: number }> {
   if (!uid) return { ok: false, error: "로그인이 필요해요" };
 
   // 1) 투자 기록 조회
-  const { data: inv, error: selErr } = await supabase
+  const { data: inv, error: selErr } = await db
     .from("mock_investments")
     .select("*")
     .eq("id", investmentId)
@@ -587,7 +583,7 @@ export async function sellStock(
   const profitLoss = finalPoints - investment.invested_points;
 
   // 2) 투자 기록 업데이트
-  const { error: updErr } = await supabase
+  const { error: updErr } = await db
     .from("mock_investments")
     .update({
       sell_price: sellPrice,
@@ -599,27 +595,21 @@ export async function sellStock(
   if (updErr) return { ok: false, error: "매도 처리에 실패했어요" };
 
   // 3) 포인트 환급 (손실이면 finalPoints < invested_points지만 항상 >= 0)
-  await supabase.rpc("increment_user_points", { uid, delta: finalPoints });
+  await db.rpc("increment_user_points", { uid, delta: finalPoints });
 
   // 4) 포인트 내역 기록
   const reason =
     profitLoss >= 0
       ? `${investment.ticker} 모의 매도 (+${profitLoss}P 수익)`
       : `${investment.ticker} 모의 매도 (${profitLoss}P 손실)`;
-  await supabase.from("point_history").insert({
-    user_id: uid,
-    points: finalPoints,
-    reason,
-  });
+  await insertPointHistory(uid, finalPoints, reason, db);
 
   // 5) 수익 달성 퀘스트 보너스 (+50P, 수익 발생 시마다)
   let questBonus = 0;
   if (profitLoss > 0) {
     questBonus = 50;
-    await supabase.rpc("increment_user_points", { uid, delta: 50 });
-    await supabase.from("point_history").insert({
-      user_id: uid, points: 50, reason: "모의투자 수익 달성 퀘스트",
-    });
+    await db.rpc("increment_user_points", { uid, delta: 50 });
+    await insertPointHistory(uid, 50, "모의투자 수익 달성 퀘스트", db);
   }
 
   return { ok: true, finalPoints, profitLoss, questBonus };
@@ -628,10 +618,11 @@ export async function sellStock(
 // ── 보유 종목 조회 ────────────────────────────────────
 export async function getUserHoldings(
   uid: string,
-  ticker?: string
+  ticker?: string,
+  db: typeof supabase = supabase
 ): Promise<MockInvestmentRow[]> {
   if (!uid) return [];
-  let query = supabase
+  let query = db
     .from("mock_investments")
     .select("*")
     .eq("user_id", uid)

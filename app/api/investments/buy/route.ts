@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     // 현재 주가 조회
     const stockRes = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL ? req.nextUrl.origin : "http://localhost:3000"}/api/stocks?tickers=${ticker}`,
+      `${req.nextUrl.origin}/api/stocks?tickers=${ticker}`,
       { headers: { "Cache-Control": "no-store" } }
     );
     const stockData = await stockRes.json();
@@ -39,7 +39,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "주가 정보를 가져올 수 없어요" }, { status: 500 });
     }
 
-    const result = await buyStock(user.id, ticker, investedPoints, buyPrice);
+    // RLS 우회를 위해 service role 클라이언트 사용 (유저 인증은 위에서 완료)
+    const serviceClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const result = await buyStock(user.id, ticker, investedPoints, buyPrice, serviceClient);
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
