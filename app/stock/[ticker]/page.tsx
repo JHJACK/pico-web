@@ -7,6 +7,7 @@ import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase, type MockInvestmentRow } from "@/app/lib/supabase";
 import { isKrMarketOpen, isUSMarketOpen, getClosedText, getMarketClosedTooltip } from "@/app/lib/marketStatus";
+import { useStockCache } from "@/app/lib/stockCacheContext";
 import StockChart from "@/app/components/StockChart";
 
 type OrderTab = "buy" | "sell";
@@ -98,9 +99,10 @@ export default function StockChartPage() {
   };
   const exch = kr ? "KRX" : (EXCHANGE[ticker] ?? "NASDAQ");
 
+  const { cacheTimeLeft, updateFromTTL } = useStockCache();
+
   const [data, setData]             = useState<StockData | null>(null);
   const [loading, setLoading]       = useState(true);
-  const [timeLeft, setTimeLeft]     = useState(15 * 60); // 15분 카운트다운(초)
   const [orderTab, setOrderTab]     = useState<OrderTab>("buy");
   const [orderAmt, setOrderAmt]     = useState(0);
   const [exchangeRate, setExchangeRate] = useState(1470);
@@ -172,30 +174,23 @@ export default function StockChartPage() {
 
       // __ttl: 서버가 Redis TTL 조회 후 바디에 포함 (캐시 히트 → 잔여 초 / 미스 → 900)
       const ttl = typeof json.__ttl === "number" ? Math.max(1, json.__ttl) : 15 * 60;
-      setTimeLeft(ttl);
+      updateFromTTL(ttl);
     } finally {
       if (isInitial) setLoading(false);
     }
-  }, [ticker]);
+  }, [ticker, updateFromTTL]);
 
   // 초기 로드
   useEffect(() => {
     doFetchPrice(true);
   }, [doFetchPrice]);
 
-  // 카운트다운 (1초마다 감소, 0이 되면 가격 갱신 후 리셋)
+  // 전역 카운트다운이 0이 되면 가격 재조회 (interval은 StockCacheProvider가 담당)
   useEffect(() => {
-    const id = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          doFetchPrice(false);
-          return 15 * 60; // 갱신 응답 오기 전 임시값, doFetchPrice 내에서 덮어씀
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [doFetchPrice]);
+    if (cacheTimeLeft === 0) {
+      doFetchPrice(false);
+    }
+  }, [cacheTimeLeft, doFetchPrice]);
 
   useEffect(() => {
     if (kr) return;
@@ -716,7 +711,7 @@ export default function StockChartPage() {
                   </span>
                 )}
                 <span className="hero-delay" style={{ color: C.text2, marginLeft: "auto", fontVariantNumeric: "tabular-nums" }}>
-                  {`${String(Math.floor(timeLeft / 60)).padStart(2, "0")}:${String(timeLeft % 60).padStart(2, "0")} 후 갱신`}
+                  {`${String(Math.floor(cacheTimeLeft / 60)).padStart(2, "0")}:${String(cacheTimeLeft % 60).padStart(2, "0")} 후 갱신`}
                 </span>
               </div>
             </>
