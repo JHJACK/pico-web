@@ -14,6 +14,7 @@ type RankRow = {
   trade_count: number;
   rank_position: number;
   updated_at: string;
+  equipped_title: string | null;
 };
 
 type Award = {
@@ -54,6 +55,15 @@ const AWARD_CONFIG: Record<string, { emoji: string; title: string; subtitle: str
   hodl:        { emoji: "🗿", title: "존버의 신",               subtitle: "흔들림 없이 버텨낸 의지의 사나이",     color: "#a0b8f0" },
   daytrader:   { emoji: "⚡️", title: "단타의 귀재",            subtitle: "이번 주 가장 바쁘게 살았던 투자자",    color: "#f0c060" },
   mentalsteel: { emoji: "🧊", title: "냉철한 멘탈",             subtitle: "단 한 번의 손실도 없이 수익만 챙겼다", color: "#b8e0f8" },
+};
+
+// ── 수식어 메타 ───────────────────────────────────────────────
+const TITLE_META: Record<string, { emoji: string; label: string; color: string }> = {
+  sniper:      { emoji: "🎯", label: "여의도 스나이퍼",  color: "#FACA3E" },
+  frog:        { emoji: "🐸", label: "역발상의 천재",    color: "#7ed4a0" },
+  hodl:        { emoji: "🗿", label: "존버의 신",        color: "#a0b8f0" },
+  daytrader:   { emoji: "⚡️", label: "단타의 귀재",     color: "#f0c060" },
+  mentalsteel: { emoji: "🧊", label: "냉철한 멘탈",      color: "#b8e0f8" },
 };
 
 // ── 공통 스타일 ───────────────────────────────────────────────
@@ -99,7 +109,6 @@ export default function RankingPage() {
   const [weekStart,   setWeekStart]   = useState("");
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [loading,     setLoading]     = useState(true);
-  const [refreshing,  setRefreshing]  = useState(false);
   const [activeTab,   setActiveTab]   = useState<"rank" | "awards">("rank");
 
   const load = useCallback(async () => {
@@ -118,13 +127,6 @@ export default function RankingPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetch("/api/rankings/calculate", { method: "POST" });
-    await load();
-    setRefreshing(false);
-  };
-
   const myPercentile = myRank && totalUsers > 0
     ? Math.round(((totalUsers - myRank.rank_position) / totalUsers) * 100)
     : null;
@@ -138,22 +140,14 @@ export default function RankingPage() {
 
       {/* ── 헤더 ── */}
       <nav style={{
-        position: "sticky", top: 0, zIndex: 30, height: 64,
+        position: "sticky", top: 0, zIndex: 30, height: 56,
         background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)",
         borderBottom: "0.5px solid rgba(255,255,255,0.06)",
         display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px",
       }}>
-        <button onClick={() => router.push("/")} style={{ background: "none", border: "none", color: "#FACA3E", fontSize: 24, fontFamily: "var(--font-serif)", cursor: "pointer", letterSpacing: "0.01em" }}>
-          PICO
-        </button>
-        <span style={{ fontSize: 15, color: "#c8bfb0" }}>🏆 주간 랭킹</span>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          style={{ background: "none", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 14px", color: "#c8bfb0", fontSize: 15, cursor: refreshing ? "default" : "pointer", opacity: refreshing ? 0.5 : 1 }}
-        >
-          {refreshing ? "계산 중..." : "새로고침"}
-        </button>
+        <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "#c8bfb0", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>←</button>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "#e8e0d0" }}>🏆 주간 랭킹</span>
+        <div style={{ width: 32 }} />
       </nav>
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px 80px" }}>
@@ -341,9 +335,15 @@ function PodiumCard({ rank, position }: { rank: RankRow; position: 1 | 2 | 3 }) 
         </div>
       </div>
 
-      <div style={{ fontSize: 15, fontWeight: 500, maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center", color: "#e8e0d0" }}>
+      <div style={{ fontSize: isFirst ? 14 : 13, fontWeight: 500, maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center", color: "#e8e0d0" }}>
         {rank.nickname}
       </div>
+
+      {rank.equipped_title && TITLE_META[rank.equipped_title] ? (
+        <div style={{ fontSize: 10, color: TITLE_META[rank.equipped_title].color, textAlign: "center", maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {TITLE_META[rank.equipped_title].emoji} {TITLE_META[rank.equipped_title].label}
+        </div>
+      ) : null}
 
       <div style={{ fontSize: isFirst ? 15 : 14, fontWeight: 700, color: rank.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-inter), monospace" }}>
         {formatRate(rank.return_rate)}
@@ -395,11 +395,20 @@ function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
       )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: isMe ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#e8e0d0" }}>
-          {row.nickname}
-          {isMe && <span style={{ fontSize: 11, background: "#FACA3E", color: "#0d0d0d", borderRadius: 4, padding: "1px 5px", fontWeight: 700, marginLeft: 6 }}>나</span>}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden" }}>
+          <span style={{ fontSize: 14, fontWeight: isMe ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#e8e0d0" }}>
+            {row.nickname}
+          </span>
+          {isMe && <span style={{ fontSize: 10, background: "#FACA3E", color: "#0d0d0d", borderRadius: 4, padding: "1px 5px", fontWeight: 700, flexShrink: 0 }}>나</span>}
         </div>
-        <div style={{ fontSize: 11, color: cfg.color, marginTop: 2 }}>{cfg.label} · {row.trade_count}회 거래</div>
+        {row.equipped_title && TITLE_META[row.equipped_title] ? (
+          <div style={{ fontSize: 11, marginTop: 2, color: TITLE_META[row.equipped_title].color, display: "flex", alignItems: "center", gap: 3 }}>
+            <span>{TITLE_META[row.equipped_title].emoji}</span>
+            <span>{TITLE_META[row.equipped_title].label}</span>
+          </div>
+        ) : (
+          <div style={{ fontSize: 11, color: cfg.color, marginTop: 2 }}>{cfg.label} · {row.trade_count}회 거래</div>
+        )}
       </div>
 
       <div style={{ textAlign: "right", flexShrink: 0 }}>

@@ -60,9 +60,28 @@ export async function GET(req: NextRequest) {
     .select("*", { count: "exact", head: true })
     .eq("week_start", weekStart);
 
+  // 6) 수식어(equipped_title) 조회 — 실시간 반영 위해 캐시 아닌 users 테이블 직접
+  const rankingUserIds = (rankings ?? []).map((r: { user_id: string }) => r.user_id);
+  let titleMap: Record<string, string | null> = {};
+  if (rankingUserIds.length > 0) {
+    const { data: titleRows } = await supabase
+      .from("users")
+      .select("id, equipped_title")
+      .in("id", rankingUserIds);
+    for (const row of titleRows ?? []) {
+      titleMap[(row as { id: string; equipped_title: string | null }).id] =
+        (row as { id: string; equipped_title: string | null }).equipped_title;
+    }
+  }
+
+  const rankingsWithTitle = (rankings ?? []).map((r: Record<string, unknown>) => ({
+    ...r,
+    equipped_title: titleMap[r.user_id as string] ?? null,
+  }));
+
   return NextResponse.json({
     weekStart,
-    rankings: rankings ?? [],
+    rankings: rankingsWithTitle,
     awards:   awards ?? [],
     myRank,
     totalUsers: totalUsers ?? 0,

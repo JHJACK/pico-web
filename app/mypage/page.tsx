@@ -233,6 +233,11 @@ export default function MyPage() {
           )}
           <div className="flex-1 min-w-0">
             <p style={{ fontSize: FS.nickname, fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
+            {userRow.equipped_title && (
+              <p style={{ fontSize: 12, color: "#c8bfb0", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {({ sniper:"🎯 여의도 스나이퍼", frog:"🐸 역발상의 천재", hodl:"🗿 존버의 신", daytrader:"⚡️ 단타의 귀재", mentalsteel:"🧊 냉철한 멘탈" } as Record<string,string>)[userRow.equipped_title] ?? ""}
+              </p>
+            )}
           </div>
           <button onClick={openEdit} className="pico-btn arrow-btn flex-shrink-0"
             style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>

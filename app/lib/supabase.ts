@@ -13,6 +13,7 @@ export type UserRow = {
   total_points: number;
   created_at: string;
   avatar_url: string | null;
+  equipped_title: string | null;
 };
 
 export type AttendanceRow = {
