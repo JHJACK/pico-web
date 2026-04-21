@@ -182,7 +182,7 @@ export default function MyPage() {
             <p style={{ fontSize: 13, color: "#a09688", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
 
             {/* 이메일 (소셜 로그인이 아닐 때만 표시) */}
-            {!["kakao", "google"].includes(user.app_metadata?.provider) && (
+            {!["kakao", "google"].includes(user.app_metadata?.provider ?? "") && (
               <>
                 <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 4 }}>로그인 이메일</p>
                 <p style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 16 }}>{user.email}</p>
