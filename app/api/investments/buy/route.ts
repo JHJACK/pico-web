@@ -50,6 +50,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
+    // 랭킹 재계산 (백그라운드 — 응답 지연 없음)
+    fetch(`${req.nextUrl.origin}/api/rankings/calculate`, { method: "POST" }).catch(() => {});
+
     return NextResponse.json({ ok: true, investment: result.investment, buyPrice, isFirstInvestment: result.isFirstInvestment ?? false });
   } catch (e) {
     console.error("[/api/investments/buy]", e);

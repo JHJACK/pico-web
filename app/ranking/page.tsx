@@ -160,10 +160,13 @@ export default function RankingPage() {
 
         {/* ── 타이틀 ── */}
         <div style={{ padding: "28px 0 20px", textAlign: "center" }}>
-          <p style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 6, ...NUM }}>{weekLabel}</p>
-          <h1 style={{ fontSize: 22, fontWeight: 600, color: "#e8e0d0", margin: 0 }}>이번 주 투자의 신 🏆</h1>
-          <p style={{ fontSize: 15, color: "#c8bfb0", marginTop: 8 }}>
-            {lastUpdated ? `마지막 업데이트: ${timeAgo(lastUpdated)}` : "아직 계산된 데이터가 없어요"}
+          <p style={{ fontSize: 13, color: "#c8bfb0", marginBottom: 6, ...NUM }}>{weekLabel}</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#e8e0d0", margin: 0 }}>이번 주 투자의 신 🏆</h1>
+          <p style={{ fontSize: 12, color: "#c8bfb0", marginTop: 6, letterSpacing: "0.04em" }}>
+            투자 수익률로 결정되는 진짜 실력 대결
+          </p>
+          <p style={{ fontSize: 12, color: "#c8bfb0", marginTop: 4 }}>
+            {lastUpdated ? `${timeAgo(lastUpdated)} 업데이트` : "아직 계산된 데이터가 없어요"}
           </p>
         </div>
 
@@ -173,25 +176,41 @@ export default function RankingPage() {
             background: "linear-gradient(135deg, rgba(250,202,62,0.08) 0%, rgba(13,13,13,0) 100%)",
             border: "0.5px solid rgba(250,202,62,0.25)", borderRadius: 16,
             padding: "16px 20px", marginBottom: 20,
-            display: "flex", alignItems: "center", gap: 16,
           }}>
-            <TierBadge tier={getTier(myRank.return_rate)} size={48} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, color: "#FACA3E", marginBottom: 4 }}>내 랭킹</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ fontSize: 26, fontWeight: 700, ...NUM }}>#{myRank.rank_position}</span>
-                <span style={{ fontSize: 16, color: myRank.return_rate >= 0 ? "#7ed4a0" : "#f07070", ...NUM }}>
-                  {formatRate(myRank.return_rate)}
-                </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <TierBadge tier={getTier(myRank.return_rate)} size={48} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, color: "#FACA3E", marginBottom: 4, fontWeight: 600, letterSpacing: "0.04em" }}>내 투자 성적</div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontSize: 26, fontWeight: 700, ...NUM }}>#{myRank.rank_position}</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: myRank.return_rate >= 0 ? "#7ed4a0" : "#f07070", ...NUM }}>
+                    {formatRate(myRank.return_rate)}
+                  </span>
+                </div>
+                <div style={{ fontSize: 12, color: "#c8bfb0", marginTop: 2 }}>
+                  {myPercentile !== null ? `상위 ${100 - myPercentile}% · ` : ""}
+                  {TIER_CONFIG[getTier(myRank.return_rate)].label} 티어
+                </div>
               </div>
-              <div style={{ fontSize: 15, color: "#c8bfb0", marginTop: 2 }}>
-                {myPercentile !== null ? `상위 ${100 - myPercentile}% · ` : ""}
-                {TIER_CONFIG[getTier(myRank.return_rate)].label} 티어
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 12, color: "#c8bfb0" }}>거래 횟수</div>
+                <div style={{ fontSize: 18, fontWeight: 700, ...NUM }}>{myRank.trade_count}회</div>
               </div>
             </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 15, color: "#c8bfb0" }}>거래</div>
-              <div style={{ fontSize: 18, fontWeight: 600, ...NUM }}>{myRank.trade_count}회</div>
+            {/* 티어 설명 */}
+            <div style={{
+              marginTop: 12, paddingTop: 12,
+              borderTop: "0.5px solid rgba(255,255,255,0.06)",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <span style={{ fontSize: 12, color: "#c8bfb0" }}>
+                {myRank.return_rate >= 50 ? "🔥 시장을 이긴 투자자예요!" :
+                 myRank.return_rate >= 30 ? "📈 훌륭한 수익률이에요!" :
+                 myRank.return_rate >= 10 ? "💪 평균을 크게 웃돌고 있어요" :
+                 myRank.return_rate >= 0  ? "✨ 수익권에 있어요" :
+                 "📉 다음 게임을 노려보세요!"}
+              </span>
+              <span style={{ fontSize: 11, color: "#c8bfb0", ...NUM }}>{totalUsers}명 중 {myRank.rank_position}위</span>
             </div>
           </div>
         )}
@@ -247,9 +266,11 @@ export default function RankingPage() {
           <div>
             {rankings.length === 0 ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
-                <div style={{ fontSize: 40, marginBottom: 16 }}>📭</div>
-                <div style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 8 }}>아직 이번 주 랭킹이 없어요</div>
-                <div style={{ fontSize: 15, color: "#c8bfb0" }}>모의투자를 시작하면 자동으로 올라가요!</div>
+                <div style={{ fontSize: 40, marginBottom: 16 }}>🎮</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: "#e8e0d0", marginBottom: 8 }}>이번 주 게임이 시작됐어요</div>
+                <div style={{ fontSize: 13, color: "#c8bfb0", lineHeight: 1.7 }}>
+                  종목에서 매수하면<br />수익률 순위에 자동으로 올라가요!
+                </div>
               </div>
             ) : (
               <>
@@ -324,9 +345,14 @@ function PodiumCard({ rank, position }: { rank: RankRow; position: 1 | 2 | 3 }) 
         {rank.nickname}
       </div>
 
-      <div style={{ fontSize: isFirst ? 16 : 15, fontWeight: 600, color: rank.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-inter), monospace" }}>
+      <div style={{ fontSize: isFirst ? 15 : 14, fontWeight: 700, color: rank.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-inter), monospace" }}>
         {formatRate(rank.return_rate)}
       </div>
+      {rank.total_invested > 0 && (
+        <div style={{ fontSize: 10, color: "#c8bfb0", marginTop: 1 }}>
+          {rank.total_invested.toLocaleString("ko-KR")}P
+        </div>
+      )}
 
       <div style={{
         width: "100%", height: podiumH, borderRadius: "8px 8px 0 0",
@@ -343,8 +369,10 @@ function PodiumCard({ rank, position }: { rank: RankRow; position: 1 | 2 | 3 }) 
 
 // ── 리스트 행 (4위~) ──────────────────────────────────────────
 function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
-  const tier = getTier(row.return_rate);
-  const cfg  = TIER_CONFIG[tier];
+  const tier      = getTier(row.return_rate);
+  const cfg       = TIER_CONFIG[tier];
+  const isProfit  = row.return_rate >= 0;
+  const rateColor = isProfit ? "#7ed4a0" : "#f07070";
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 12,
@@ -369,16 +397,25 @@ function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: isMe ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#e8e0d0" }}>
           {row.nickname}
-          {isMe && <span style={{ fontSize: 15, color: "#FACA3E", marginLeft: 6 }}>나</span>}
+          {isMe && <span style={{ fontSize: 11, background: "#FACA3E", color: "#0d0d0d", borderRadius: 4, padding: "1px 5px", fontWeight: 700, marginLeft: 6 }}>나</span>}
         </div>
-        <div style={{ fontSize: 15, color: cfg.color, marginTop: 2 }}>{cfg.label}</div>
+        <div style={{ fontSize: 11, color: cfg.color, marginTop: 2 }}>{cfg.label} · {row.trade_count}회 거래</div>
       </div>
 
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: row.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-inter),monospace" }}>
-          {formatRate(row.return_rate)}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          background: isProfit ? "rgba(126,212,160,0.1)" : "rgba(240,112,112,0.1)",
+          border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.25)" : "rgba(240,112,112,0.25)"}`,
+          borderRadius: 8, padding: "3px 10px",
+        }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: rateColor, fontFamily: "var(--font-inter),monospace" }}>
+            {formatRate(row.return_rate)}
+          </span>
         </div>
-        <div style={{ fontSize: 15, color: "#c8bfb0" }}>{row.trade_count}회 거래</div>
+        <div style={{ fontSize: 11, color: "#c8bfb0", marginTop: 3 }}>
+          {row.total_invested > 0 ? `${row.total_invested.toLocaleString("ko-KR")}P 투자` : ""}
+        </div>
       </div>
     </div>
   );
