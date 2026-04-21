@@ -92,10 +92,12 @@ export default function MyPage() {
     if (!user) return;
     setDeleteLoading(true);
     try {
-      await supabase.from("battle_votes").delete().eq("user_id", user.id);
-      await supabase.from("attendance").delete().eq("user_id", user.id);
-      const { error } = await supabase.from("users").delete().eq("id", user.id);
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/auth/delete-account", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+      });
+      if (!res.ok) throw new Error("탈퇴 실패");
       await signOut();
       router.replace("/");
     } catch (e) {
@@ -154,9 +156,18 @@ export default function MyPage() {
             </div>
             <p style={{ fontSize: 13, color: "#a09688", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
 
-            {/* 이메일 (읽기 전용) */}
-            <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 4 }}>로그인 이메일</p>
-            <p style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 16 }}>{user.email}</p>
+            {/* 로그인 수단 */}
+            {user.app_metadata?.provider === "kakao" ? (
+              <div className="flex items-center gap-2 mb-4 px-3 py-2.5 rounded-xl" style={{ background: "#FEE500" }}>
+                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#191600" d="M9 1.5C4.86 1.5 1.5 4.17 1.5 7.5c0 2.13 1.38 4.01 3.47 5.09l-.88 3.27a.19.19 0 0 0 .28.21L8.1 13.7a9.4 9.4 0 0 0 .9.05c4.14 0 7.5-2.67 7.5-6S13.14 1.5 9 1.5z"/></svg>
+                <span style={{ fontSize: 14, fontWeight: 500, color: "#191600" }}>카카오 계정으로 로그인 중이에요</span>
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 4 }}>로그인 이메일</p>
+                <p style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 16 }}>{user.email}</p>
+              </>
+            )}
             <div style={{ height: "0.5px", background: "rgba(255,255,255,0.07)", marginBottom: 16 }} />
 
             <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 8 }}>닉네임</p>
@@ -328,11 +339,11 @@ export default function MyPage() {
           </button>
         ) : (
           <div className="rounded-2xl p-5 border" style={{ background: "rgba(240,120,120,0.06)", borderColor: "rgba(240,120,120,0.25)" }}>
-            <p style={{ fontSize: 14, fontWeight: 400, color: "#f07878", marginBottom: 12 }}>정말 탈퇴할까? 모든 포인트와 기록이 삭제돼.</p>
+            <p style={{ fontSize: 14, fontWeight: 400, color: "#f07878", marginBottom: 12 }}>정말 탈퇴하실 건가요? 모든 포인트와 기록이 삭제돼요.</p>
             <div className="flex gap-2">
               <button onClick={handleDeleteAccount} disabled={deleteLoading} className="pico-btn flex-1 py-2.5 rounded-xl"
                 style={{ background: "#f07878", color: "#0d0d0d", fontSize: 13, fontWeight: 500 }}>
-                {deleteLoading ? "처리중..." : "탈퇴할게"}
+                {deleteLoading ? "처리 중..." : "탈퇴할게요"}
               </button>
               <button onClick={() => setShowDeleteConfirm(false)} className="pico-btn flex-1 py-2.5 rounded-xl"
                 style={{ background: "#1c1c1c", color: "#a09688", fontSize: 13, fontWeight: 400, border: "0.5px solid rgba(255,255,255,0.1)" }}>
