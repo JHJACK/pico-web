@@ -139,7 +139,32 @@ export default function MyPage() {
           style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
           <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 border"
             style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)" }}>
-            <p style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0", marginBottom: 24 }}>프로필 수정</p>
+            <div className="flex items-center justify-between mb-6">
+              <p style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0" }}>프로필 수정</p>
+              {(() => {
+                const provider = user.app_metadata?.provider;
+                if (provider === "kakao") return (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full" style={{ background: "#FEE500" }}>
+                    <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#FEE500", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg width="12" height="12" viewBox="0 0 18 18"><path fill="#191600" d="M9 1.5C4.86 1.5 1.5 4.17 1.5 7.5c0 2.13 1.38 4.01 3.47 5.09l-.88 3.27a.19.19 0 0 0 .28.21L8.1 13.7a9.4 9.4 0 0 0 .9.05c4.14 0 7.5-2.67 7.5-6S13.14 1.5 9 1.5z"/></svg>
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#191600", whiteSpace: "nowrap" }}>카카오 계정 로그인 중</span>
+                  </div>
+                );
+                if (provider === "google") return (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full" style={{ background: "#fff" }}>
+                    <svg width="14" height="14" viewBox="0 0 48 48" style={{ flexShrink: 0 }}>
+                      <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 7 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
+                      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 7 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.3C29.4 35.5 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.7 39.7 16.3 44 24 44z"/>
+                      <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.2 5.3c-.4.4 6.8-5 6.8-14.8 0-1.3-.1-2.7-.4-3.9z"/>
+                    </svg>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#3c3c3c", whiteSpace: "nowrap" }}>구글 계정 로그인 중</span>
+                  </div>
+                );
+                return null;
+              })()}
+            </div>
 
             <div className="flex justify-center mb-6">
               <button onClick={() => fileInputRef.current?.click()} className="pico-btn relative" style={{ background: "none", border: "none" }}>
@@ -156,13 +181,8 @@ export default function MyPage() {
             </div>
             <p style={{ fontSize: 13, color: "#a09688", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
 
-            {/* 로그인 수단 */}
-            {user.app_metadata?.provider === "kakao" ? (
-              <div className="flex items-center gap-2 mb-4 px-3 py-2.5 rounded-xl" style={{ background: "#FEE500" }}>
-                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#191600" d="M9 1.5C4.86 1.5 1.5 4.17 1.5 7.5c0 2.13 1.38 4.01 3.47 5.09l-.88 3.27a.19.19 0 0 0 .28.21L8.1 13.7a9.4 9.4 0 0 0 .9.05c4.14 0 7.5-2.67 7.5-6S13.14 1.5 9 1.5z"/></svg>
-                <span style={{ fontSize: 14, fontWeight: 500, color: "#191600" }}>카카오 계정으로 로그인 중이에요</span>
-              </div>
-            ) : (
+            {/* 이메일 (소셜 로그인이 아닐 때만 표시) */}
+            {!["kakao", "google"].includes(user.app_metadata?.provider) && (
               <>
                 <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 4 }}>로그인 이메일</p>
                 <p style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 16 }}>{user.email}</p>
