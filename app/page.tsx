@@ -356,6 +356,7 @@ function GameDashboardPanel({
   top3: DashRankRow[];
   myRank: { rank_position: number; return_rate: number } | null;
 }) {
+  const [holdingsExpanded, setHoldingsExpanded] = useState(false);
   const activeHoldings = holdings;
   const totalInvested = activeHoldings.reduce((s, h) => s + h.invested_points, 0);
   const totalValue    = activeHoldings.reduce((s, h) => s + h.currentValue, 0);
@@ -370,14 +371,13 @@ function GameDashboardPanel({
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {/* ── 상단: 내 게임 현황 ── */}
       <div style={{
         background: "#1c1c1c",
         border: "0.5px solid rgba(255,255,255,0.08)",
         borderRadius: 16,
         padding: "18px 18px 16px",
-        flex: "0 0 auto",
       }}>
         <p style={{ fontSize: 15, fontWeight: 600, color: "#c8bfb0",
           letterSpacing: "0.04em", marginBottom: 14 }}>
@@ -431,7 +431,7 @@ function GameDashboardPanel({
               </p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {activeHoldings.slice(0, 4).map((h, i) => {
+                {(holdingsExpanded ? activeHoldings : activeHoldings.slice(0, 4)).map((h, i) => {
                   const up   = h.profitLoss >= 0;
                   const meta = isKrTicker(h.ticker) ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
                   return (
@@ -448,6 +448,29 @@ function GameDashboardPanel({
                     </div>
                   );
                 })}
+                {activeHoldings.length > 4 && (
+                  <button
+                    onClick={() => setHoldingsExpanded(v => !v)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      marginTop: 2, padding: "4px 0",
+                      background: "none", border: "none", cursor: "pointer",
+                      color: "#c8bfb0", fontSize: 15,
+                    }}
+                  >
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      width: 18, height: 18, borderRadius: "50%",
+                      background: "rgba(255,255,255,0.06)",
+                      fontSize: 11,
+                      transition: "transform 0.2s",
+                      transform: holdingsExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                    }}>▼</span>
+                    {holdingsExpanded
+                      ? "접기"
+                      : `전체 확인 (${activeHoldings.length - 4}개 더)`}
+                  </button>
+                )}
               </div>
             )}
           </>
@@ -460,7 +483,6 @@ function GameDashboardPanel({
         border: "0.5px solid rgba(255,255,255,0.08)",
         borderRadius: 16,
         padding: "18px 18px 16px",
-        flex: 1,
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <p style={{ fontSize: 15, fontWeight: 600, color: "#c8bfb0" }}>
@@ -1524,7 +1546,7 @@ export default function Home() {
               {!playSearch && (
                 <>
                   {/* 웹(md+): 인기종목 2행 + 게임 대시보드 */}
-                  <div className="hidden md:flex" style={{ gap:16, marginBottom:20, alignItems:"stretch" }}>
+                  <div className="hidden md:flex" style={{ gap:16, marginBottom:20, alignItems:"flex-start" }}>
                     {/* 왼쪽: 해외 윗줄 / 국내 아랫줄 */}
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontSize:15, fontWeight:600, color:"#c8bfb0", marginBottom:14 }}>인기 종목</p>
