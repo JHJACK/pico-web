@@ -1556,7 +1556,7 @@ export default function Home() {
                   <button onClick={() => { setForgotPw(false); setAuthError(""); setForgotSent(false); }}
                     className="pico-btn w-full"
                     style={{ display: "block", background: "transparent", color: "#5c5448", fontSize: 13, fontWeight: 300, borderRadius: 12, padding: "10px 0", marginTop: 4 }}>
-                    ← 로그인으로 돌아가기
+                    {"<"} 로그인으로 돌아가기
                   </button>
                 </>
               ) : (

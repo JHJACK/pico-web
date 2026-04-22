@@ -145,7 +145,7 @@ export default function RankingPage() {
         borderBottom: "0.5px solid rgba(255,255,255,0.06)",
         display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px",
       }}>
-        <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "#c8bfb0", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>←</button>
+        <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "#c8bfb0", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>&lt;</button>
         <span style={{ fontSize: 15, fontWeight: 600, color: "#e8e0d0" }}>🏆 주간 랭킹</span>
         <div style={{ width: 32 }} />
       </nav>

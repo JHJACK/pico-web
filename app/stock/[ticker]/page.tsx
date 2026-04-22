@@ -700,7 +700,7 @@ export default function StockChartPage() {
         <button onClick={() => router.back()} style={{
           background: "none", border: "none", cursor: "pointer",
           padding: "6px 8px 6px 4px", color: C.text2, fontSize: 20, lineHeight: 1, flexShrink: 0,
-        }}>←</button>
+        }}>&lt;</button>
       </div>
 
       {/* ── 바디 ──────────────────────────────────────────────────────────── */}
@@ -844,7 +844,7 @@ export default function StockChartPage() {
           }}>
             <button onClick={() => setShowBuySheet(false)} style={{
               background: "none", border: "none", color: C.text2, fontSize: 20, cursor: "pointer", lineHeight: 1,
-            }}>←</button>
+            }}>&lt;</button>
             <span style={{ fontSize: 16, fontWeight: 600 }}>구매하기</span>
             <span style={{ fontSize: 13, color: C.text2 }}>{ticker}</span>
           </div>
@@ -962,7 +962,7 @@ export default function StockChartPage() {
           }}>
             <button onClick={() => setShowSellSheet(false)} style={{
               background: "none", border: "none", color: C.text2, fontSize: 20, cursor: "pointer", lineHeight: 1,
-            }}>←</button>
+            }}>&lt;</button>
             <span style={{ fontSize: 16, fontWeight: 600 }}>판매하기</span>
             <span style={{ fontSize: 13, color: C.text2 }}>{ticker}</span>
           </div>

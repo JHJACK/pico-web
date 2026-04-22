@@ -42,7 +42,7 @@ export default function DnaPage() {
       <nav className="sticky top-0 z-30 border-b flex items-center px-5"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
         <button onClick={() => router.back()} className="pico-btn" style={{ background: "none", border: "none", fontSize: 13, color: "#5c5448", cursor: "pointer" }}>
-          ← 내 정보
+          {"<"} 내 정보
         </button>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
         <button onClick={share} className="pico-btn ml-auto px-4 py-2 rounded-xl"

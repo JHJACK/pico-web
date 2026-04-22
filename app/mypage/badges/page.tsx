@@ -82,7 +82,7 @@ export default function BadgesPage() {
         borderBottom: "0.5px solid rgba(255,255,255,0.06)",
         display: "flex", alignItems: "center", padding: "0 20px", gap: 16,
       }}>
-        <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "#c8bfb0", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>←</button>
+        <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "#c8bfb0", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>&lt;</button>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E" }}>PICO</span>
       </nav>
 

@@ -143,7 +143,7 @@ export default function AttendancePage() {
           borderColor: "rgba(255,255,255,0.06)",
         }}
       >
-        <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>← 내 정보</Link>
+        <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>{"<"} 내 정보</Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 
