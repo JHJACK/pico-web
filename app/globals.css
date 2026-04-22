@@ -153,6 +153,20 @@ input.pico-input:-webkit-autofill:focus {
   .grid-2-col { grid-template-columns: 1fr; }
 }
 
+/* ── 수익/손실 값 변경 시 플래시 애니메이션 ── */
+@keyframes flashGreen {
+  0%   { background: transparent; }
+  30%  { background: rgba(126,212,160,0.18); border-radius: 4px; }
+  100% { background: transparent; }
+}
+@keyframes flashRed {
+  0%   { background: transparent; }
+  30%  { background: rgba(240,120,120,0.18); border-radius: 4px; }
+  100% { background: transparent; }
+}
+.flash-green { animation: flashGreen 0.9s ease forwards; }
+.flash-red   { animation: flashRed   0.9s ease forwards; }
+
 /* ── 가로 스크롤 ── */
 .scroll-x { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
 .scroll-x::-webkit-scrollbar { display: none; }

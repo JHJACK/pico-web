@@ -321,6 +321,214 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
   );
 }
 
+// ─── Game Dashboard Panel (웹 전용 우측 패널) ──
+type DashHolding = {
+  ticker: string;
+  invested_points: number;
+  currentValue: number;
+  profitLoss: number;
+  profitRate: number;
+};
+type DashRankRow = {
+  nickname: string;
+  return_rate: number;
+  equipped_title: string | null;
+  rank_position: number;
+};
+
+function GameDashboardPanel({
+  loading,
+  user,
+  userRow,
+  holdings,
+  top3,
+  myRank,
+}: {
+  loading: boolean;
+  user: { id: string } | null;
+  userRow: { total_points?: number; nickname?: string } | null | undefined;
+  holdings: DashHolding[];
+  top3: DashRankRow[];
+  myRank: { rank_position: number; return_rate: number } | null;
+}) {
+  const activeHoldings = holdings;
+  const totalInvested = activeHoldings.reduce((s, h) => s + h.invested_points, 0);
+  const totalValue    = activeHoldings.reduce((s, h) => s + h.currentValue, 0);
+  const totalPL       = totalValue - totalInvested;
+  const totalPLRate   = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
+  const isProfit      = totalPL >= 0;
+
+  const RANK_STYLE = [
+    { medal: "🥇", color: "#FACA3E" },
+    { medal: "🥈", color: "#c8c8c8" },
+    { medal: "🥉", color: "#d4956a" },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
+      {/* ── 상단: 내 게임 현황 ── */}
+      <div style={{
+        background: "#1c1c1c",
+        border: "0.5px solid rgba(255,255,255,0.08)",
+        borderRadius: 16,
+        padding: "14px 16px 14px",
+        flex: "0 0 auto",
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: "#5c5448",
+          letterSpacing: "0.10em", textTransform: "uppercase", marginBottom: 12 }}>
+          ⚔️ MY GAME STATUS
+        </p>
+
+        {!user ? (
+          <p style={{ fontSize: 13, color: "#5c5448", fontWeight: 300, lineHeight: 1.6 }}>
+            로그인하면 내 현황을<br/>확인할 수 있어요
+          </p>
+        ) : loading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Skeleton w="55%" h={22} /><Skeleton w="40%" h={14} />
+            <Skeleton w="100%" h={40} /><Skeleton w="80%" h={14} />
+          </div>
+        ) : (
+          <>
+            {/* 보유 포인트 */}
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 2 }}>보유 포인트</div>
+              <div style={{ ...NUM_MONO, fontSize: 22, color: "#FACA3E", fontWeight: 400 }}>
+                {(userRow?.total_points ?? 0).toLocaleString("ko-KR")}P
+              </div>
+            </div>
+
+            {/* 평가손익 */}
+            {activeHoldings.length > 0 && (
+              <div style={{
+                background: isProfit ? "rgba(126,212,160,0.06)" : "rgba(240,120,120,0.06)",
+                border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.22)" : "rgba(240,120,120,0.22)"}`,
+                borderRadius: 10, padding: "9px 12px", marginBottom: 10,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 12, color: "#5c5448" }}>
+                    {isProfit ? "🔥" : "❄️"} 평가손익
+                  </span>
+                  <span style={{ ...NUM_MONO, fontSize: 13, color: isProfit ? "#7ed4a0" : "#f07878" }}>
+                    {isProfit ? "+" : ""}{totalPL.toLocaleString("ko-KR")}P
+                    <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.75 }}>
+                      ({isProfit ? "+" : ""}{totalPLRate.toFixed(1)}%)
+                    </span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 보유 종목 미니 리스트 */}
+            {activeHoldings.length === 0 ? (
+              <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>
+                보유 종목 없음 · 지금 투자해 보세요 🎯
+              </p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {activeHoldings.slice(0, 4).map((h, i) => {
+                  const up   = h.profitLoss >= 0;
+                  const meta = isKrTicker(h.ticker) ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
+                  return (
+                    <div key={`${h.ticker}-${i}`} className={up ? "flash-green" : "flash-red"}
+                      style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+                        padding: "2px 0" }}>
+                      <span style={{ fontSize: 12, color: "#c8bfb0",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 110 }}>
+                        {meta?.name ?? h.ticker}
+                      </span>
+                      <span style={{ ...NUM_MONO, fontSize: 12, color: up ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
+                        {up ? "+" : ""}{h.profitLoss.toLocaleString()}P
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── 하단: 실시간 랭킹 ── */}
+      <div style={{
+        background: "#1c1c1c",
+        border: "0.5px solid rgba(255,255,255,0.08)",
+        borderRadius: 16,
+        padding: "14px 16px 14px",
+        flex: 1,
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: "#5c5448",
+            letterSpacing: "0.10em", textTransform: "uppercase" }}>
+            🏆 HALL OF FAME
+          </p>
+          <Link href="/ranking"
+            style={{ fontSize: 11, color: "#5c5448", textDecoration: "none", letterSpacing: "0.04em" }}>
+            전체 보기 →
+          </Link>
+        </div>
+
+        {loading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[1, 2, 3].map((i) => <Skeleton key={i} w="100%" h={44} />)}
+          </div>
+        ) : top3.length === 0 ? (
+          <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>아직 랭킹 데이터가 없어요</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {top3.map((r, i) => {
+              const st     = RANK_STYLE[i];
+              const isPos  = r.return_rate >= 0;
+              return (
+                <div key={r.rank_position} style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "8px 10px", borderRadius: 10,
+                  background: i === 0 ? "rgba(250,202,62,0.06)" : "rgba(255,255,255,0.02)",
+                  border: i === 0 ? "0.5px solid rgba(250,202,62,0.16)" : "0.5px solid rgba(255,255,255,0.04)",
+                }}>
+                  <span style={{ fontSize: 15, flexShrink: 0 }}>{st.medal}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 500, color: "#e8e0d0",
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {r.nickname}
+                    </div>
+                    {r.equipped_title && (
+                      <div style={{ fontSize: 10, color: "#5c5448" }}>{r.equipped_title}</div>
+                    )}
+                  </div>
+                  <span style={{ ...NUM_MONO, fontSize: 12, color: isPos ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
+                    {isPos ? "+" : ""}{r.return_rate.toFixed(1)}%
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* 내 순위 고정 표시 */}
+            {myRank && user && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "8px 10px", borderRadius: 10, marginTop: 2,
+                background: "rgba(250,202,62,0.04)",
+                border: "0.5px solid rgba(250,202,62,0.22)",
+              }}>
+                <span style={{ ...NUM_MONO, fontSize: 13, color: "#FACA3E",
+                  fontWeight: 600, flexShrink: 0, minWidth: 22 }}>
+                  #{myRank.rank_position}
+                </span>
+                <div style={{ flex: 1, fontSize: 12, color: "#c8bfb0" }}>나의 순위</div>
+                <span style={{ ...NUM_MONO, fontSize: 12,
+                  color: myRank.return_rate >= 0 ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
+                  {myRank.return_rate >= 0 ? "+" : ""}{myRank.return_rate.toFixed(1)}%
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════
 // 메인 컴포넌트
 // ═══════════════════════════════════════════════
@@ -402,6 +610,12 @@ export default function Home() {
   const [playSearch,        setPlaySearch]        = useState("");
   const [playSearchResults, setPlaySearchResults] = useState<{ symbol: string; name: string; exchange: string }[]>([]);
   const [playSearchLoading, setPlaySearchLoading] = useState(false);
+
+  // ── 게임 대시보드 (웹 전용 우측 패널)
+  const [dashHoldings, setDashHoldings] = useState<DashHolding[]>([]);
+  const [dashTop3,     setDashTop3]     = useState<DashRankRow[]>([]);
+  const [dashMyRank,   setDashMyRank]   = useState<{ rank_position: number; return_rate: number } | null>(null);
+  const [dashLoading,  setDashLoading]  = useState(false);
 
   const [termIdx, setTermIdx] = useState(0);
 
@@ -536,6 +750,39 @@ export default function Home() {
       setQuizType(userRow.investor_type);
     }
   }, [userRow]);
+
+  // 게임 대시보드 데이터 로드 (로그인 유저 + Play 탭)
+  const fetchDashboard = useCallback(async () => {
+    if (!user) return;
+    setDashLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (token) {
+        const res = await fetch("/api/investments/holdings", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        if (json.holdings) {
+          const active = (json.holdings as (DashHolding & { status: string })[])
+            .filter((h) => h.status === "holding");
+          setDashHoldings(active);
+        }
+      }
+      const rankRes  = await fetch(`/api/rankings?uid=${user.id}`);
+      const rankData = await rankRes.json();
+      setDashTop3((rankData.rankings ?? []).slice(0, 3));
+      setDashMyRank(rankData.myRank ?? null);
+    } catch {
+      // silent
+    } finally {
+      setDashLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && mainTab === "play") fetchDashboard();
+  }, [user, mainTab, fetchDashboard]);
 
   const isBlurred = modal === "vs_battle";
   const totalVotes = votesUp + votesDown;
@@ -1199,6 +1446,49 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* ── 인기 종목 + 게임 대시보드 ── */}
+              {!playSearch && (
+                <>
+                  {/* 웹(md+): 2-컬럼 레이아웃 */}
+                  <div className="hidden md:flex" style={{ gap:16, marginBottom:20, alignItems:"stretch" }}>
+                    {/* 왼쪽: 인기 종목 (5개) */}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontSize:14, fontWeight:500, color:"#c8bfb0",
+                        letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:10 }}>인기 종목</p>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                        {FEATURED_TICKERS.slice(0,5).map((t, i) => (
+                          <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
+                            idx={i} onClick={() => router.push(`/stock/${t}`)}/>
+                        ))}
+                      </div>
+                    </div>
+                    {/* 오른쪽: 게임 대시보드 */}
+                    <div style={{ width:288, flexShrink:0 }}>
+                      <GameDashboardPanel
+                        loading={dashLoading}
+                        user={user}
+                        userRow={userRow}
+                        holdings={dashHoldings}
+                        top3={dashTop3}
+                        myRank={dashMyRank}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 모바일: 가로 스크롤 8장 (기존) */}
+                  <div className="md:hidden" style={{ marginBottom:20 }}>
+                    <p style={{ fontSize:14, fontWeight:500, color:"#c8bfb0",
+                      letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:10 }}>인기 종목</p>
+                    <div className="scroll-x" style={{ display:"flex", gap:8, paddingBottom:4 }}>
+                      {FEATURED_TICKERS.map((t, i) => (
+                        <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
+                          idx={i} onClick={() => router.push(`/stock/${t}`)}/>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* ── 검색창 ── */}
               <div style={{ padding:"10px 0 12px" }}>
                 <div style={{ position:"relative" }}>
@@ -1272,18 +1562,6 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  {/* ── 인기 종목 카드 (가로 스크롤) ── */}
-                  <div style={{ marginBottom:20 }}>
-                    <p style={{ fontSize:14, fontWeight:500, color:"#c8bfb0",
-                      letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:10 }}>인기 종목</p>
-                    <div className="scroll-x" style={{ display:"flex", gap:8, paddingBottom:4 }}>
-                      {FEATURED_TICKERS.map((t, i) => (
-                        <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                          idx={i} onClick={() => router.push(`/stock/${t}`)}/>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* ── 필터 칩 ── */}
                   <div className="scroll-x" style={{ display:"flex", gap:6, marginBottom:4 }}>
                     {FILTERS.map((f) => (

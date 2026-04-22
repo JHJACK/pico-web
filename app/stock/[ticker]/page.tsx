@@ -190,12 +190,13 @@ export default function StockChartPage() {
     doFetchPrice(true);
   }, [doFetchPrice]);
 
-  // 전역 카운트다운이 0이 되면 가격 재조회 (interval은 StockCacheProvider가 담당)
+  // 전역 카운트다운이 0이 되면 가격 재조회 + 보유 현황 갱신
   useEffect(() => {
     if (cacheTimeLeft === 0) {
       doFetchPrice(false);
+      fetchHoldings();
     }
-  }, [cacheTimeLeft, doFetchPrice]);
+  }, [cacheTimeLeft, doFetchPrice, fetchHoldings]);
 
   useEffect(() => {
     if (kr) return;
