@@ -2,7 +2,6 @@
 
 import { useState, useEffect, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase } from "@/app/lib/supabase";
 import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
@@ -16,6 +15,8 @@ type Holding = {
   profitRate: number;
   status: string;
 };
+
+type GroupedHolding = Holding;
 
 const NUM_MONO: CSSProperties = {
   fontFamily: "var(--font-inter), monospace",
@@ -70,7 +71,7 @@ export default function InvestmentsPage() {
         const active = (json.holdings as Holding[]).filter((h) => h.status === "holding");
         setHoldings(active);
 
-        const tickers = active.map((h) => h.ticker);
+        const tickers = [...new Set(active.map((h) => h.ticker))];
         if (tickers.length > 0) {
           fetchStocks(tickers).then((data) => {
             setStocks(data);
@@ -87,6 +88,23 @@ export default function InvestmentsPage() {
   if (loading) return null;
   if (!user || !userRow) return null;
 
+  // 같은 티커 합산
+  const grouped: GroupedHolding[] = Object.values(
+    holdings.reduce<Record<string, GroupedHolding>>((acc, h) => {
+      if (!acc[h.ticker]) {
+        acc[h.ticker] = { ...h };
+      } else {
+        acc[h.ticker].invested_points += h.invested_points;
+        acc[h.ticker].currentValue    += h.currentValue;
+        acc[h.ticker].profitLoss      += h.profitLoss;
+      }
+      return acc;
+    }, {})
+  ).map(h => ({
+    ...h,
+    profitRate: h.invested_points > 0 ? (h.profitLoss / h.invested_points) * 100 : 0,
+  }));
+
   const totalInvested = holdings.reduce((s, h) => s + h.invested_points, 0);
   const totalValue    = holdings.reduce((s, h) => s + h.currentValue, 0);
   const totalPL       = totalValue - totalInvested;
@@ -99,10 +117,12 @@ export default function InvestmentsPage() {
       <nav className="sticky top-0 z-30 border-b flex items-center gap-4 px-5"
         style={{ height: 56, background: "rgba(13,13,13,0.96)",
           backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
-        <Link href="/mypage"
-          style={{ fontSize: 22, color: "#c8bfb0", textDecoration: "none", lineHeight: 1, padding: "4px 4px 4px 0" }}>
+        <button
+          onClick={() => router.back()}
+          style={{ fontSize: 22, color: "#c8bfb0", background: "none", border: "none",
+            cursor: "pointer", lineHeight: 1, padding: "4px 4px 4px 0" }}>
           ‹
-        </Link>
+        </button>
         <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 17, fontWeight: 600, color: "#e8e0d0" }}>
           내 투자 현황
         </span>
@@ -129,7 +149,7 @@ export default function InvestmentsPage() {
                   {totalValue.toLocaleString("ko-KR")}
                   <span style={{ fontSize: 20, fontWeight: 600, marginLeft: 3 }}>P</span>
                 </div>
-                {holdings.length > 0 && (
+                {grouped.length > 0 && (
                   <div style={{ display: "flex", alignItems: "center", gap: 6,
                     background: isProfit ? "rgba(126,212,160,0.08)" : "rgba(240,120,120,0.08)",
                     border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.2)" : "rgba(240,120,120,0.2)"}`,
@@ -148,10 +168,10 @@ export default function InvestmentsPage() {
               </div>
               <div style={{ marginTop: 8, display: "flex", gap: 16 }}>
                 <span style={{ fontSize: 13, color: "#5c5448", fontFamily: "var(--font-paperlogy)" }}>
-                  투자 원금 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{totalInvested.toLocaleString("ko-KR")}P</span>
+                  총 투자 포인트 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{totalInvested.toLocaleString("ko-KR")}P</span>
                 </span>
                 <span style={{ fontSize: 13, color: "#5c5448", fontFamily: "var(--font-paperlogy)" }}>
-                  종목 수 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{holdings.length}개</span>
+                  종목 수 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{grouped.length}개</span>
                 </span>
               </div>
             </>
@@ -174,7 +194,7 @@ export default function InvestmentsPage() {
                 </div>
               ))}
             </div>
-          ) : holdings.length === 0 ? (
+          ) : grouped.length === 0 ? (
             <div style={{ padding: "48px 20px", textAlign: "center" }}>
               <div style={{ fontSize: 40, marginBottom: 14 }}>🎯</div>
               <p style={{ fontSize: 15, color: "#5c5448", fontFamily: "var(--font-paperlogy)", fontWeight: 300 }}>
@@ -190,19 +210,18 @@ export default function InvestmentsPage() {
               </button>
             </div>
           ) : (
-            holdings.map((h, i) => {
+            grouped.map((h, i) => {
               const up   = h.profitLoss >= 0;
               const kr   = isKrTicker(h.ticker);
               const meta = kr ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
               const logo = !kr ? `https://financialmodelingprep.com/image-stock/${h.ticker}.png` : null;
-              const sd   = stocks[h.ticker];
               return (
-                <button key={`${h.ticker}-${i}`}
-                  onClick={() => router.push(`/stock/${h.ticker}`)}
+                <button key={h.ticker}
+                  onClick={() => router.push(`/mypage/investments/${h.ticker}`)}
                   className="pico-btn w-full"
                   style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left",
                     padding: "14px 20px",
-                    borderBottom: i < holdings.length - 1 ? "0.5px solid rgba(255,255,255,0.05)" : "none" }}>
+                    borderBottom: i < grouped.length - 1 ? "0.5px solid rgba(255,255,255,0.05)" : "none" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                     {logo
                       ? <TickerLogo src={logo} ticker={h.ticker} size={42} />
@@ -218,16 +237,13 @@ export default function InvestmentsPage() {
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {meta?.name ?? h.ticker}
                       </div>
-                      <div style={{ marginTop: 3, display: "flex", gap: 8, alignItems: "center" }}>
+                      <div style={{ marginTop: 3 }}>
                         {stocksLoading
                           ? <Skeleton w={60} h={12} />
-                          : <span style={{ ...NUM_MONO, fontSize: 13, color: "#c8bfb0" }}>
-                              {kr ? (sd?.formattedPrice ?? "—") : (sd?.formattedKRW ?? "—")}
+                          : <span style={{ fontSize: 11, color: "#5c5448" }}>
+                              총 투자 포인트 {h.invested_points.toLocaleString()}P
                             </span>
                         }
-                        <span style={{ fontSize: 11, color: "#5c5448" }}>
-                          원금 {h.invested_points.toLocaleString()}P
-                        </span>
                       </div>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>

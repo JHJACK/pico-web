@@ -1824,53 +1824,71 @@ export default function Home() {
                           </p>
                         ) : (
                           <div style={{ display:"flex", flexDirection:"column" }}>
-                            {dashHoldings.slice(0,5).map((h, i) => {
-                              const up  = h.profitLoss >= 0;
-                              const kr  = isKrTicker(h.ticker);
-                              const meta = kr ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
-                              const logo = !kr ? `https://financialmodelingprep.com/image-stock/${h.ticker}.png` : null;
-                              const sd   = stocks[h.ticker];
-                              return (
-                                <button key={`${h.ticker}-${i}`}
-                                  onClick={() => router.push(`/stock/${h.ticker}`)}
-                                  className={`pico-btn w-full ${up ? "flash-green" : "flash-red"}`}
-                                  style={{ background:"none", border:"none", cursor:"pointer",
-                                    padding:"11px 0",
-                                    borderBottom: i < Math.min(dashHoldings.length,4)-1
-                                      ? "0.5px solid rgba(255,255,255,0.05)" : "none" }}>
-                                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                                    {logo
-                                      ? <TickerLogo src={logo} ticker={h.ticker} size={36}/>
-                                      : <div style={{ width:36, height:36, borderRadius:"50%", background:"#242424",
-                                          flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
-                                          fontSize:15, fontWeight:600, color:"#c8bfb0" }}>
-                                          {(meta?.name ?? h.ticker)[0]}
+                            {(() => {
+                              const grouped = Object.values(
+                                dashHoldings.reduce<Record<string, DashHolding>>((acc, h) => {
+                                  if (!acc[h.ticker]) {
+                                    acc[h.ticker] = { ...h };
+                                  } else {
+                                    acc[h.ticker].invested_points += h.invested_points;
+                                    acc[h.ticker].currentValue    += h.currentValue;
+                                    acc[h.ticker].profitLoss      += h.profitLoss;
+                                  }
+                                  return acc;
+                                }, {})
+                              ).map(h => ({
+                                ...h,
+                                profitRate: h.invested_points > 0 ? (h.profitLoss / h.invested_points) * 100 : 0,
+                              })).slice(0, 5);
+                              return grouped.map((h, i) => {
+                                const up   = h.profitLoss >= 0;
+                                const kr   = isKrTicker(h.ticker);
+                                const meta = kr ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
+                                const logo = !kr ? `https://financialmodelingprep.com/image-stock/${h.ticker}.png` : null;
+                                return (
+                                  <button key={h.ticker}
+                                    onClick={() => router.push(`/stock/${h.ticker}`)}
+                                    className={`pico-btn w-full ${up ? "flash-green" : "flash-red"}`}
+                                    style={{ background:"none", border:"none", cursor:"pointer",
+                                      padding:"11px 0",
+                                      borderBottom: i < grouped.length - 1
+                                        ? "0.5px solid rgba(255,255,255,0.05)" : "none" }}>
+                                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                                      {logo
+                                        ? <TickerLogo src={logo} ticker={h.ticker} size={36}/>
+                                        : <div style={{ width:36, height:36, borderRadius:"50%", background:"#242424",
+                                            flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
+                                            fontSize:15, fontWeight:600, color:"#c8bfb0" }}>
+                                            {(meta?.name ?? h.ticker)[0]}
+                                          </div>
+                                      }
+                                      <div style={{ flex:1, textAlign:"left", minWidth:0 }}>
+                                        <div style={{ display:"flex", alignItems:"baseline", gap:6, flexWrap:"wrap" }}>
+                                          <span style={{ fontSize:15, fontWeight:500, color:"#e8e0d0",
+                                            fontFamily:"var(--font-paperlogy)",
+                                            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                                            {meta?.name ?? h.ticker}
+                                          </span>
+                                          <span style={{ fontSize:12, color:"#c8bfb0", whiteSpace:"nowrap", flexShrink:0 }}>
+                                            총 투자 포인트 {h.invested_points.toLocaleString()}P
+                                          </span>
                                         </div>
-                                    }
-                                    <div style={{ flex:1, textAlign:"left", minWidth:0 }}>
-                                      <div style={{ fontSize:15, fontWeight:500, color:"#e8e0d0",
-                                        fontFamily:"var(--font-paperlogy)",
-                                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                                        {meta?.name ?? h.ticker}
                                       </div>
-                                      <div style={{ ...NUM_MONO, fontSize:13, color:"#c8bfb0", marginTop:1 }}>
-                                        {kr ? (sd?.formattedPrice ?? "—") : (sd?.formattedKRW ?? "—")}
-                                      </div>
-                                    </div>
-                                    <div style={{ textAlign:"right", flexShrink:0 }}>
-                                      <div style={{ ...NUM_MONO, fontSize:15, fontWeight:600,
-                                        color: up ? "#7ed4a0" : "#f07878" }}>
-                                        {up ? "+" : ""}{h.profitLoss.toLocaleString()}P
-                                      </div>
-                                      <div style={{ ...NUM_MONO, fontSize:12,
-                                        color: up ? "#7ed4a0" : "#f07878", opacity:0.8, marginTop:1 }}>
-                                        ({up ? "+" : ""}{h.profitRate.toFixed(1)}%)
+                                      <div style={{ textAlign:"right", flexShrink:0 }}>
+                                        <div style={{ ...NUM_MONO, fontSize:15, fontWeight:600,
+                                          color: up ? "#7ed4a0" : "#f07878" }}>
+                                          {up ? "+" : ""}{h.profitLoss.toLocaleString()}P
+                                        </div>
+                                        <div style={{ ...NUM_MONO, fontSize:12,
+                                          color: up ? "#7ed4a0" : "#f07878", opacity:0.8, marginTop:1 }}>
+                                          ({up ? "+" : ""}{h.profitRate.toFixed(1)}%)
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                </button>
-                              );
-                            })}
+                                  </button>
+                                );
+                              });
+                            })()}
                           </div>
                         )}
                       </div>
