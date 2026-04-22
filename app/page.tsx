@@ -509,28 +509,26 @@ function GameDashboardPanel({
         ) : top3.length === 0 ? (
           <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>아직 랭킹 데이터가 없어요</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {top3.map((r, i) => {
               const st     = RANK_STYLE[i];
               const isPos  = r.return_rate >= 0;
               return (
                 <div key={r.rank_position} style={{
                   display: "flex", alignItems: "center", gap: 8,
-                  padding: "10px 12px", borderRadius: 10,
-                  background: i === 0 ? "rgba(250,202,62,0.06)" : "rgba(255,255,255,0.02)",
-                  border: i === 0 ? "0.5px solid rgba(250,202,62,0.16)" : "0.5px solid rgba(255,255,255,0.04)",
+                  padding: "3px 0",
                 }}>
                   <span style={{ fontSize: 17, flexShrink: 0 }}>{st.medal}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
+                    {r.equipped_title && TITLE_META[r.equipped_title] && (
+                      <div style={{ fontSize: 12, color: TITLE_META[r.equipped_title].color, fontWeight: 300 }}>
+                        {TITLE_META[r.equipped_title].emoji} {TITLE_META[r.equipped_title].label}
+                      </div>
+                    )}
                     <div style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {r.nickname}
                     </div>
-                    {r.equipped_title && TITLE_META[r.equipped_title] && (
-                      <div style={{ fontSize: 13, color: TITLE_META[r.equipped_title].color, fontWeight: 300 }}>
-                        {TITLE_META[r.equipped_title].emoji} {TITLE_META[r.equipped_title].label}
-                      </div>
-                    )}
                   </div>
                   <span style={{ ...NUM_MONO, fontSize: 15, color: isPos ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
                     {isPos ? "+" : ""}{r.return_rate.toFixed(1)}%
@@ -543,9 +541,7 @@ function GameDashboardPanel({
             {myRank && user && (
               <div style={{
                 display: "flex", alignItems: "center", gap: 8,
-                padding: "10px 12px", borderRadius: 10, marginTop: 3,
-                background: "rgba(250,202,62,0.04)",
-                border: "0.5px solid rgba(250,202,62,0.22)",
+                padding: "3px 0", marginTop: 2,
               }}>
                 <span style={{ ...NUM_MONO, fontSize: 15, color: "#FACA3E",
                   fontWeight: 600, flexShrink: 0, minWidth: 28 }}>
@@ -1485,7 +1481,7 @@ export default function Home() {
 
               {/* ── 검색창 (웹에서는 왼쪽 컬럼 너비에 맞춤, 인기 종목 위) ── */}
               <div style={{ padding:"10px 0 14px", display:"flex", gap:16 }}>
-                <div style={{ flex:1, minWidth:0, position:"relative" }}>
+                <div style={{ flex:1, minWidth:0, maxWidth:738, position:"relative" }}>
                   <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
                     color:"#c8bfb0", fontSize:14, pointerEvents:"none" }}>&#128269;</span>
                   <input
@@ -1549,7 +1545,7 @@ export default function Home() {
                   )}
                 </div>
                 {/* 웹에서 오른쪽 게임 대시보드 너비만큼 공백 유지 */}
-                <div className="hidden md:block" style={{ width:288, flexShrink:0 }} />
+                <div className="hidden md:block" style={{ width:320, flexShrink:0 }} />
               </div>
 
               {/* ── 인기 종목 + 게임 대시보드 ── */}
@@ -1582,7 +1578,7 @@ export default function Home() {
                       </div>
                     </div>
                     {/* 오른쪽: 게임 대시보드 */}
-                    <div style={{ width:288, flexShrink:0 }}>
+                    <div style={{ width:320, flexShrink:0 }}>
                       <GameDashboardPanel
                         loading={dashLoading}
                         user={user}
