@@ -861,10 +861,12 @@ export default function StockChartPage() {
               border: "0.5px solid rgba(255,255,255,0.07)", marginBottom: 8,
             }}>
               <div style={{ fontSize: 11, color: C.text2, marginBottom: 4 }}>현재가</div>
-              <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em", color: C.text }}>
-                {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em", color: C.text }}>
+                  {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
+                </div>
+                {!kr && <div style={{ fontSize: 13, color: C.text2 }}>{data?.formattedPrice ?? ""} 달러</div>}
               </div>
-              {!kr && <div style={{ fontSize: 11, color: C.text2, marginTop: 2 }}>{data?.formattedPrice ?? ""} 달러</div>}
             </div>
 
             {/* 주문 가능 포인트 */}
@@ -911,19 +913,20 @@ export default function StockChartPage() {
           </div>
 
           {/* 키패드 + 구매 버튼 — 남은 공간 채우기, 드래그 방지 */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 16px 32px", userSelect: "none" }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px 16px 32px", userSelect: "none" }}>
             <div style={{
               flex: 1, minHeight: 0,
               display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gridTemplateRows: "repeat(4, 1fr)",
-              gap: 5, marginBottom: 8,
+              gap: 8, marginBottom: 8,
             }}>
               {["1","2","3","4","5","6","7","8","9","00","0","←"].map((key) => (
                 <button key={key} onClick={() => handleKeypad(key)} style={{
                   borderRadius: 10,
                   background: key === "←" ? "rgba(255,255,255,0.04)" : "#141414",
                   border: "0.5px solid rgba(255,255,255,0.07)",
-                  color: C.text, fontSize: 18, fontWeight: 500,
+                  color: C.text, fontSize: 17, fontWeight: 500,
                   fontFamily: "var(--font-inter)", cursor: "pointer",
+                  maxHeight: 44,
                 }}>{key}</button>
               ))}
             </div>
