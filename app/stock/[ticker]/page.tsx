@@ -836,91 +836,93 @@ export default function StockChartPage() {
         <div style={{
           position: "fixed", inset: 0, zIndex: 100,
           background: "#0d0d0d", display: "flex", flexDirection: "column",
+          overflow: "hidden",
         }}>
-          {/* 헤더 */}
+          {/* 헤더: < | 종목명 가운데 | 빈 영역 */}
           <div style={{
-            height: 52, display: "flex", alignItems: "center", padding: "0 16px", gap: 12, flexShrink: 0,
-            borderBottom: "0.5px solid rgba(255,255,255,0.07)",
+            height: 52, display: "flex", alignItems: "center", padding: "0 16px", flexShrink: 0,
+            borderBottom: "0.5px solid rgba(255,255,255,0.07)", position: "relative",
           }}>
             <button onClick={() => setShowBuySheet(false)} style={{
               background: "none", border: "none", color: C.text2, fontSize: 20, cursor: "pointer", lineHeight: 1,
             }}>&lt;</button>
-            <span style={{ fontSize: 15, fontWeight: 600 }}>구매하기</span>
-            <span style={{ fontSize: 12, color: C.text2 }}>{ticker}</span>
+            <span style={{
+              position: "absolute", left: "50%", transform: "translateX(-50%)",
+              fontSize: 15, fontWeight: 600, color: C.text,
+            }}>{meta?.name ?? ticker}</span>
           </div>
 
           {/* 정보 영역 — 스크롤 없이 고정 */}
           <div style={{ flexShrink: 0, padding: "12px 16px 0" }}>
 
-            {/* 현재가 + 주문가능포인트 한 행 */}
+            {/* 현재가 박스 */}
             <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              background: "#141414", borderRadius: 12, padding: "12px 16px",
+              background: "#141414", borderRadius: 12, padding: "10px 16px",
               border: "0.5px solid rgba(255,255,255,0.07)", marginBottom: 8,
             }}>
-              <div>
-                <div style={{ fontSize: 11, color: C.text2, marginBottom: 4 }}>현재가</div>
-                <div style={{ fontSize: 20, fontWeight: 600, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em", color: C.text }}>
-                  {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
-                </div>
-                {!kr && <div style={{ fontSize: 11, color: C.text2, marginTop: 2 }}>{data?.formattedPrice ?? ""} 달러</div>}
+              <div style={{ fontSize: 11, color: C.text2, marginBottom: 4 }}>현재가</div>
+              <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em", color: C.text }}>
+                {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: C.text2, marginBottom: 4 }}>주문 가능</div>
-                <div style={{ fontSize: 16, fontWeight: 600, fontFamily: "var(--font-inter)", color: C.text }}>
-                  {totalPoints.toLocaleString("ko-KR")}P
-                </div>
-              </div>
+              {!kr && <div style={{ fontSize: 11, color: C.text2, marginTop: 2 }}>{data?.formattedPrice ?? ""} 달러</div>}
             </div>
 
-            {/* 투자 금액 표시 */}
+            {/* 주문 가능 포인트 */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 2px" }}>
+              <span style={{ fontSize: 12, color: C.text2 }}>주문 가능 포인트</span>
+              <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-inter)", color: C.text }}>
+                {totalPoints.toLocaleString("ko-KR")}P
+              </span>
+            </div>
+
+            {/* 투자 금액 박스 */}
             <div style={{
-              background: "#141414", borderRadius: 12, padding: "12px 16px",
+              background: "#141414", borderRadius: 12, padding: "10px 16px",
               border: "0.5px solid rgba(255,255,255,0.08)", marginBottom: 8,
               display: "flex", alignItems: "center", justifyContent: "space-between",
             }}>
               <span style={{ fontSize: 12, color: C.text2 }}>투자 금액</span>
               <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
                 <span style={{
-                  fontSize: 26, fontWeight: 300, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em",
+                  fontSize: 24, fontWeight: 300, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em",
                   color: keypadAmt > 0 ? C.text : C.text2,
                 }}>
                   {keypadAmt > 0 ? keypadAmt.toLocaleString("ko-KR") : "0"}
                 </span>
-                <span style={{ fontSize: 14, color: C.text2 }}>P</span>
+                <span style={{ fontSize: 13, color: C.text2 }}>P</span>
               </div>
             </div>
 
             {/* 빠른 입력 버튼 */}
-            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+            <div style={{ display: "flex", gap: 6 }}>
               {[100, 500, 1000].map((n) => (
                 <button key={n} onClick={() => addKeypadAmount(n)} style={{
-                  flex: 1, padding: "9px 0", borderRadius: 10,
+                  flex: 1, padding: "8px 0", borderRadius: 10,
                   background: "rgba(250,202,62,0.06)", border: "0.5px solid rgba(250,202,62,0.2)",
                   color: C.text2, fontSize: 12, fontWeight: 500, cursor: "pointer",
                 }}>+{n.toLocaleString()}P</button>
               ))}
               <button onClick={() => setKeypadStr(String(totalPoints))} style={{
-                flex: 1, padding: "9px 0", borderRadius: 10,
+                flex: 1, padding: "8px 0", borderRadius: 10,
                 background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.3)",
                 color: "#FACA3E", fontSize: 12, fontWeight: 600, cursor: "pointer",
               }}>전체</button>
             </div>
           </div>
 
-          {/* 키패드 + 구매 버튼 — 남은 공간 채우기 */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "4px 16px 32px" }}>
+          {/* 키패드 + 구매 버튼 — 남은 공간 채우기, 드래그 방지 */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 16px 32px", userSelect: "none" }}>
             <div style={{
-              flex: 1,
+              flex: 1, minHeight: 0,
               display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gridTemplateRows: "repeat(4, 1fr)",
-              gap: 6, marginBottom: 10,
+              gap: 5, marginBottom: 8,
             }}>
               {["1","2","3","4","5","6","7","8","9","00","0","←"].map((key) => (
                 <button key={key} onClick={() => handleKeypad(key)} style={{
                   borderRadius: 10,
                   background: key === "←" ? "rgba(255,255,255,0.04)" : "#141414",
                   border: "0.5px solid rgba(255,255,255,0.07)",
-                  color: C.text, fontSize: 20, fontWeight: 500,
+                  color: C.text, fontSize: 18, fontWeight: 500,
                   fontFamily: "var(--font-inter)", cursor: "pointer",
                 }}>{key}</button>
               ))}
@@ -930,7 +932,7 @@ export default function StockChartPage() {
               disabled={keypadAmt < 100 || buying || !userRow || !marketOpen}
               onClick={() => executeBuy(keypadAmt)}
               style={{
-                width: "100%", padding: "17px 0", borderRadius: 16, border: "none", flexShrink: 0,
+                width: "100%", padding: "15px 0", borderRadius: 14, border: "none", flexShrink: 0,
                 background: !marketOpen
                   ? "#1e1e1e"
                   : keypadAmt >= 100 && !buying ? "#FACA3E" : "#1e1e1e",
