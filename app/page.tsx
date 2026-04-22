@@ -624,6 +624,7 @@ export default function Home() {
   const [showResultMsg,  setShowResultMsg]  = useState(false);
 
   const [countdown, setCountdown] = useState("--:--:--");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const [newsCat,    setNewsCat]    = useState<NewsCat>("전체");
   const [newsItems,  setNewsItems]  = useState<NewsItem[]>(NEWS_FALLBACK["전체"]);
@@ -935,6 +936,44 @@ export default function Home() {
     setForgotSent(true);
   }
 
+  const handleSearchChange = useCallback((q: string) => {
+    setPlaySearch(q);
+    if (!q.trim()) { setPlaySearchResults([]); setPlaySearchLoading(false); return; }
+    const mapped = KOR_TO_TICKER[q.trim()];
+    if (mapped) {
+      const ikr = isKrTicker(mapped);
+      setPlaySearchResults([{ symbol: mapped,
+        name: (ikr ? KR_STOCK_META[mapped]?.name : STOCK_META[mapped]?.name) ?? mapped,
+        exchange: ikr ? "KRX" : "" }]);
+      return;
+    }
+    const upper = q.trim().toUpperCase();
+    const dq    = decomposeHangul(q);
+    const local = [
+      ...ALL_TICKERS.filter((t) =>
+        t.startsWith(upper) || decomposeHangul(STOCK_META[t]?.name ?? "").includes(dq)
+      ),
+      ...ALL_KR_TICKERS.filter((t) =>
+        decomposeHangul(KR_STOCK_META[t]?.name ?? "").includes(dq)
+      ),
+    ];
+    if (local.length > 0) {
+      setPlaySearchResults(local.map((t) => ({
+        symbol: t,
+        name: (isKrTicker(t) ? KR_STOCK_META[t]?.name : STOCK_META[t]?.name) ?? t,
+        exchange: isKrTicker(t) ? "KRX" : "",
+      })));
+      return;
+    }
+    const id = ++searchIdRef.current;
+    setPlaySearchLoading(true);
+    fetch(`/api/stocks/search?query=${encodeURIComponent(q)}`)
+      .then((r) => r.json())
+      .then((data) => { if (searchIdRef.current === id) setPlaySearchResults(data); })
+      .catch(() => { if (searchIdRef.current === id) setPlaySearchResults([]); })
+      .finally(() => { if (searchIdRef.current === id) setPlaySearchLoading(false); });
+  }, []);
+
   const animalInfo = quizType ? ANIMAL_NAMES[quizType] : null;
   const term = TERMS[termIdx];
 
@@ -978,6 +1017,84 @@ export default function Home() {
         <div className="fixed inset-0 z-40" style={{ backdropFilter: "blur(8px)", background: "rgba(13,13,13,0.55)" }} />
       )}
 
+      {/* ══════════ 모바일 검색 오버레이 ══════════ */}
+      {mobileSearchOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col" style={{ background: "#0d0d0d" }}>
+          {/* 검색 헤더 */}
+          <div style={{ display:"flex", alignItems:"center", gap:10,
+            padding:"14px 16px 10px", paddingTop:"calc(14px + env(safe-area-inset-top))" }}>
+            <button
+              onClick={() => { setMobileSearchOpen(false); setPlaySearch(""); setPlaySearchResults([]); }}
+              style={{ background:"none", border:"none", color:"#c8bfb0", fontSize:24,
+                padding:"4px 8px 4px 0", cursor:"pointer", flexShrink:0, lineHeight:1 }}>
+              ‹
+            </button>
+            <div style={{ flex:1, position:"relative" }}>
+              <span style={{ position:"absolute", left:13, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                  <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
+                  <path d="M13.5 13.5L17 17" stroke="#c8bfb0" strokeWidth="1.6" strokeLinecap="round"/>
+                </svg>
+              </span>
+              <input
+                autoFocus
+                type="text" value={playSearch}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="종목 검색  삼성전자, NVDA, 테슬라..."
+                style={{ width:"100%", background:"#1c1c1c",
+                  border:"0.5px solid rgba(255,255,255,0.1)", borderRadius:14,
+                  color:"#e8e0d0", fontSize:16, fontWeight:300,
+                  padding:"12px 36px 12px 36px", outline:"none",
+                  fontFamily:"var(--font-paperlogy)" }}
+                onFocus={(e) => (e.target.style.borderColor="rgba(250,202,62,0.4)")}
+                onBlur={(e)  => (e.target.style.borderColor="rgba(255,255,255,0.1)")}
+              />
+              {playSearch && (
+                <button onClick={() => { setPlaySearch(""); setPlaySearchResults([]); }}
+                  style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                    background:"none", border:"none", color:"#c8bfb0", fontSize:16, cursor:"pointer" }}>
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 검색 결과 */}
+          <div style={{ flex:1, overflowY:"auto", padding:"4px 16px 24px" }}>
+            {playSearch ? (
+              playSearchLoading ? (
+                [1,2,3,4].map((i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 0",
+                    borderBottom:"0.5px solid rgba(255,255,255,0.05)" }}>
+                    <div style={{ width:40, height:40, borderRadius:"50%", background:"#1c1c1c", flexShrink:0 }}/>
+                    <div style={{ flex:1 }}>
+                      <Skeleton w="55%" h={15}/><div style={{height:5}}/><Skeleton w="32%" h={12}/>
+                    </div>
+                    <div><Skeleton w={70} h={15}/></div>
+                  </div>
+                ))
+              ) : playSearchResults.length > 0 ? (
+                playSearchResults.map((r) => (
+                  <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks}
+                    stocksLoading={stocksLoading}
+                    onClick={() => { setMobileSearchOpen(false); setPlaySearch(""); setPlaySearchResults([]); router.push(`/stock/${r.symbol}`); }}/>
+                ))
+              ) : (
+                <p style={{ fontSize:15, color:"#5c5448", fontWeight:300, padding:"28px 0",
+                  textAlign:"center", fontFamily:"var(--font-paperlogy)" }}>
+                  검색 결과가 없어요
+                </p>
+              )
+            ) : (
+              <p style={{ fontSize:14, color:"#5c5448", fontWeight:300, padding:"20px 0",
+                fontFamily:"var(--font-paperlogy)" }}>
+                종목명 또는 티커를 입력해 보세요
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ══════════ 헤더 ══════════ */}
       <nav className="sticky top-0 z-30 border-b" style={{ height: 64, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
         <div className="h-full flex items-center justify-between mx-auto px-5 lg:px-10" style={{ maxWidth: 1280 }}>
@@ -1003,14 +1120,14 @@ export default function Home() {
           {user && userRow ? (
             /* ── 로그인 후: 검색(모바일) + 프로필 ── */
             <div className="flex items-center gap-2">
-              <button className="sm:hidden pico-btn" onClick={() => switchTab("play")}
+              <button className="sm:hidden pico-btn" onClick={() => setMobileSearchOpen(true)}
                 style={{ background: "none", border: "none", padding: "6px", color: "#c8bfb0", display: "flex", alignItems: "center" }}>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
                   <path d="M13.5 13.5L17 17" stroke="#c8bfb0" strokeWidth="1.6" strokeLinecap="round"/>
                 </svg>
               </button>
-              <button onClick={() => router.push("/mypage")} className="pico-btn flex items-center gap-2"
+              <button onClick={() => router.push("/mypage")} className="pico-btn flex items-center"
                 style={{ background: "none", border: "none", padding: "4px 0" }}>
                 {userRow.avatar_url ? (
                   <img src={userRow.avatar_url} alt="프로필" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1.5px solid rgba(255,255,255,0.12)" }} />
@@ -1019,13 +1136,13 @@ export default function Home() {
                     {userRow.nickname[0]?.toUpperCase() ?? "?"}
                   </div>
                 )}
-                <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</span>
+                <span className="hidden sm:inline" style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginLeft: 8 }}>{userRow.nickname}</span>
               </button>
             </div>
           ) : (
             /* ── 비로그인: 검색(모바일) + 로그인/회원가입 ── */
             <div className="flex items-center gap-2">
-              <button className="sm:hidden pico-btn" onClick={() => switchTab("play")}
+              <button className="sm:hidden pico-btn" onClick={() => setMobileSearchOpen(true)}
                 style={{ background: "none", border: "none", padding: "6px", color: "#c8bfb0", display: "flex", alignItems: "center" }}>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
@@ -1460,44 +1577,6 @@ export default function Home() {
 
           const { krOpen, usOpen } = getMarketStatus();
 
-          const handleSearchChange = (q: string) => {
-            setPlaySearch(q);
-            if (!q.trim()) { setPlaySearchResults([]); setPlaySearchLoading(false); return; }
-            const mapped = KOR_TO_TICKER[q.trim()];
-            if (mapped) {
-              const ikr = isKrTicker(mapped);
-              setPlaySearchResults([{ symbol: mapped,
-                name: (ikr ? KR_STOCK_META[mapped]?.name : STOCK_META[mapped]?.name) ?? mapped,
-                exchange: ikr ? "KRX" : "" }]);
-              return;
-            }
-            const upper = q.trim().toUpperCase();
-            const dq    = decomposeHangul(q);
-            const local = [
-              ...ALL_TICKERS.filter((t) =>
-                t.startsWith(upper) || decomposeHangul(STOCK_META[t]?.name ?? "").includes(dq)
-              ),
-              ...ALL_KR_TICKERS.filter((t) =>
-                decomposeHangul(KR_STOCK_META[t]?.name ?? "").includes(dq)
-              ),
-            ];
-            if (local.length > 0) {
-              setPlaySearchResults(local.map((t) => ({
-                symbol: t,
-                name: (isKrTicker(t) ? KR_STOCK_META[t]?.name : STOCK_META[t]?.name) ?? t,
-                exchange: isKrTicker(t) ? "KRX" : "",
-              })));
-              return;
-            }
-            const id = ++searchIdRef.current;
-            setPlaySearchLoading(true);
-            fetch(`/api/stocks/search?query=${encodeURIComponent(q)}`)
-              .then((r) => r.json())
-              .then((data) => { if (searchIdRef.current === id) setPlaySearchResults(data); })
-              .catch(() => { if (searchIdRef.current === id) setPlaySearchResults([]); })
-              .finally(() => { if (searchIdRef.current === id) setPlaySearchLoading(false); });
-          };
-
           return (
             <div key="play" className={tabAnim}>
 
@@ -1662,56 +1741,8 @@ export default function Home() {
 
               {/* ── 모바일 전면 개편 (토스 스타일 카드형) ── */}
               <div className="md:hidden" style={{ paddingTop: 4 }}>
-
-                {/* 검색창 */}
-                <div style={{ padding:"10px 0 16px", position:"relative" }}>
-                  <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
-                    <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
-                      <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
-                      <path d="M13.5 13.5L17 17" stroke="#c8bfb0" strokeWidth="1.6" strokeLinecap="round"/>
-                    </svg>
-                  </span>
-                  <input
-                    type="text" value={playSearch}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    placeholder="종목 검색   삼성전자, NVDA, 테슬라..."
-                    className="w-full rounded-2xl outline-none"
-                    style={{ background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.08)",
-                      color:"#e8e0d0", fontSize:15, fontWeight:300, padding:"13px 38px 13px 42px",
-                      fontFamily:"var(--font-paperlogy)" }}
-                    onFocus={(e) => (e.target.style.borderColor="rgba(250,202,62,0.35)")}
-                    onBlur={(e)  => (e.target.style.borderColor="rgba(255,255,255,0.08)")}
-                  />
-                  {playSearch && (
-                    <button onClick={() => { setPlaySearch(""); setPlaySearchResults([]); }} className="pico-btn"
-                      style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                        color:"#c8bfb0", fontSize:15, background:"none", border:"none" }}>✕</button>
-                  )}
-                </div>
-
-                {/* 검색 결과 (검색 중) */}
-                {playSearch ? (
-                  <div>
-                    {playSearchLoading
-                      ? [1,2,3].map((i) => (
-                          <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 0",
-                            borderBottom:"0.5px solid rgba(255,255,255,0.05)" }}>
-                            <div style={{ width:40, height:40, borderRadius:"50%", background:"#242424", flexShrink:0 }}/>
-                            <div style={{ flex:1 }}><Skeleton w="50%" h={14}/><div style={{height:5}}/><Skeleton w="30%" h={11}/></div>
-                            <div><Skeleton w={70} h={14}/><div style={{height:5}}/><Skeleton w={50} h={11}/></div>
-                          </div>))
-                      : playSearchResults.length > 0
-                        ? playSearchResults.map((r, i) => (
-                            <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks}
-                              stocksLoading={stocksLoading} idx={i}
-                              onClick={() => router.push(`/stock/${r.symbol}`)}/>))
-                        : <p style={{ fontSize:14, color:"#5c5448", fontWeight:300, padding:"20px 0" }}>검색 결과가 없어요</p>
-                    }
-                  </div>
-                ) : (
-                  <>
-                    {/* ① 자산 카드 */}
-                    <div style={{ background:"#1c1c1c", borderRadius:20, padding:"22px 20px 18px",
+                    {/* ① 자산 카드 — 포인트는 auth에서 즉시, P&L만 대시보드 로딩 */}
+                    <div style={{ background:"#1c1c1c", borderRadius:20, padding:"18px 20px 16px",
                       marginBottom:12, border:"0.5px solid rgba(255,255,255,0.08)" }}>
                       {!user ? (
                         <div style={{ textAlign:"center", padding:"8px 0" }}>
@@ -1727,49 +1758,47 @@ export default function Home() {
                             로그인하기
                           </button>
                         </div>
-                      ) : dashLoading ? (
-                        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                          <Skeleton w="40%" h={14}/><Skeleton w="60%" h={38}/><Skeleton w="50%" h={20}/>
-                        </div>
                       ) : (
                         <>
-                          <div style={{ fontSize:13, color:"#c8bfb0", marginBottom:6,
+                          <div style={{ fontSize:13, color:"#c8bfb0", marginBottom:8,
                             fontFamily:"var(--font-paperlogy)", fontWeight:400 }}>보유 포인트</div>
-                          <div style={{ fontSize:40, fontWeight:800, color:"#FACA3E",
-                            fontFamily:"var(--font-paperlogy)", letterSpacing:"-0.02em",
-                            marginBottom:14, lineHeight:1.1 }}>
-                            {(userRow?.total_points ?? 0).toLocaleString("ko-KR")}
-                            <span style={{ fontSize:24, fontWeight:600, marginLeft:4 }}>P</span>
+                          {/* 포인트 숫자 + P&L 인라인 (같은 행) */}
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
+                            <div style={{ fontSize:38, fontWeight:800, color:"#FACA3E",
+                              fontFamily:"var(--font-paperlogy)", letterSpacing:"-0.02em", lineHeight:1 }}>
+                              {(userRow?.total_points ?? 0).toLocaleString("ko-KR")}
+                              <span style={{ fontSize:22, fontWeight:600, marginLeft:3 }}>P</span>
+                            </div>
+                            {/* P&L — 대시보드 로딩 중엔 스켈레톤, 완료 후 표시 */}
+                            {dashLoading ? (
+                              <Skeleton w={88} h={44}/>
+                            ) : (() => {
+                              const inv = dashHoldings.reduce((s,h) => s + h.invested_points, 0);
+                              const val = dashHoldings.reduce((s,h) => s + h.currentValue, 0);
+                              const pl  = val - inv;
+                              const plR = inv > 0 ? (pl / inv) * 100 : 0;
+                              const pos = pl >= 0;
+                              if (dashHoldings.length === 0) return null;
+                              return (
+                                <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end",
+                                  background: pos ? "rgba(126,212,160,0.08)" : "rgba(240,120,120,0.08)",
+                                  border:`0.5px solid ${pos ? "rgba(126,212,160,0.2)" : "rgba(240,120,120,0.2)"}`,
+                                  borderRadius:10, padding:"8px 12px", flexShrink:0 }}>
+                                  <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                                    <span style={{ fontSize:15 }}>{pos ? "🔥" : "❄️"}</span>
+                                    <span style={{ ...NUM_MONO, fontSize:14, fontWeight:600,
+                                      color: pos ? "#7ed4a0" : "#f07878" }}>
+                                      {pos ? "+" : ""}{pl.toLocaleString("ko-KR")}P
+                                    </span>
+                                  </div>
+                                  <div style={{ ...NUM_MONO, fontSize:11,
+                                    color: pos ? "#7ed4a0" : "#f07878", opacity:0.8, marginTop:2 }}>
+                                    {pos ? "+" : ""}{plR.toFixed(1)}%
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </div>
-                          {(() => {
-                            const inv  = dashHoldings.reduce((s,h) => s + h.invested_points, 0);
-                            const val  = dashHoldings.reduce((s,h) => s + h.currentValue, 0);
-                            const pl   = val - inv;
-                            const plR  = inv > 0 ? (pl / inv) * 100 : 0;
-                            const pos  = pl >= 0;
-                            if (dashHoldings.length === 0) return (
-                              <p style={{ fontSize:14, color:"#5c5448", fontWeight:300,
-                                fontFamily:"var(--font-paperlogy)" }}>
-                                보유 종목 없음 · 지금 투자해 보세요 🎯
-                              </p>
-                            );
-                            return (
-                              <div style={{ display:"inline-flex", alignItems:"center", gap:8,
-                                background: pos ? "rgba(126,212,160,0.08)" : "rgba(240,120,120,0.08)",
-                                border:`0.5px solid ${pos ? "rgba(126,212,160,0.25)" : "rgba(240,120,120,0.25)"}`,
-                                borderRadius:12, padding:"10px 16px" }}>
-                                <span style={{ fontSize:20 }}>{pos ? "🔥" : "❄️"}</span>
-                                <span style={{ ...NUM_MONO, fontSize:17, fontWeight:600,
-                                  color: pos ? "#7ed4a0" : "#f07878" }}>
-                                  {pos ? "+" : ""}{pl.toLocaleString("ko-KR")}P
-                                </span>
-                                <span style={{ ...NUM_MONO, fontSize:14,
-                                  color: pos ? "#7ed4a0" : "#f07878", opacity:0.8 }}>
-                                  ({pos ? "+" : ""}{plR.toFixed(1)}%)
-                                </span>
-                              </div>
-                            );
-                          })()}
                         </>
                       )}
                     </div>
@@ -1780,10 +1809,11 @@ export default function Home() {
                         marginBottom:12, border:"0.5px solid rgba(255,255,255,0.08)" }}>
                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
                           <span style={{ fontSize:15, fontWeight:600, color:"#c8bfb0",
-                            fontFamily:"var(--font-paperlogy)" }}>⚔️ 내 주식 현황</span>
-                          <Link href="/mypage" style={{ fontSize:13, color:"#5c5448", textDecoration:"none" }}>
+                            fontFamily:"var(--font-paperlogy)" }}>내 투자 현황</span>
+                          <button onClick={() => router.push("/mypage")} className="pico-btn"
+                            style={{ fontSize:13, color:"#5c5448", background:"none", border:"none", cursor:"pointer" }}>
                             더보기 ›
-                          </Link>
+                          </button>
                         </div>
                         {dashLoading ? (
                           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -1974,8 +2004,6 @@ export default function Home() {
                           onClick={() => router.push(`/stock/${ticker}`)}/>
                       ))}
                     </div>
-                  </>
-                )}
               </div>
 
             </div>
