@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getUserHoldings, type MockInvestmentRow } from "@/app/lib/supabase";
-import { fetchStocks } from "@/app/lib/stocks";
 
 export async function GET(req: NextRequest) {
   try {
@@ -34,12 +33,19 @@ export async function GET(req: NextRequest) {
 
     if (tickers.length > 0) {
       try {
-        const stockMap = await fetchStocks(tickers);
-        priceMap = Object.fromEntries(
-          Object.entries(stockMap).map(([t, d]) => [t, d.price])
+        // 서버사이드에서는 절대 URL 사용 (fetchStocks는 브라우저 전용 상대 URL)
+        const stockRes = await fetch(
+          `${req.nextUrl.origin}/api/stocks?tickers=${tickers.join(",")}`,
+          { cache: "no-store" }
         );
+        if (stockRes.ok) {
+          const stockData = await stockRes.json();
+          for (const t of tickers) {
+            if (stockData[t]?.price) priceMap[t] = stockData[t].price;
+          }
+        }
       } catch {
-        // 가격 조회 실패 시 buy_price로 fallback
+        // 가격 조회 실패 시 buy_price로 fallback (0% 손익 표시)
       }
     }
 
