@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
 import { fetchNews, NEWS_FALLBACK, type NewsItem, type NewsCat } from "@/app/lib/news";
-import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory, KR_STOCK_META, KR_TICKERS_BY_CATEGORY, ALL_KR_TICKERS, type KrStockCategory, isKrTicker } from "@/app/lib/stockNames";
+import { STOCK_META, TICKERS_BY_CATEGORY, KOR_TO_TICKER, ALL_TICKERS, type StockCategory, KR_STOCK_META, KR_TICKERS_BY_CATEGORY, ALL_KR_TICKERS, type KrStockCategory, isKrTicker, decomposeHangul } from "@/app/lib/stockNames";
 import { supabase, getTodayVote, submitVoteAndAttendance, getTodayVoteCounts, getYesterdayVote, judgeYesterdayBattle, todayKST, getTodayStock, type BattleVoteRow } from "@/app/lib/supabase";
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
@@ -614,6 +614,7 @@ export default function Home() {
   const [playSearch,        setPlaySearch]        = useState("");
   const [playSearchResults, setPlaySearchResults] = useState<{ symbol: string; name: string; exchange: string }[]>([]);
   const [playSearchLoading, setPlaySearchLoading] = useState(false);
+  const searchIdRef = useRef(0);
 
   // ── 게임 대시보드 (웹 전용 우측 패널)
   const [dashHoldings, setDashHoldings] = useState<DashHolding[]>([]);
@@ -1460,7 +1461,9 @@ export default function Home() {
                     onChange={(e) => {
                       const q = e.target.value;
                       setPlaySearch(q);
-                      if (!q.trim()) { setPlaySearchResults([]); return; }
+                      if (!q.trim()) { setPlaySearchResults([]); setPlaySearchLoading(false); return; }
+
+                      // 정확한 한글 매핑 (전체 이름 완성 시)
                       const mapped = KOR_TO_TICKER[q.trim()];
                       if (mapped) {
                         const ikr = isKrTicker(mapped);
@@ -1469,23 +1472,36 @@ export default function Home() {
                           exchange: ikr ? "KRX" : "" }]);
                         return;
                       }
-                      const upper = q.trim().toUpperCase();
-                      const local = [
-                        ...ALL_TICKERS.filter((t) => t.startsWith(upper) || STOCK_META[t]?.name.includes(q)),
-                        ...ALL_KR_TICKERS.filter((t) => KR_STOCK_META[t]?.name.includes(q)),
+
+                      // 로컬 검색 — 자모 분해로 IME 조합 중간 상태("엔비ㄷ")도 정확히 매칭
+                      const upper   = q.trim().toUpperCase();
+                      const dq      = decomposeHangul(q);
+                      const local   = [
+                        ...ALL_TICKERS.filter((t) =>
+                          t.startsWith(upper) ||
+                          decomposeHangul(STOCK_META[t]?.name ?? "").includes(dq)
+                        ),
+                        ...ALL_KR_TICKERS.filter((t) =>
+                          decomposeHangul(KR_STOCK_META[t]?.name ?? "").includes(dq)
+                        ),
                       ];
                       if (local.length > 0) {
                         setPlaySearchResults(local.map((t) => ({
                           symbol: t,
                           name: (isKrTicker(t) ? KR_STOCK_META[t]?.name : STOCK_META[t]?.name) ?? t,
                           exchange: isKrTicker(t) ? "KRX" : "",
-                        }))); return;
+                        })));
+                        return;
                       }
+
+                      // 로컬에 없으면 API 검색 (race condition 방지: 최신 요청만 반영)
+                      const id = ++searchIdRef.current;
                       setPlaySearchLoading(true);
                       fetch(`/api/stocks/search?query=${encodeURIComponent(q)}`)
-                        .then((r) => r.json()).then(setPlaySearchResults)
-                        .catch(() => setPlaySearchResults([]))
-                        .finally(() => setPlaySearchLoading(false));
+                        .then((r) => r.json())
+                        .then((data) => { if (searchIdRef.current === id) setPlaySearchResults(data); })
+                        .catch(() => { if (searchIdRef.current === id) setPlaySearchResults([]); })
+                        .finally(() => { if (searchIdRef.current === id) setPlaySearchLoading(false); });
                     }}
                     placeholder="종목 검색   삼성전자, NVDA, 테슬라..."
                     className="w-full rounded-xl outline-none"

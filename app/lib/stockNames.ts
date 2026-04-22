@@ -155,3 +155,25 @@ export const KOR_TO_TICKER: Record<string, string> = {
 export function isKrTicker(ticker: string): boolean {
   return /^\d{6}$/.test(ticker);
 }
+
+// 한글 자모 분해 — IME 조합 중간 상태("엔비ㄷ")도 정확히 매칭하기 위해 사용
+// 예: "엔비디아" → "ㅇㅔㄴㅂㅣㄷㅣㅇㅏ"
+export function decomposeHangul(str: string): string {
+  const CHO  = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+  const JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  let result = '';
+  for (const char of str) {
+    const code = char.charCodeAt(0);
+    if (code >= 0xAC00 && code <= 0xD7A3) {
+      const offset = code - 0xAC00;
+      const cho  = Math.floor(offset / (21 * 28));
+      const jung = Math.floor((offset % (21 * 28)) / 28);
+      const jong = offset % 28;
+      result += CHO[cho] + JUNG[jung] + (jong > 0 ? JONG[jong] : '');
+    } else {
+      result += char;
+    }
+  }
+  return result;
+}
