@@ -1444,6 +1444,44 @@ export default function Home() {
 
           const { krOpen, usOpen } = getMarketStatus();
 
+          const handleSearchChange = (q: string) => {
+            setPlaySearch(q);
+            if (!q.trim()) { setPlaySearchResults([]); setPlaySearchLoading(false); return; }
+            const mapped = KOR_TO_TICKER[q.trim()];
+            if (mapped) {
+              const ikr = isKrTicker(mapped);
+              setPlaySearchResults([{ symbol: mapped,
+                name: (ikr ? KR_STOCK_META[mapped]?.name : STOCK_META[mapped]?.name) ?? mapped,
+                exchange: ikr ? "KRX" : "" }]);
+              return;
+            }
+            const upper = q.trim().toUpperCase();
+            const dq    = decomposeHangul(q);
+            const local = [
+              ...ALL_TICKERS.filter((t) =>
+                t.startsWith(upper) || decomposeHangul(STOCK_META[t]?.name ?? "").includes(dq)
+              ),
+              ...ALL_KR_TICKERS.filter((t) =>
+                decomposeHangul(KR_STOCK_META[t]?.name ?? "").includes(dq)
+              ),
+            ];
+            if (local.length > 0) {
+              setPlaySearchResults(local.map((t) => ({
+                symbol: t,
+                name: (isKrTicker(t) ? KR_STOCK_META[t]?.name : STOCK_META[t]?.name) ?? t,
+                exchange: isKrTicker(t) ? "KRX" : "",
+              })));
+              return;
+            }
+            const id = ++searchIdRef.current;
+            setPlaySearchLoading(true);
+            fetch(`/api/stocks/search?query=${encodeURIComponent(q)}`)
+              .then((r) => r.json())
+              .then((data) => { if (searchIdRef.current === id) setPlaySearchResults(data); })
+              .catch(() => { if (searchIdRef.current === id) setPlaySearchResults([]); })
+              .finally(() => { if (searchIdRef.current === id) setPlaySearchLoading(false); });
+          };
+
           return (
             <div key="play" className={tabAnim}>
 
@@ -1479,58 +1517,142 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* ── 검색창 (웹에서는 왼쪽 컬럼 너비에 맞춤, 인기 종목 위) ── */}
-              <div style={{ padding:"10px 0 14px", display:"flex", gap:16 }}>
-                <div style={{ flex:1, minWidth:0, maxWidth:738, position:"relative" }}>
+              {/* ── 웹: 검색창부터 우측 패널이 나란히 시작 ── */}
+              <div className="hidden md:flex" style={{ gap:16, alignItems:"flex-start" }}>
+                {/* 왼쪽 컬럼: 검색창 + 인기종목 + 종목 리스트 */}
+                <div style={{ flex:1, minWidth:0 }}>
+                  {/* 검색창 */}
+                  <div style={{ padding:"10px 0 14px", position:"relative" }}>
+                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
+                      color:"#c8bfb0", fontSize:14, pointerEvents:"none" }}>&#128269;</span>
+                    <input
+                      type="text" value={playSearch}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      placeholder="종목 검색   삼성전자, NVDA, 테슬라..."
+                      className="w-full rounded-xl outline-none"
+                      style={{ background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.08)",
+                        color:"#e8e0d0", fontSize:14, fontWeight:300, padding:"12px 38px 12px 40px" }}
+                      onFocus={(e) => (e.target.style.borderColor="rgba(250,202,62,0.35)")}
+                      onBlur={(e)  => (e.target.style.borderColor="rgba(255,255,255,0.08)")}
+                    />
+                    {playSearch && (
+                      <button onClick={() => { setPlaySearch(""); setPlaySearchResults([]); }} className="pico-btn"
+                        style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                          color:"#c8bfb0", fontSize:14, background:"none", border:"none" }}>✕</button>
+                    )}
+                  </div>
+
+                  {/* 인기 종목 */}
+                  {!playSearch && (
+                    <div style={{ marginBottom:20 }}>
+                      <p style={{ fontSize:15, fontWeight:600, color:"#c8bfb0", marginBottom:14 }}>인기 종목</p>
+                      <div style={{ marginBottom:6 }}>
+                        <span style={{ fontSize:15, color:"#c8bfb0", fontWeight:400, display:"block", marginBottom:10 }}>🌎 해외</span>
+                        <div style={{ display:"flex", gap:14 }}>
+                          {WEB_FOREIGN_TICKERS.map((t, i) => (
+                            <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
+                              idx={i} large onClick={() => router.push(`/stock/${t}`)}/>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ marginTop:16 }}>
+                        <span style={{ fontSize:15, color:"#c8bfb0", fontWeight:400, display:"block", marginBottom:10 }}>🇰🇷 국내</span>
+                        <div style={{ display:"flex", gap:14 }}>
+                          {WEB_DOMESTIC_TICKERS.map((t, i) => (
+                            <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
+                              idx={i+4} large onClick={() => router.push(`/stock/${t}`)}/>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 검색 결과 */}
+                  {playSearch ? (
+                    <div>
+                      {playSearchLoading
+                        ? [1,2,3].map((i) => (
+                            <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 0",
+                              borderBottom:"0.5px solid rgba(255,255,255,0.05)" }}>
+                              <div style={{ width:40, height:40, borderRadius:"50%", background:"#242424", flexShrink:0 }}/>
+                              <div style={{ flex:1 }}><Skeleton w="50%" h={14}/><div style={{height:5}}/><Skeleton w="30%" h={11}/></div>
+                              <div><Skeleton w={70} h={14}/><div style={{height:5}}/><Skeleton w={50} h={11}/></div>
+                            </div>))
+                        : playSearchResults.length > 0
+                          ? playSearchResults.map((r, i) => (
+                              <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks}
+                                stocksLoading={stocksLoading} idx={i}
+                                onClick={() => router.push(`/stock/${r.symbol}`)}/>))
+                          : <p style={{ fontSize:13, color:"#5c5448", fontWeight:300, padding:"20px 0" }}>검색 결과가 없어요</p>
+                      }
+                    </div>
+                  ) : (
+                    <>
+                      {/* 필터 칩 */}
+                      <div className="scroll-x" style={{ display:"flex", gap:6, marginBottom:4 }}>
+                        {FILTERS.map((f) => (
+                          <button key={f} onClick={() => setPlayFilter(f)} className="pico-btn flex-shrink-0"
+                            style={{ fontSize:13, fontWeight: playFilter===f ? 600 : 400, padding:"6px 16px", borderRadius:20,
+                              background: playFilter===f ? "rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)",
+                              color:       playFilter===f ? "#e8e0d0":"#3a3530",
+                              border:     `0.5px solid ${playFilter===f ? "rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"}`,
+                              transition:"all 0.15s" }}>
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+                      {/* 종목 리스트 헤더 */}
+                      {(() => {
+                        const now = new Date();
+                        const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+                        const hh  = String(kst.getUTCHours()).padStart(2,"0");
+                        const mm  = String(kst.getUTCMinutes()).padStart(2,"0");
+                        return (
+                          <div style={{ display:"flex", alignItems:"center", gap:12,
+                            padding:"10px 0 6px", borderBottom:"0.5px solid rgba(255,255,255,0.08)" }}>
+                            <div style={{ width:40, flexShrink:0 }}/>
+                            <div style={{ flex:1, minWidth:0, maxWidth:220 }}>
+                              <span style={{ fontSize:14, color:"#c8bfb0" }}>오늘 {hh}:{mm} 기준</span>
+                            </div>
+                            <div style={{ width:110, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>현재가</div>
+                            <div style={{ width:80, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>등락률</div>
+                          </div>
+                        );
+                      })()}
+                      {/* 종목 리스트 */}
+                      <div>
+                        {filteredTickers.map((ticker, i) => (
+                          <StockRow key={ticker} ticker={ticker} stocks={stocks}
+                            stocksLoading={stocksLoading} idx={i}
+                            onClick={() => router.push(`/stock/${ticker}`)}/>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* 오른쪽: 게임 대시보드 */}
+                <div style={{ width:320, flexShrink:0 }}>
+                  <GameDashboardPanel
+                    loading={dashLoading}
+                    user={user}
+                    userRow={userRow}
+                    holdings={dashHoldings}
+                    top3={dashTop3}
+                    myRank={dashMyRank}
+                  />
+                </div>
+              </div>
+
+              {/* ── 모바일 레이아웃 (기존 유지) ── */}
+              <div className="md:hidden">
+                {/* 검색창 */}
+                <div style={{ padding:"10px 0 14px", position:"relative" }}>
                   <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
                     color:"#c8bfb0", fontSize:14, pointerEvents:"none" }}>&#128269;</span>
                   <input
                     type="text" value={playSearch}
-                    onChange={(e) => {
-                      const q = e.target.value;
-                      setPlaySearch(q);
-                      if (!q.trim()) { setPlaySearchResults([]); setPlaySearchLoading(false); return; }
-
-                      // 정확한 한글 매핑 (전체 이름 완성 시)
-                      const mapped = KOR_TO_TICKER[q.trim()];
-                      if (mapped) {
-                        const ikr = isKrTicker(mapped);
-                        setPlaySearchResults([{ symbol: mapped,
-                          name: (ikr ? KR_STOCK_META[mapped]?.name : STOCK_META[mapped]?.name) ?? mapped,
-                          exchange: ikr ? "KRX" : "" }]);
-                        return;
-                      }
-
-                      // 로컬 검색 — 자모 분해로 IME 조합 중간 상태("엔비ㄷ")도 정확히 매칭
-                      const upper   = q.trim().toUpperCase();
-                      const dq      = decomposeHangul(q);
-                      const local   = [
-                        ...ALL_TICKERS.filter((t) =>
-                          t.startsWith(upper) ||
-                          decomposeHangul(STOCK_META[t]?.name ?? "").includes(dq)
-                        ),
-                        ...ALL_KR_TICKERS.filter((t) =>
-                          decomposeHangul(KR_STOCK_META[t]?.name ?? "").includes(dq)
-                        ),
-                      ];
-                      if (local.length > 0) {
-                        setPlaySearchResults(local.map((t) => ({
-                          symbol: t,
-                          name: (isKrTicker(t) ? KR_STOCK_META[t]?.name : STOCK_META[t]?.name) ?? t,
-                          exchange: isKrTicker(t) ? "KRX" : "",
-                        })));
-                        return;
-                      }
-
-                      // 로컬에 없으면 API 검색 (race condition 방지: 최신 요청만 반영)
-                      const id = ++searchIdRef.current;
-                      setPlaySearchLoading(true);
-                      fetch(`/api/stocks/search?query=${encodeURIComponent(q)}`)
-                        .then((r) => r.json())
-                        .then((data) => { if (searchIdRef.current === id) setPlaySearchResults(data); })
-                        .catch(() => { if (searchIdRef.current === id) setPlaySearchResults([]); })
-                        .finally(() => { if (searchIdRef.current === id) setPlaySearchLoading(false); });
-                    }}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="종목 검색   삼성전자, NVDA, 테슬라..."
                     className="w-full rounded-xl outline-none"
                     style={{ background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.08)",
@@ -1544,54 +1666,10 @@ export default function Home() {
                         color:"#c8bfb0", fontSize:14, background:"none", border:"none" }}>✕</button>
                   )}
                 </div>
-                {/* 웹에서 오른쪽 게임 대시보드 너비만큼 공백 유지 */}
-                <div className="hidden md:block" style={{ width:320, flexShrink:0 }} />
-              </div>
 
-              {/* ── 인기 종목 + 게임 대시보드 ── */}
-              {!playSearch && (
-                <>
-                  {/* 웹(md+): 인기종목 2행 + 게임 대시보드 */}
-                  <div className="hidden md:flex" style={{ gap:16, marginBottom:20, alignItems:"flex-start" }}>
-                    {/* 왼쪽: 해외 윗줄 / 국내 아랫줄 */}
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:15, fontWeight:600, color:"#c8bfb0", marginBottom:14 }}>인기 종목</p>
-                      {/* 해외 행 */}
-                      <div style={{ marginBottom:6 }}>
-                        <span style={{ fontSize:15, color:"#c8bfb0", fontWeight:400, display:"block", marginBottom:10 }}>🌎 해외</span>
-                        <div style={{ display:"flex", gap:14 }}>
-                          {WEB_FOREIGN_TICKERS.map((t, i) => (
-                            <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                              idx={i} large onClick={() => router.push(`/stock/${t}`)}/>
-                          ))}
-                        </div>
-                      </div>
-                      {/* 국내 행 */}
-                      <div style={{ marginTop:16 }}>
-                        <span style={{ fontSize:15, color:"#c8bfb0", fontWeight:400, display:"block", marginBottom:10 }}>🇰🇷 국내</span>
-                        <div style={{ display:"flex", gap:14 }}>
-                          {WEB_DOMESTIC_TICKERS.map((t, i) => (
-                            <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                              idx={i+4} large onClick={() => router.push(`/stock/${t}`)}/>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    {/* 오른쪽: 게임 대시보드 */}
-                    <div style={{ width:320, flexShrink:0 }}>
-                      <GameDashboardPanel
-                        loading={dashLoading}
-                        user={user}
-                        userRow={userRow}
-                        holdings={dashHoldings}
-                        top3={dashTop3}
-                        myRank={dashMyRank}
-                      />
-                    </div>
-                  </div>
-
-                  {/* 모바일: 가로 스크롤 8장 (기존 유지) */}
-                  <div className="md:hidden" style={{ marginBottom:20 }}>
+                {/* 인기종목 모바일 스크롤 */}
+                {!playSearch && (
+                  <div style={{ marginBottom:20 }}>
                     <p style={{ fontSize:15, fontWeight:600, color:"#c8bfb0", marginBottom:10 }}>인기 종목</p>
                     <div className="scroll-x" style={{ display:"flex", gap:10, paddingBottom:4 }}>
                       {FEATURED_TICKERS.map((t, i) => (
@@ -1600,77 +1678,71 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
-                </>
-              )}
+                )}
 
-              {/* ── 검색 결과 ── */}
-              {playSearch ? (
-                <div>
-                  {playSearchLoading
-                    ? [1,2,3].map((i) => (
-                        <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 0",
-                          borderBottom:"0.5px solid rgba(255,255,255,0.05)" }}>
-                          <div style={{ width:40, height:40, borderRadius:"50%", background:"#242424", flexShrink:0 }}/>
-                          <div style={{ flex:1 }}><Skeleton w="50%" h={14}/><div style={{height:5}}/><Skeleton w="30%" h={11}/></div>
-                          <div><Skeleton w={70} h={14}/><div style={{height:5}}/><Skeleton w={50} h={11}/></div>
-                        </div>))
-                    : playSearchResults.length > 0
-                      ? playSearchResults.map((r, i) => (
-                          <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks}
-                            stocksLoading={stocksLoading} idx={i}
-                            onClick={() => router.push(`/stock/${r.symbol}`)}/>))
-                      : <p style={{ fontSize:13, color:"#5c5448", fontWeight:300, padding:"20px 0" }}>검색 결과가 없어요</p>
-                  }
-                </div>
-              ) : (
-                <>
-                  {/* ── 필터 칩 ── */}
-                  <div className="scroll-x" style={{ display:"flex", gap:6, marginBottom:4 }}>
-                    {FILTERS.map((f) => (
-                      <button key={f} onClick={() => setPlayFilter(f)} className="pico-btn flex-shrink-0"
-                        style={{ fontSize:13, fontWeight: playFilter===f ? 600 : 400, padding:"6px 16px", borderRadius:20,
-                          background: playFilter===f ? "rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)",
-                          color:       playFilter===f ? "#e8e0d0":"#3a3530",
-                          border:     `0.5px solid ${playFilter===f ? "rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"}`,
-                          transition:"all 0.15s" }}>
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* ── 종목 리스트 헤더 ── */}
-                  {(() => {
-                    const now = new Date();
-                    const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-                    const hh  = String(kst.getUTCHours()).padStart(2,"0");
-                    const mm  = String(kst.getUTCMinutes()).padStart(2,"0");
-                    return (
-                      <div style={{ display:"flex", alignItems:"center", gap:12,
-                        padding:"10px 0 6px", borderBottom:"0.5px solid rgba(255,255,255,0.08)" }}>
-                        {/* 로고 자리 (StockRow와 동일: 40px) */}
-                        <div style={{ width:40, flexShrink:0 }}/>
-                        {/* 이름 자리 (StockRow와 동일: flex:1 maxWidth:220) */}
-                        <div style={{ flex:1, minWidth:0, maxWidth:220 }}>
-                          <span style={{ fontSize:14, color:"#c8bfb0" }}>오늘 {hh}:{mm} 기준</span>
-                        </div>
-                        {/* 현재가 (StockRow와 동일: 110px) */}
-                        <div style={{ width:110, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>현재가</div>
-                        {/* 등락률 (StockRow와 동일: 80px) */}
-                        <div style={{ width:80, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>등락률</div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* ── 종목 리스트 ── */}
+                {/* 검색 결과 */}
+                {playSearch ? (
                   <div>
-                    {filteredTickers.map((ticker, i) => (
-                      <StockRow key={ticker} ticker={ticker} stocks={stocks}
-                        stocksLoading={stocksLoading} idx={i}
-                        onClick={() => router.push(`/stock/${ticker}`)}/>
-                    ))}
+                    {playSearchLoading
+                      ? [1,2,3].map((i) => (
+                          <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 0",
+                            borderBottom:"0.5px solid rgba(255,255,255,0.05)" }}>
+                            <div style={{ width:40, height:40, borderRadius:"50%", background:"#242424", flexShrink:0 }}/>
+                            <div style={{ flex:1 }}><Skeleton w="50%" h={14}/><div style={{height:5}}/><Skeleton w="30%" h={11}/></div>
+                            <div><Skeleton w={70} h={14}/><div style={{height:5}}/><Skeleton w={50} h={11}/></div>
+                          </div>))
+                      : playSearchResults.length > 0
+                        ? playSearchResults.map((r, i) => (
+                            <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks}
+                              stocksLoading={stocksLoading} idx={i}
+                              onClick={() => router.push(`/stock/${r.symbol}`)}/>))
+                        : <p style={{ fontSize:13, color:"#5c5448", fontWeight:300, padding:"20px 0" }}>검색 결과가 없어요</p>
+                    }
                   </div>
-                </>
-              )}
+                ) : (
+                  <>
+                    {/* 필터 칩 */}
+                    <div className="scroll-x" style={{ display:"flex", gap:6, marginBottom:4 }}>
+                      {FILTERS.map((f) => (
+                        <button key={f} onClick={() => setPlayFilter(f)} className="pico-btn flex-shrink-0"
+                          style={{ fontSize:13, fontWeight: playFilter===f ? 600 : 400, padding:"6px 16px", borderRadius:20,
+                            background: playFilter===f ? "rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)",
+                            color:       playFilter===f ? "#e8e0d0":"#3a3530",
+                            border:     `0.5px solid ${playFilter===f ? "rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"}`,
+                            transition:"all 0.15s" }}>
+                          {f}
+                        </button>
+                      ))}
+                    </div>
+                    {/* 종목 리스트 헤더 */}
+                    {(() => {
+                      const now = new Date();
+                      const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+                      const hh  = String(kst.getUTCHours()).padStart(2,"0");
+                      const mm  = String(kst.getUTCMinutes()).padStart(2,"0");
+                      return (
+                        <div style={{ display:"flex", alignItems:"center", gap:12,
+                          padding:"10px 0 6px", borderBottom:"0.5px solid rgba(255,255,255,0.08)" }}>
+                          <div style={{ width:40, flexShrink:0 }}/>
+                          <div style={{ flex:1, minWidth:0, maxWidth:220 }}>
+                            <span style={{ fontSize:14, color:"#c8bfb0" }}>오늘 {hh}:{mm} 기준</span>
+                          </div>
+                          <div style={{ width:110, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>현재가</div>
+                          <div style={{ width:80, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>등락률</div>
+                        </div>
+                      );
+                    })()}
+                    {/* 종목 리스트 */}
+                    <div>
+                      {filteredTickers.map((ticker, i) => (
+                        <StockRow key={ticker} ticker={ticker} stocks={stocks}
+                          stocksLoading={stocksLoading} idx={i}
+                          onClick={() => router.push(`/stock/${ticker}`)}/>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
 
             </div>
           );
