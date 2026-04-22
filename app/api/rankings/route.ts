@@ -6,6 +6,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// users 테이블 조회용 (RLS 우회 — 닉네임 실시간 반영)
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 // ── 이번 주 월요일 (KST 기준) ─────────────────────────────────
 function getWeekStart(): string {
   const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
@@ -64,7 +70,7 @@ export async function GET(req: NextRequest) {
   const rankingUserIds = (rankings ?? []).map((r: { user_id: string }) => r.user_id);
   let userMap: Record<string, { nickname: string | null; equipped_title: string | null }> = {};
   if (rankingUserIds.length > 0) {
-    const { data: userRows } = await supabase
+    const { data: userRows } = await supabaseAdmin
       .from("users")
       .select("id, nickname, equipped_title")
       .in("id", rankingUserIds);
