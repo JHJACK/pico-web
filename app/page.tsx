@@ -1001,26 +1001,42 @@ export default function Home() {
           </div>
 
           {user && userRow ? (
-            /* ── 로그인 후: 프로필 버튼 ── */
-            <button onClick={() => router.push("/mypage")} className="pico-btn flex items-center gap-2"
-              style={{ background: "none", border: "none", padding: "4px 0" }}>
-              {userRow.avatar_url ? (
-                <img src={userRow.avatar_url} alt="프로필" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1.5px solid rgba(255,255,255,0.12)" }} />
-              ) : (
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#242424", border: "1.5px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#a09688", flexShrink: 0 }}>
-                  {userRow.nickname[0]?.toUpperCase() ?? "?"}
-                </div>
-              )}
-              <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</span>
-            </button>
-          ) : (
-            /* ── 비로그인: 로그인/회원가입 버튼 ── */
+            /* ── 로그인 후: 검색(모바일) + 프로필 ── */
             <div className="flex items-center gap-2">
+              <button className="sm:hidden pico-btn" onClick={() => switchTab("play")}
+                style={{ background: "none", border: "none", padding: "6px", color: "#c8bfb0", display: "flex", alignItems: "center" }}>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
+                  <path d="M13.5 13.5L17 17" stroke="#c8bfb0" strokeWidth="1.6" strokeLinecap="round"/>
+                </svg>
+              </button>
+              <button onClick={() => router.push("/mypage")} className="pico-btn flex items-center gap-2"
+                style={{ background: "none", border: "none", padding: "4px 0" }}>
+                {userRow.avatar_url ? (
+                  <img src={userRow.avatar_url} alt="프로필" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1.5px solid rgba(255,255,255,0.12)" }} />
+                ) : (
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#242424", border: "1.5px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#a09688", flexShrink: 0 }}>
+                    {userRow.nickname[0]?.toUpperCase() ?? "?"}
+                  </div>
+                )}
+                <span style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</span>
+              </button>
+            </div>
+          ) : (
+            /* ── 비로그인: 검색(모바일) + 로그인/회원가입 ── */
+            <div className="flex items-center gap-2">
+              <button className="sm:hidden pico-btn" onClick={() => switchTab("play")}
+                style={{ background: "none", border: "none", padding: "6px", color: "#c8bfb0", display: "flex", alignItems: "center" }}>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
+                  <path d="M13.5 13.5L17 17" stroke="#c8bfb0" strokeWidth="1.6" strokeLinecap="round"/>
+                </svg>
+              </button>
               <button onClick={() => openLogin()} className="pico-btn px-4 py-2 rounded-lg"
                 style={{ fontSize: 13, fontWeight: 500, color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", background: "transparent" }}>
                 로그인
               </button>
-              <button onClick={() => openLogin()} className="pico-btn px-4 py-2 rounded-lg"
+              <button onClick={() => openLogin()} className="pico-btn px-4 py-2 rounded-lg hidden sm:block"
                 style={{ fontSize: 13, fontWeight: 500, color: "#0d0d0d", background: "#FACA3E" }}>
                 회원가입
               </button>
@@ -1644,43 +1660,36 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* ── 모바일 레이아웃 (기존 유지) ── */}
-              <div className="md:hidden">
+              {/* ── 모바일 전면 개편 (토스 스타일 카드형) ── */}
+              <div className="md:hidden" style={{ paddingTop: 4 }}>
+
                 {/* 검색창 */}
-                <div style={{ padding:"10px 0 14px", position:"relative" }}>
-                  <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
-                    color:"#c8bfb0", fontSize:14, pointerEvents:"none" }}>&#128269;</span>
+                <div style={{ padding:"10px 0 16px", position:"relative" }}>
+                  <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
+                    <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
+                      <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
+                      <path d="M13.5 13.5L17 17" stroke="#c8bfb0" strokeWidth="1.6" strokeLinecap="round"/>
+                    </svg>
+                  </span>
                   <input
                     type="text" value={playSearch}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="종목 검색   삼성전자, NVDA, 테슬라..."
-                    className="w-full rounded-xl outline-none"
+                    className="w-full rounded-2xl outline-none"
                     style={{ background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.08)",
-                      color:"#e8e0d0", fontSize:16, fontWeight:300, padding:"12px 38px 12px 40px" }}
+                      color:"#e8e0d0", fontSize:15, fontWeight:300, padding:"13px 38px 13px 42px",
+                      fontFamily:"var(--font-paperlogy)" }}
                     onFocus={(e) => (e.target.style.borderColor="rgba(250,202,62,0.35)")}
                     onBlur={(e)  => (e.target.style.borderColor="rgba(255,255,255,0.08)")}
                   />
                   {playSearch && (
                     <button onClick={() => { setPlaySearch(""); setPlaySearchResults([]); }} className="pico-btn"
                       style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                        color:"#c8bfb0", fontSize:14, background:"none", border:"none" }}>✕</button>
+                        color:"#c8bfb0", fontSize:15, background:"none", border:"none" }}>✕</button>
                   )}
                 </div>
 
-                {/* 인기종목 모바일 스크롤 */}
-                {!playSearch && (
-                  <div style={{ marginBottom:20 }}>
-                    <p style={{ fontSize:15, fontWeight:600, color:"#c8bfb0", marginBottom:10 }}>인기 종목</p>
-                    <div className="scroll-x" style={{ display:"flex", gap:10, paddingBottom:4 }}>
-                      {FEATURED_TICKERS.map((t, i) => (
-                        <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                          idx={i} onClick={() => router.push(`/stock/${t}`)}/>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 검색 결과 */}
+                {/* 검색 결과 (검색 중) */}
                 {playSearch ? (
                   <div>
                     {playSearchLoading
@@ -1696,16 +1705,239 @@ export default function Home() {
                             <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks}
                               stocksLoading={stocksLoading} idx={i}
                               onClick={() => router.push(`/stock/${r.symbol}`)}/>))
-                        : <p style={{ fontSize:13, color:"#5c5448", fontWeight:300, padding:"20px 0" }}>검색 결과가 없어요</p>
+                        : <p style={{ fontSize:14, color:"#5c5448", fontWeight:300, padding:"20px 0" }}>검색 결과가 없어요</p>
                     }
                   </div>
                 ) : (
                   <>
-                    {/* 필터 칩 */}
+                    {/* ① 자산 카드 */}
+                    <div style={{ background:"#1c1c1c", borderRadius:20, padding:"22px 20px 18px",
+                      marginBottom:12, border:"0.5px solid rgba(255,255,255,0.08)" }}>
+                      {!user ? (
+                        <div style={{ textAlign:"center", padding:"8px 0" }}>
+                          <div style={{ fontSize:38, marginBottom:10 }}>🎮</div>
+                          <p style={{ fontSize:15, color:"#c8bfb0", fontWeight:300, marginBottom:14,
+                            fontFamily:"var(--font-paperlogy)" }}>
+                            로그인하면 내 자산을 확인할 수 있어요
+                          </p>
+                          <button onClick={() => openLogin()} className="pico-btn px-5 py-2.5 rounded-xl"
+                            style={{ background:"rgba(250,202,62,0.1)", color:"#FACA3E",
+                              border:"0.5px solid rgba(250,202,62,0.3)", fontSize:14, fontWeight:500,
+                              fontFamily:"var(--font-paperlogy)" }}>
+                            로그인하기
+                          </button>
+                        </div>
+                      ) : dashLoading ? (
+                        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                          <Skeleton w="40%" h={14}/><Skeleton w="60%" h={38}/><Skeleton w="50%" h={20}/>
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize:13, color:"#c8bfb0", marginBottom:6,
+                            fontFamily:"var(--font-paperlogy)", fontWeight:400 }}>보유 포인트</div>
+                          <div style={{ fontSize:40, fontWeight:800, color:"#FACA3E",
+                            fontFamily:"var(--font-paperlogy)", letterSpacing:"-0.02em",
+                            marginBottom:14, lineHeight:1.1 }}>
+                            {(userRow?.total_points ?? 0).toLocaleString("ko-KR")}
+                            <span style={{ fontSize:24, fontWeight:600, marginLeft:4 }}>P</span>
+                          </div>
+                          {(() => {
+                            const inv  = dashHoldings.reduce((s,h) => s + h.invested_points, 0);
+                            const val  = dashHoldings.reduce((s,h) => s + h.currentValue, 0);
+                            const pl   = val - inv;
+                            const plR  = inv > 0 ? (pl / inv) * 100 : 0;
+                            const pos  = pl >= 0;
+                            if (dashHoldings.length === 0) return (
+                              <p style={{ fontSize:14, color:"#5c5448", fontWeight:300,
+                                fontFamily:"var(--font-paperlogy)" }}>
+                                보유 종목 없음 · 지금 투자해 보세요 🎯
+                              </p>
+                            );
+                            return (
+                              <div style={{ display:"inline-flex", alignItems:"center", gap:8,
+                                background: pos ? "rgba(126,212,160,0.08)" : "rgba(240,120,120,0.08)",
+                                border:`0.5px solid ${pos ? "rgba(126,212,160,0.25)" : "rgba(240,120,120,0.25)"}`,
+                                borderRadius:12, padding:"10px 16px" }}>
+                                <span style={{ fontSize:20 }}>{pos ? "🔥" : "❄️"}</span>
+                                <span style={{ ...NUM_MONO, fontSize:17, fontWeight:600,
+                                  color: pos ? "#7ed4a0" : "#f07878" }}>
+                                  {pos ? "+" : ""}{pl.toLocaleString("ko-KR")}P
+                                </span>
+                                <span style={{ ...NUM_MONO, fontSize:14,
+                                  color: pos ? "#7ed4a0" : "#f07878", opacity:0.8 }}>
+                                  ({pos ? "+" : ""}{plR.toFixed(1)}%)
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </>
+                      )}
+                    </div>
+
+                    {/* ② 내 주식 현황 카드 */}
+                    {user && (
+                      <div style={{ background:"#1c1c1c", borderRadius:20, padding:"18px 20px",
+                        marginBottom:12, border:"0.5px solid rgba(255,255,255,0.08)" }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                          <span style={{ fontSize:15, fontWeight:600, color:"#c8bfb0",
+                            fontFamily:"var(--font-paperlogy)" }}>⚔️ 내 주식 현황</span>
+                          <Link href="/mypage" style={{ fontSize:13, color:"#5c5448", textDecoration:"none" }}>
+                            더보기 ›
+                          </Link>
+                        </div>
+                        {dashLoading ? (
+                          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                            {[1,2,3].map((i) => <Skeleton key={i} w="100%" h={44}/>)}
+                          </div>
+                        ) : dashHoldings.length === 0 ? (
+                          <p style={{ fontSize:14, color:"#5c5448", fontWeight:300, textAlign:"center",
+                            padding:"12px 0", fontFamily:"var(--font-paperlogy)" }}>
+                            보유 종목 없음 · 지금 투자해 보세요 🎯
+                          </p>
+                        ) : (
+                          <div style={{ display:"flex", flexDirection:"column" }}>
+                            {dashHoldings.slice(0,4).map((h, i) => {
+                              const up  = h.profitLoss >= 0;
+                              const kr  = isKrTicker(h.ticker);
+                              const meta = kr ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
+                              const logo = !kr ? `https://financialmodelingprep.com/image-stock/${h.ticker}.png` : null;
+                              const sd   = stocks[h.ticker];
+                              return (
+                                <button key={`${h.ticker}-${i}`}
+                                  onClick={() => router.push(`/stock/${h.ticker}`)}
+                                  className={`pico-btn w-full ${up ? "flash-green" : "flash-red"}`}
+                                  style={{ background:"none", border:"none", cursor:"pointer",
+                                    padding:"11px 0",
+                                    borderBottom: i < Math.min(dashHoldings.length,4)-1
+                                      ? "0.5px solid rgba(255,255,255,0.05)" : "none" }}>
+                                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                                    {logo
+                                      ? <TickerLogo src={logo} ticker={h.ticker} size={36}/>
+                                      : <div style={{ width:36, height:36, borderRadius:"50%", background:"#242424",
+                                          flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
+                                          fontSize:15, fontWeight:600, color:"#c8bfb0" }}>
+                                          {(meta?.name ?? h.ticker)[0]}
+                                        </div>
+                                    }
+                                    <div style={{ flex:1, textAlign:"left", minWidth:0 }}>
+                                      <div style={{ fontSize:15, fontWeight:500, color:"#e8e0d0",
+                                        fontFamily:"var(--font-paperlogy)",
+                                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                                        {meta?.name ?? h.ticker}
+                                      </div>
+                                      <div style={{ ...NUM_MONO, fontSize:13, color:"#c8bfb0", marginTop:1 }}>
+                                        {kr ? (sd?.formattedPrice ?? "—") : (sd?.formattedKRW ?? "—")}
+                                      </div>
+                                    </div>
+                                    <div style={{ textAlign:"right", flexShrink:0 }}>
+                                      <div style={{ ...NUM_MONO, fontSize:15, fontWeight:600,
+                                        color: up ? "#7ed4a0" : "#f07878" }}>
+                                        {up ? "+" : ""}{h.profitLoss.toLocaleString()}P
+                                      </div>
+                                      <div style={{ ...NUM_MONO, fontSize:12,
+                                        color: up ? "#7ed4a0" : "#f07878", opacity:0.8, marginTop:1 }}>
+                                        ({up ? "+" : ""}{h.profitRate.toFixed(1)}%)
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* ③ 실시간 랭킹 카드 */}
+                    <div style={{ background:"#1c1c1c", borderRadius:20, padding:"18px 20px",
+                      marginBottom:16, border:"0.5px solid rgba(255,255,255,0.08)" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                        <span style={{ fontSize:15, fontWeight:600, color:"#c8bfb0",
+                          fontFamily:"var(--font-paperlogy)" }}>🏆 이번 주 랭킹</span>
+                        <Link href="/ranking" style={{ fontSize:13, color:"#5c5448", textDecoration:"none" }}>
+                          전체 보기 ›
+                        </Link>
+                      </div>
+                      {dashLoading ? (
+                        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                          {[1,2,3].map((i) => <Skeleton key={i} w="100%" h={44}/>)}
+                        </div>
+                      ) : dashTop3.length === 0 ? (
+                        <p style={{ fontSize:14, color:"#5c5448", fontWeight:300,
+                          fontFamily:"var(--font-paperlogy)" }}>아직 랭킹 데이터가 없어요</p>
+                      ) : (
+                        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                          {[
+                            { medal:"🥇", color:"#FACA3E" },
+                            { medal:"🥈", color:"#c8c8c8" },
+                            { medal:"🥉", color:"#d4956a" },
+                          ].map((st, i) => {
+                            const r = dashTop3[i];
+                            if (!r) return null;
+                            const pos = r.return_rate >= 0;
+                            return (
+                              <div key={r.rank_position}
+                                style={{ display:"flex", alignItems:"center", gap:10, padding:"4px 0" }}>
+                                <span style={{ fontSize:20, flexShrink:0 }}>{st.medal}</span>
+                                <div style={{ flex:1, minWidth:0 }}>
+                                  {r.equipped_title && TITLE_META[r.equipped_title] && (
+                                    <div style={{ fontSize:11, color:TITLE_META[r.equipped_title].color,
+                                      fontWeight:300, marginBottom:1 }}>
+                                      {TITLE_META[r.equipped_title].emoji} {TITLE_META[r.equipped_title].label}
+                                    </div>
+                                  )}
+                                  <div style={{ fontSize:15, fontWeight:500, color:"#e8e0d0",
+                                    fontFamily:"var(--font-paperlogy)",
+                                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                                    {r.nickname}
+                                  </div>
+                                </div>
+                                <span style={{ ...NUM_MONO, fontSize:15, fontWeight:600,
+                                  color: pos ? "#7ed4a0" : "#f07878", flexShrink:0 }}>
+                                  {pos ? "+" : ""}{r.return_rate.toFixed(1)}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {dashMyRank && user && (
+                            <div style={{ display:"flex", alignItems:"center", gap:10,
+                              padding:"8px 0 4px", marginTop:4,
+                              borderTop:"0.5px solid rgba(255,255,255,0.06)" }}>
+                              <span style={{ ...NUM_MONO, fontSize:15, color:"#FACA3E",
+                                fontWeight:700, flexShrink:0, minWidth:28 }}>
+                                #{dashMyRank.rank_position}
+                              </span>
+                              <div style={{ flex:1, fontSize:14, color:"#c8bfb0",
+                                fontFamily:"var(--font-paperlogy)" }}>나의 순위</div>
+                              <span style={{ ...NUM_MONO, fontSize:15, flexShrink:0,
+                                color: dashMyRank.return_rate >= 0 ? "#7ed4a0" : "#f07878" }}>
+                                {dashMyRank.return_rate >= 0 ? "+" : ""}{dashMyRank.return_rate.toFixed(1)}%
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 구분선 */}
+                    <div style={{ borderTop:"0.5px solid rgba(255,255,255,0.06)", marginBottom:18 }}/>
+
+                    {/* ④ 인기 종목 (하단) */}
+                    <p style={{ fontSize:16, fontWeight:600, color:"#c8bfb0",
+                      fontFamily:"var(--font-paperlogy)", marginBottom:12 }}>인기 종목</p>
+                    <div className="scroll-x" style={{ display:"flex", gap:10, paddingBottom:4, marginBottom:18 }}>
+                      {FEATURED_TICKERS.map((t, i) => (
+                        <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
+                          idx={i} onClick={() => router.push(`/stock/${t}`)}/>
+                      ))}
+                    </div>
+
+                    {/* ⑤ 필터 칩 */}
                     <div className="scroll-x" style={{ display:"flex", gap:6, marginBottom:4 }}>
                       {FILTERS.map((f) => (
                         <button key={f} onClick={() => setPlayFilter(f)} className="pico-btn flex-shrink-0"
-                          style={{ fontSize:13, fontWeight: playFilter===f ? 600 : 400, padding:"6px 16px", borderRadius:20,
+                          style={{ fontSize:13, fontWeight: playFilter===f ? 600 : 400, padding:"6px 16px",
+                            borderRadius:20, fontFamily:"var(--font-paperlogy)",
                             background: playFilter===f ? "rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)",
                             color:       playFilter===f ? "#e8e0d0":"#3a3530",
                             border:     `0.5px solid ${playFilter===f ? "rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"}`,
@@ -1714,6 +1946,7 @@ export default function Home() {
                         </button>
                       ))}
                     </div>
+
                     {/* 종목 리스트 헤더 */}
                     {(() => {
                       const now = new Date();
@@ -1724,7 +1957,7 @@ export default function Home() {
                         <div style={{ display:"flex", alignItems:"center", gap:12,
                           padding:"10px 0 6px", borderBottom:"0.5px solid rgba(255,255,255,0.08)" }}>
                           <div style={{ width:40, flexShrink:0 }}/>
-                          <div style={{ flex:1, minWidth:0, maxWidth:220 }}>
+                          <div style={{ flex:1, minWidth:0 }}>
                             <span style={{ fontSize:14, color:"#c8bfb0" }}>오늘 {hh}:{mm} 기준</span>
                           </div>
                           <div style={{ width:110, textAlign:"right", fontSize:14, color:"#c8bfb0" }}>현재가</div>
@@ -1732,6 +1965,7 @@ export default function Home() {
                         </div>
                       );
                     })()}
+
                     {/* 종목 리스트 */}
                     <div>
                       {filteredTickers.map((ticker, i) => (

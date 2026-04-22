@@ -182,3 +182,14 @@ input.pico-input:-webkit-autofill:focus {
 
   /* 폰트는 page.tsx 인라인 isMobile 분기로 관리 — 여기서 건들지 않음 */
 }
+
+/* ── 모바일 카드 수익 값 업데이트 애니메이션 (부드러운 전환) ── */
+@keyframes valueUpdate {
+  0%   { opacity: 0.5; transform: scale(0.97); }
+  60%  { opacity: 1;   transform: scale(1.02); }
+  100% { opacity: 1;   transform: scale(1); }
+}
+.value-update { animation: valueUpdate 0.35s cubic-bezier(.4,0,.2,1) forwards; }
+
+/* ── Paperlogy 폰트 전용 클래스 ── */
+.font-paperlogy { font-family: var(--font-paperlogy), var(--font-noto), sans-serif; }
