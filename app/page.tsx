@@ -290,14 +290,14 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
           ? <TickerLogo src={logo} ticker={ticker} size={32}/>
           : <div style={{ width:32, height:32, borderRadius:"50%", background:"#242424", flexShrink:0,
               display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:13, fontWeight:600, color:"#a09688" }}>{(meta?.name ?? ticker)[0]}</div>
+              fontSize:15, fontWeight:600, color:"#c8bfb0" }}>{(meta?.name ?? ticker)[0]}</div>
         }
         <div style={{ minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight:600, color:"#e8e0d0",
+          <div style={{ fontSize:15, fontWeight:600, color:"#e8e0d0",
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:86 }}>
             {meta?.name?.slice(0,6) ?? ticker}
           </div>
-          <div style={{ fontSize:13, color:"#4a4540", overflow:"hidden", textOverflow:"ellipsis",
+          <div style={{ fontSize:15, color:"#c8bfb0", overflow:"hidden", textOverflow:"ellipsis",
             whiteSpace:"nowrap", maxWidth:86 }}>{kr ? (meta?.category ?? "") : ticker}</div>
         </div>
       </div>
@@ -306,12 +306,12 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
       {/* 가격 */}
       <div style={{ marginTop:9 }}>
         {stocksLoading
-          ? <><Skeleton w="85%" h={14}/><div style={{height:4}}/><Skeleton w="65%" h={12}/></>
+          ? <><Skeleton w="85%" h={15}/><div style={{height:4}}/><Skeleton w="65%" h={15}/></>
           : <>
             <div style={{ ...NUM_MONO, fontSize:15, color:"#e8e0d0", marginBottom:3 }}>
               {kr ? (data?.formattedPrice ?? "—") : (data?.formattedKRW ?? "—")}
             </div>
-            <div style={{ ...NUM_MONO, fontSize:13, color: up?"#7ed4a0":"#f07878" }}>
+            <div style={{ ...NUM_MONO, fontSize:15, color: up?"#7ed4a0":"#f07878" }}>
               {up?"▲":"▼"} {data?.formattedChange ?? "—"}
             </div>
           </>
@@ -371,29 +371,29 @@ function GameDashboardPanel({
         background: "#1c1c1c",
         border: "0.5px solid rgba(255,255,255,0.08)",
         borderRadius: 16,
-        padding: "14px 16px 14px",
+        padding: "18px 18px 16px",
         flex: "0 0 auto",
       }}>
-        <p style={{ fontSize: 11, fontWeight: 600, color: "#5c5448",
-          letterSpacing: "0.10em", textTransform: "uppercase", marginBottom: 12 }}>
-          ⚔️ MY GAME STATUS
+        <p style={{ fontSize: 15, fontWeight: 600, color: "#c8bfb0",
+          letterSpacing: "0.04em", marginBottom: 14 }}>
+          ⚔️ 내 게임 현황
         </p>
 
         {!user ? (
-          <p style={{ fontSize: 13, color: "#5c5448", fontWeight: 300, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300, lineHeight: 1.6 }}>
             로그인하면 내 현황을<br/>확인할 수 있어요
           </p>
         ) : loading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <Skeleton w="55%" h={22} /><Skeleton w="40%" h={14} />
-            <Skeleton w="100%" h={40} /><Skeleton w="80%" h={14} />
+            <Skeleton w="55%" h={22} /><Skeleton w="40%" h={16} />
+            <Skeleton w="100%" h={44} /><Skeleton w="80%" h={16} />
           </div>
         ) : (
           <>
             {/* 보유 포인트 */}
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 2 }}>보유 포인트</div>
-              <div style={{ ...NUM_MONO, fontSize: 22, color: "#FACA3E", fontWeight: 400 }}>
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 3 }}>보유 포인트</div>
+              <div style={{ ...NUM_MONO, fontSize: 24, color: "#FACA3E", fontWeight: 400 }}>
                 {(userRow?.total_points ?? 0).toLocaleString("ko-KR")}P
               </div>
             </div>
@@ -403,15 +403,15 @@ function GameDashboardPanel({
               <div style={{
                 background: isProfit ? "rgba(126,212,160,0.06)" : "rgba(240,120,120,0.06)",
                 border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.22)" : "rgba(240,120,120,0.22)"}`,
-                borderRadius: 10, padding: "9px 12px", marginBottom: 10,
+                borderRadius: 10, padding: "10px 13px", marginBottom: 12,
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: "#5c5448" }}>
+                  <span style={{ fontSize: 15, color: "#c8bfb0" }}>
                     {isProfit ? "🔥" : "❄️"} 평가손익
                   </span>
-                  <span style={{ ...NUM_MONO, fontSize: 13, color: isProfit ? "#7ed4a0" : "#f07878" }}>
+                  <span style={{ ...NUM_MONO, fontSize: 15, color: isProfit ? "#7ed4a0" : "#f07878" }}>
                     {isProfit ? "+" : ""}{totalPL.toLocaleString("ko-KR")}P
-                    <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.75 }}>
+                    <span style={{ fontSize: 15, marginLeft: 5, opacity: 0.8 }}>
                       ({isProfit ? "+" : ""}{totalPLRate.toFixed(1)}%)
                     </span>
                   </span>
@@ -421,23 +421,23 @@ function GameDashboardPanel({
 
             {/* 보유 종목 미니 리스트 */}
             {activeHoldings.length === 0 ? (
-              <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>
+              <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>
                 보유 종목 없음 · 지금 투자해 보세요 🎯
               </p>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {activeHoldings.slice(0, 4).map((h, i) => {
                   const up   = h.profitLoss >= 0;
                   const meta = isKrTicker(h.ticker) ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
                   return (
                     <div key={`${h.ticker}-${i}`} className={up ? "flash-green" : "flash-red"}
                       style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-                        padding: "2px 0" }}>
-                      <span style={{ fontSize: 12, color: "#c8bfb0",
-                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 110 }}>
+                        padding: "3px 0" }}>
+                      <span style={{ fontSize: 15, color: "#e8e0d0",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 120 }}>
                         {meta?.name ?? h.ticker}
                       </span>
-                      <span style={{ ...NUM_MONO, fontSize: 12, color: up ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
+                      <span style={{ ...NUM_MONO, fontSize: 15, color: up ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
                         {up ? "+" : ""}{h.profitLoss.toLocaleString()}P
                       </span>
                     </div>
@@ -449,54 +449,53 @@ function GameDashboardPanel({
         )}
       </div>
 
-      {/* ── 하단: 실시간 랭킹 ── */}
+      {/* ── 하단: 이번 주 랭킹 ── */}
       <div style={{
         background: "#1c1c1c",
         border: "0.5px solid rgba(255,255,255,0.08)",
         borderRadius: 16,
-        padding: "14px 16px 14px",
+        padding: "18px 18px 16px",
         flex: 1,
       }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: "#5c5448",
-            letterSpacing: "0.10em", textTransform: "uppercase" }}>
-            🏆 HALL OF FAME
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#c8bfb0" }}>
+            🏆 이번 주 랭킹
           </p>
           <Link href="/ranking"
-            style={{ fontSize: 11, color: "#5c5448", textDecoration: "none", letterSpacing: "0.04em" }}>
-            전체 보기 →
+            style={{ fontSize: 15, color: "#c8bfb0", textDecoration: "none" }}>
+            전체 보기
           </Link>
         </div>
 
         {loading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[1, 2, 3].map((i) => <Skeleton key={i} w="100%" h={44} />)}
+            {[1, 2, 3].map((i) => <Skeleton key={i} w="100%" h={48} />)}
           </div>
         ) : top3.length === 0 ? (
-          <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>아직 랭킹 데이터가 없어요</p>
+          <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>아직 랭킹 데이터가 없어요</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             {top3.map((r, i) => {
               const st     = RANK_STYLE[i];
               const isPos  = r.return_rate >= 0;
               return (
                 <div key={r.rank_position} style={{
                   display: "flex", alignItems: "center", gap: 8,
-                  padding: "8px 10px", borderRadius: 10,
+                  padding: "10px 12px", borderRadius: 10,
                   background: i === 0 ? "rgba(250,202,62,0.06)" : "rgba(255,255,255,0.02)",
                   border: i === 0 ? "0.5px solid rgba(250,202,62,0.16)" : "0.5px solid rgba(255,255,255,0.04)",
                 }}>
-                  <span style={{ fontSize: 15, flexShrink: 0 }}>{st.medal}</span>
+                  <span style={{ fontSize: 17, flexShrink: 0 }}>{st.medal}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 500, color: "#e8e0d0",
+                    <div style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {r.nickname}
                     </div>
                     {r.equipped_title && (
-                      <div style={{ fontSize: 10, color: "#5c5448" }}>{r.equipped_title}</div>
+                      <div style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>{r.equipped_title}</div>
                     )}
                   </div>
-                  <span style={{ ...NUM_MONO, fontSize: 12, color: isPos ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
+                  <span style={{ ...NUM_MONO, fontSize: 15, color: isPos ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
                     {isPos ? "+" : ""}{r.return_rate.toFixed(1)}%
                   </span>
                 </div>
@@ -507,16 +506,16 @@ function GameDashboardPanel({
             {myRank && user && (
               <div style={{
                 display: "flex", alignItems: "center", gap: 8,
-                padding: "8px 10px", borderRadius: 10, marginTop: 2,
+                padding: "10px 12px", borderRadius: 10, marginTop: 3,
                 background: "rgba(250,202,62,0.04)",
                 border: "0.5px solid rgba(250,202,62,0.22)",
               }}>
-                <span style={{ ...NUM_MONO, fontSize: 13, color: "#FACA3E",
-                  fontWeight: 600, flexShrink: 0, minWidth: 22 }}>
+                <span style={{ ...NUM_MONO, fontSize: 15, color: "#FACA3E",
+                  fontWeight: 600, flexShrink: 0, minWidth: 28 }}>
                   #{myRank.rank_position}
                 </span>
-                <div style={{ flex: 1, fontSize: 12, color: "#c8bfb0" }}>나의 순위</div>
-                <span style={{ ...NUM_MONO, fontSize: 12,
+                <div style={{ flex: 1, fontSize: 15, color: "#c8bfb0" }}>나의 순위</div>
+                <span style={{ ...NUM_MONO, fontSize: 15,
                   color: myRank.return_rate >= 0 ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
                   {myRank.return_rate >= 0 ? "+" : ""}{myRank.return_rate.toFixed(1)}%
                 </span>
@@ -1489,11 +1488,11 @@ export default function Home() {
                 </>
               )}
 
-              {/* ── 검색창 ── */}
-              <div style={{ padding:"10px 0 12px" }}>
-                <div style={{ position:"relative" }}>
+              {/* ── 검색창 (웹에서는 왼쪽 컬럼 너비에 맞춤) ── */}
+              <div style={{ padding:"10px 0 12px", display:"flex", gap:16 }}>
+                <div style={{ flex:1, minWidth:0, position:"relative" }}>
                   <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
-                    color:"#5c5448", fontSize:14, pointerEvents:"none" }}>&#128269;</span>
+                    color:"#c8bfb0", fontSize:14, pointerEvents:"none" }}>&#128269;</span>
                   <input
                     type="text" value={playSearch}
                     onChange={(e) => {
@@ -1536,9 +1535,11 @@ export default function Home() {
                   {playSearch && (
                     <button onClick={() => { setPlaySearch(""); setPlaySearchResults([]); }} className="pico-btn"
                       style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                        color:"#5c5448", fontSize:14, background:"none", border:"none" }}>✕</button>
+                        color:"#c8bfb0", fontSize:14, background:"none", border:"none" }}>✕</button>
                   )}
                 </div>
+                {/* 웹에서 오른쪽 게임 대시보드 너비만큼 공백 유지 */}
+                <div className="hidden md:block" style={{ width:288, flexShrink:0 }} />
               </div>
 
               {/* ── 검색 결과 ── */}
