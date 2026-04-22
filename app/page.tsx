@@ -181,6 +181,8 @@ function StockCard({ ticker, korName, stocks, stocksLoading }: {
 
 // ─── 인기 종목 (Featured) ────────────────────────
 const FEATURED_TICKERS = ["NVDA","TSLA","AAPL","META","005930","000660","035720","352820"];
+const WEB_FOREIGN_TICKERS  = ["NVDA","TSLA","AAPL","META"];
+const WEB_DOMESTIC_TICKERS = ["005930","000660"];
 
 // ─── MiniSparkline ───────────────────────────────
 const UP_PATHS = [
@@ -271,9 +273,12 @@ function StockRow({ ticker, stocks, stocksLoading, onClick }: {
 
 
 // ─── FeaturedCard (인기 종목 가로 스크롤 카드) ──
-function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
-  ticker: string; stocks: StocksMap; stocksLoading: boolean; idx: number; onClick: () => void;
+function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick, large = false }: {
+  ticker: string; stocks: StocksMap; stocksLoading: boolean; idx: number; onClick: () => void; large?: boolean;
 }) {
+  const W       = large ? 174 : 148;
+  const sparkW  = large ? 142 : 120;
+  const nameMax = large ? 104 : 86;
   const kr   = isKrTicker(ticker);
   const meta = kr ? KR_STOCK_META[ticker] : STOCK_META[ticker];
   const logo = !kr ? `https://financialmodelingprep.com/image-stock/${ticker}.png` : null;
@@ -281,11 +286,11 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
   const up   = data?.up ?? true;
   return (
     <button onClick={onClick} className="pico-btn flex-shrink-0"
-      style={{ width:148, background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.07)",
-        borderRadius:16, padding:"14px 14px 13px", textAlign:"left", cursor:"pointer",
+      style={{ width:W, background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.07)",
+        borderRadius:16, padding:"16px 16px 14px", textAlign:"left", cursor:"pointer",
         display:"flex", flexDirection:"column", gap:0 }}>
       {/* 로고 + 이름 */}
-      <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:11 }}>
         {logo
           ? <TickerLogo src={logo} ticker={ticker} size={32}/>
           : <div style={{ width:32, height:32, borderRadius:"50%", background:"#242424", flexShrink:0,
@@ -294,17 +299,17 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick }: {
         }
         <div style={{ minWidth:0 }}>
           <div style={{ fontSize:15, fontWeight:600, color:"#e8e0d0",
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:86 }}>
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:nameMax }}>
             {meta?.name?.slice(0,6) ?? ticker}
           </div>
           <div style={{ fontSize:15, color:"#c8bfb0", overflow:"hidden", textOverflow:"ellipsis",
-            whiteSpace:"nowrap", maxWidth:86 }}>{kr ? (meta?.category ?? "") : ticker}</div>
+            whiteSpace:"nowrap", maxWidth:nameMax }}>{kr ? (meta?.category ?? "") : ticker}</div>
         </div>
       </div>
       {/* 스파크라인 */}
-      <MiniSparkline up={up} idx={idx} width={120} height={34}/>
+      <MiniSparkline up={up} idx={idx} width={sparkW} height={34}/>
       {/* 가격 */}
-      <div style={{ marginTop:9 }}>
+      <div style={{ marginTop:10 }}>
         {stocksLoading
           ? <><Skeleton w="85%" h={15}/><div style={{height:4}}/><Skeleton w="65%" h={15}/></>
           : <>
@@ -1445,51 +1450,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* ── 인기 종목 + 게임 대시보드 ── */}
-              {!playSearch && (
-                <>
-                  {/* 웹(md+): 2-컬럼 레이아웃 */}
-                  <div className="hidden md:flex" style={{ gap:16, marginBottom:20, alignItems:"stretch" }}>
-                    {/* 왼쪽: 인기 종목 (5개) */}
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:14, fontWeight:500, color:"#c8bfb0",
-                        letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:10 }}>인기 종목</p>
-                      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                        {FEATURED_TICKERS.slice(0,5).map((t, i) => (
-                          <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                            idx={i} onClick={() => router.push(`/stock/${t}`)}/>
-                        ))}
-                      </div>
-                    </div>
-                    {/* 오른쪽: 게임 대시보드 */}
-                    <div style={{ width:288, flexShrink:0 }}>
-                      <GameDashboardPanel
-                        loading={dashLoading}
-                        user={user}
-                        userRow={userRow}
-                        holdings={dashHoldings}
-                        top3={dashTop3}
-                        myRank={dashMyRank}
-                      />
-                    </div>
-                  </div>
-
-                  {/* 모바일: 가로 스크롤 8장 (기존) */}
-                  <div className="md:hidden" style={{ marginBottom:20 }}>
-                    <p style={{ fontSize:14, fontWeight:500, color:"#c8bfb0",
-                      letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:10 }}>인기 종목</p>
-                    <div className="scroll-x" style={{ display:"flex", gap:8, paddingBottom:4 }}>
-                      {FEATURED_TICKERS.map((t, i) => (
-                        <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                          idx={i} onClick={() => router.push(`/stock/${t}`)}/>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* ── 검색창 (웹에서는 왼쪽 컬럼 너비에 맞춤) ── */}
-              <div style={{ padding:"10px 0 12px", display:"flex", gap:16 }}>
+              {/* ── 검색창 (웹에서는 왼쪽 컬럼 너비에 맞춤, 인기 종목 위) ── */}
+              <div style={{ padding:"10px 0 14px", display:"flex", gap:16 }}>
                 <div style={{ flex:1, minWidth:0, position:"relative" }}>
                   <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
                     color:"#c8bfb0", fontSize:14, pointerEvents:"none" }}>&#128269;</span>
@@ -1541,6 +1503,61 @@ export default function Home() {
                 {/* 웹에서 오른쪽 게임 대시보드 너비만큼 공백 유지 */}
                 <div className="hidden md:block" style={{ width:288, flexShrink:0 }} />
               </div>
+
+              {/* ── 인기 종목 + 게임 대시보드 ── */}
+              {!playSearch && (
+                <>
+                  {/* 웹(md+): 인기종목 2행 + 게임 대시보드 */}
+                  <div className="hidden md:flex" style={{ gap:16, marginBottom:20, alignItems:"stretch" }}>
+                    {/* 왼쪽: 해외 윗줄 / 국내 아랫줄 */}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontSize:15, fontWeight:600, color:"#c8bfb0", marginBottom:14 }}>인기 종목</p>
+                      {/* 해외 행 */}
+                      <div style={{ marginBottom:6 }}>
+                        <span style={{ fontSize:15, color:"#c8bfb0", fontWeight:400, display:"block", marginBottom:10 }}>🌎 해외</span>
+                        <div style={{ display:"flex", gap:14 }}>
+                          {WEB_FOREIGN_TICKERS.map((t, i) => (
+                            <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
+                              idx={i} large onClick={() => router.push(`/stock/${t}`)}/>
+                          ))}
+                        </div>
+                      </div>
+                      {/* 국내 행 */}
+                      <div style={{ marginTop:16 }}>
+                        <span style={{ fontSize:15, color:"#c8bfb0", fontWeight:400, display:"block", marginBottom:10 }}>🇰🇷 국내</span>
+                        <div style={{ display:"flex", gap:14 }}>
+                          {WEB_DOMESTIC_TICKERS.map((t, i) => (
+                            <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
+                              idx={i+4} large onClick={() => router.push(`/stock/${t}`)}/>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    {/* 오른쪽: 게임 대시보드 */}
+                    <div style={{ width:288, flexShrink:0 }}>
+                      <GameDashboardPanel
+                        loading={dashLoading}
+                        user={user}
+                        userRow={userRow}
+                        holdings={dashHoldings}
+                        top3={dashTop3}
+                        myRank={dashMyRank}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 모바일: 가로 스크롤 8장 (기존 유지) */}
+                  <div className="md:hidden" style={{ marginBottom:20 }}>
+                    <p style={{ fontSize:15, fontWeight:600, color:"#c8bfb0", marginBottom:10 }}>인기 종목</p>
+                    <div className="scroll-x" style={{ display:"flex", gap:10, paddingBottom:4 }}>
+                      {FEATURED_TICKERS.map((t, i) => (
+                        <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
+                          idx={i} onClick={() => router.push(`/stock/${t}`)}/>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* ── 검색 결과 ── */}
               {playSearch ? (
