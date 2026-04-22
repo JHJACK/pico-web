@@ -1780,21 +1780,19 @@ export default function Home() {
                               const pos = pl >= 0;
                               if (dashHoldings.length === 0) return null;
                               return (
-                                <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end",
+                                <div style={{ display:"flex", alignItems:"center", gap:6,
                                   background: pos ? "rgba(126,212,160,0.08)" : "rgba(240,120,120,0.08)",
                                   border:`0.5px solid ${pos ? "rgba(126,212,160,0.2)" : "rgba(240,120,120,0.2)"}`,
                                   borderRadius:10, padding:"8px 12px", flexShrink:0 }}>
-                                  <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-                                    <span style={{ fontSize:15 }}>{pos ? "🔥" : "❄️"}</span>
-                                    <span style={{ ...NUM_MONO, fontSize:14, fontWeight:600,
-                                      color: pos ? "#7ed4a0" : "#f07878" }}>
-                                      {pos ? "+" : ""}{pl.toLocaleString("ko-KR")}P
-                                    </span>
-                                  </div>
-                                  <div style={{ ...NUM_MONO, fontSize:11,
-                                    color: pos ? "#7ed4a0" : "#f07878", opacity:0.8, marginTop:2 }}>
-                                    {pos ? "+" : ""}{plR.toFixed(1)}%
-                                  </div>
+                                  <span style={{ fontSize:15 }}>{pos ? "🔥" : "❄️"}</span>
+                                  <span style={{ ...NUM_MONO, fontSize:14, fontWeight:600,
+                                    color: pos ? "#7ed4a0" : "#f07878" }}>
+                                    {pos ? "+" : ""}{pl.toLocaleString("ko-KR")}P
+                                  </span>
+                                  <span style={{ ...NUM_MONO, fontSize:12,
+                                    color: pos ? "#7ed4a0" : "#f07878", opacity:0.8 }}>
+                                    ({pos ? "+" : ""}{plR.toFixed(1)}%)
+                                  </span>
                                 </div>
                               );
                             })()}
@@ -1810,7 +1808,7 @@ export default function Home() {
                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
                           <span style={{ fontSize:15, fontWeight:600, color:"#c8bfb0",
                             fontFamily:"var(--font-paperlogy)" }}>내 투자 현황</span>
-                          <button onClick={() => router.push("/mypage")} className="pico-btn"
+                          <button onClick={() => router.push("/mypage/investments")} className="pico-btn"
                             style={{ fontSize:13, color:"#5c5448", background:"none", border:"none", cursor:"pointer" }}>
                             더보기 ›
                           </button>
@@ -1826,7 +1824,7 @@ export default function Home() {
                           </p>
                         ) : (
                           <div style={{ display:"flex", flexDirection:"column" }}>
-                            {dashHoldings.slice(0,4).map((h, i) => {
+                            {dashHoldings.slice(0,5).map((h, i) => {
                               const up  = h.profitLoss >= 0;
                               const kr  = isKrTicker(h.ticker);
                               const meta = kr ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
