@@ -1656,7 +1656,7 @@ export default function Home() {
                     placeholder="종목 검색   삼성전자, NVDA, 테슬라..."
                     className="w-full rounded-xl outline-none"
                     style={{ background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.08)",
-                      color:"#e8e0d0", fontSize:14, fontWeight:300, padding:"12px 38px 12px 40px" }}
+                      color:"#e8e0d0", fontSize:16, fontWeight:300, padding:"12px 38px 12px 40px" }}
                     onFocus={(e) => (e.target.style.borderColor="rgba(250,202,62,0.35)")}
                     onBlur={(e)  => (e.target.style.borderColor="rgba(255,255,255,0.08)")}
                   />
