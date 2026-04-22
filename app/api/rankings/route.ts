@@ -60,23 +60,24 @@ export async function GET(req: NextRequest) {
     .select("*", { count: "exact", head: true })
     .eq("week_start", weekStart);
 
-  // 6) 수식어(equipped_title) 조회 — 실시간 반영 위해 캐시 아닌 users 테이블 직접
+  // 6) 닉네임 + 수식어(equipped_title) — 캐시 아닌 users 테이블 직접 조회 (닉네임 변경 즉시 반영)
   const rankingUserIds = (rankings ?? []).map((r: { user_id: string }) => r.user_id);
-  let titleMap: Record<string, string | null> = {};
+  let userMap: Record<string, { nickname: string | null; equipped_title: string | null }> = {};
   if (rankingUserIds.length > 0) {
-    const { data: titleRows } = await supabase
+    const { data: userRows } = await supabase
       .from("users")
-      .select("id, equipped_title")
+      .select("id, nickname, equipped_title")
       .in("id", rankingUserIds);
-    for (const row of titleRows ?? []) {
-      titleMap[(row as { id: string; equipped_title: string | null }).id] =
-        (row as { id: string; equipped_title: string | null }).equipped_title;
+    for (const row of userRows ?? []) {
+      const r = row as { id: string; nickname: string | null; equipped_title: string | null };
+      userMap[r.id] = { nickname: r.nickname, equipped_title: r.equipped_title };
     }
   }
 
   const rankingsWithTitle = (rankings ?? []).map((r: Record<string, unknown>) => ({
     ...r,
-    equipped_title: titleMap[r.user_id as string] ?? null,
+    nickname:       userMap[r.user_id as string]?.nickname       ?? r.nickname,
+    equipped_title: userMap[r.user_id as string]?.equipped_title ?? null,
   }));
 
   return NextResponse.json({
