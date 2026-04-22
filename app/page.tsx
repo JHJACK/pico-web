@@ -327,6 +327,14 @@ function FeaturedCard({ ticker, stocks, stocksLoading, idx, onClick, large = fal
 }
 
 // ─── Game Dashboard Panel (웹 전용 우측 패널) ──
+const TITLE_META: Record<string, { emoji: string; label: string; color: string }> = {
+  sniper:      { emoji: "🎯", label: "여의도 스나이퍼",  color: "#FACA3E" },
+  frog:        { emoji: "🐸", label: "역발상의 천재",    color: "#7ed4a0" },
+  hodl:        { emoji: "🗿", label: "존버의 신",        color: "#a0b8f0" },
+  daytrader:   { emoji: "⚡️", label: "단타의 귀재",     color: "#f0c060" },
+  mentalsteel: { emoji: "🧊", label: "냉철한 멘탈",      color: "#b8e0f8" },
+};
+
 type DashHolding = {
   ticker: string;
   invested_points: number;
@@ -518,8 +526,10 @@ function GameDashboardPanel({
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {r.nickname}
                     </div>
-                    {r.equipped_title && (
-                      <div style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>{r.equipped_title}</div>
+                    {r.equipped_title && TITLE_META[r.equipped_title] && (
+                      <div style={{ fontSize: 13, color: TITLE_META[r.equipped_title].color, fontWeight: 300 }}>
+                        {TITLE_META[r.equipped_title].emoji} {TITLE_META[r.equipped_title].label}
+                      </div>
                     )}
                   </div>
                   <span style={{ ...NUM_MONO, fontSize: 15, color: isPos ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
