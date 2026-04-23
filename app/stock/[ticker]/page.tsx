@@ -80,6 +80,41 @@ function Card({ children, style, className }: { children: React.ReactNode; style
   );
 }
 
+// ─── 컨페티 ───────────────────────────────────────────────────────────────────
+const CONFETTI_COLORS = ["#FACA3E", "#7ed4a0", "#74b9ff", "#fd79a8", "#a29bfe", "#ff7675", "#55efc4"];
+
+function Confetti() {
+  const pieces = useState(() =>
+    Array.from({ length: 42 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      delay: Math.random() * 1.4,
+      duration: 1.8 + Math.random() * 1.2,
+      width: 7 + Math.random() * 8,
+      height: 4 + Math.random() * 4,
+      rotation: Math.random() * 360,
+    }))
+  )[0];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 10003, overflow: "hidden" }}>
+      {pieces.map((p) => (
+        <div key={p.id} style={{
+          position: "absolute",
+          top: -20,
+          left: `${p.left}%`,
+          width: p.width,
+          height: p.height,
+          background: p.color,
+          borderRadius: 2,
+          animation: `confettiFall ${p.duration}s ${p.delay}s ease-in forwards`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
 // ─── 메인 ────────────────────────────────────────────────────────────────────
 export default function StockChartPage() {
   const params = useParams();
@@ -131,6 +166,7 @@ export default function StockChartPage() {
   const [selling, setSelling]         = useState<string | null>(null); // investmentId
   const [toast, setToast]             = useState<{ msg: string; ok: boolean } | null>(null);
   const [questPopup, setQuestPopup]   = useState<{ title: string; points: number } | null>(null);
+  const [sellResultPopup, setSellResultPopup] = useState<{ finalPoints: number; profitLoss: number; questBonus: number } | null>(null);
 
   // 모바일 시트 상태
   const [showBuySheet,  setShowBuySheet]  = useState(false);
@@ -301,9 +337,7 @@ export default function StockChartPage() {
         return;
       }
       const { finalPoints, profitLoss, questBonus } = json;
-      const sign = profitLoss >= 0 ? "+" : "";
-      showToast(`판매 완료! ${finalPoints.toLocaleString()}P 수령 (${sign}${profitLoss.toLocaleString()}P)`, true);
-      // 수익 달성 퀘스트 완료 팝업
+      setSellResultPopup({ finalPoints, profitLoss, questBonus });
       if (questBonus > 0) {
         setTimeout(() => showQuestPopup("모의투자 수익 달성 퀘스트!", questBonus), 600);
       }
@@ -362,8 +396,7 @@ export default function StockChartPage() {
         return;
       }
       const { finalPoints, profitLoss, questBonus } = json;
-      const sign = profitLoss >= 0 ? "+" : "";
-      showToast(`판매 완료! ${finalPoints.toLocaleString()}P 수령 (${sign}${profitLoss.toLocaleString()}P)`, true);
+      setSellResultPopup({ finalPoints, profitLoss, questBonus });
       if (questBonus > 0) {
         setTimeout(() => showQuestPopup("모의투자 수익 달성 퀘스트!", questBonus), 600);
       }
@@ -719,6 +752,15 @@ export default function StockChartPage() {
           from { transform: translateY(12px); opacity: 0; }
           to   { transform: translateY(0);    opacity: 1; }
         }
+        @keyframes confettiFall {
+          0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+          100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes popIn {
+          0%   { transform: scale(0.85); opacity: 0; }
+          60%  { transform: scale(1.04); opacity: 1; }
+          100% { transform: scale(1);    opacity: 1; }
+        }
 
         .lbl     { font-size: 12px; }
         .sec-hd  { font-size: 13px; font-weight: 600; color: ${C.text2}; }
@@ -772,6 +814,69 @@ export default function StockChartPage() {
         }}>
           {toast.ok ? "✓ " : "✕ "}{toast.msg}
         </div>
+      )}
+
+      {/* ── 매도 결과 팝업 ──────────────────────────────────────────────── */}
+      {sellResultPopup && (
+        <>
+          {sellResultPopup.profitLoss > 0 && <Confetti />}
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 10001,
+            background: "rgba(0,0,0,0.82)", backdropFilter: "blur(6px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "0 28px",
+          }}>
+            <div style={{
+              background: "#141414",
+              border: `0.5px solid ${sellResultPopup.profitLoss > 0 ? "rgba(126,212,160,0.25)" : "rgba(255,255,255,0.08)"}`,
+              borderRadius: 24,
+              padding: "36px 28px 28px",
+              width: "100%", maxWidth: 320,
+              textAlign: "center",
+              position: "relative", zIndex: 1,
+              animation: "popIn 0.32s ease forwards",
+              boxShadow: "0 12px 48px rgba(0,0,0,0.6)",
+            }}>
+              {sellResultPopup.profitLoss > 0 ? (
+                <>
+                  <div style={{ fontSize: 48, marginBottom: 12, lineHeight: 1 }}>🔥</div>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: C.text, marginBottom: 10 }}>축하해요!</div>
+                  <div style={{
+                    fontSize: 34, fontWeight: 700, color: "#7ed4a0", marginBottom: 6,
+                    fontFamily: "var(--font-inter)", letterSpacing: "-0.03em",
+                  }}>
+                    +{sellResultPopup.profitLoss.toLocaleString()}P
+                  </div>
+                  <div style={{ fontSize: 13, color: C.text2, marginBottom: 28 }}>
+                    총 {sellResultPopup.finalPoints.toLocaleString()}P 수령
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: 13, color: C.text2, marginBottom: 10 }}>판매 완료</div>
+                  <div style={{
+                    fontSize: 26, fontWeight: 600, color: C.text, marginBottom: 6,
+                    fontFamily: "var(--font-inter)", letterSpacing: "-0.02em",
+                  }}>
+                    {sellResultPopup.finalPoints.toLocaleString()}P 수령
+                  </div>
+                  <div style={{ fontSize: 13, color: "#f07878", marginBottom: 28 }}>
+                    {sellResultPopup.profitLoss.toLocaleString()}P
+                  </div>
+                </>
+              )}
+              <button
+                onClick={() => setSellResultPopup(null)}
+                style={{
+                  width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
+                  background: sellResultPopup.profitLoss > 0 ? "#7ed4a0" : "rgba(255,255,255,0.09)",
+                  color: sellResultPopup.profitLoss > 0 ? "#0d0d0d" : C.text,
+                  fontSize: 15, fontWeight: 700, cursor: "pointer",
+                }}
+              >확인</button>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ── 퀘스트 완료 팝업 ────────────────────────────────────────────── */}
