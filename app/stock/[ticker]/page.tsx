@@ -133,6 +133,8 @@ export default function StockChartPage() {
   const [showBuySheet,  setShowBuySheet]  = useState(false);
   const [showSellSheet, setShowSellSheet] = useState(false);
   const [keypadStr,     setKeypadStr]     = useState("");
+  const [sellKeypadStr, setSellKeypadStr] = useState("");
+  const [sellingAmt,    setSellingAmt]    = useState(false);
 
   // 일반 토스트
   const showToast = (msg: string, ok: boolean) => {
@@ -312,6 +314,64 @@ export default function StockChartPage() {
   // 이 종목 보유 중인 holding 목록
   const holdingList = holdings.filter((h) => h.status === "holding");
   const soldList    = holdings.filter((h) => h.status === "sold");
+
+  // 매도 키패드
+  const totalHoldingPoints = holdingList.reduce((s, h) => s + h.invested_points, 0);
+  const sellKeypadAmt = Math.min(parseInt(sellKeypadStr || "0", 10), totalHoldingPoints);
+
+  function handleSellKeypad(key: string) {
+    setSellKeypadStr((prev) => {
+      if (key === "←") return prev.slice(0, -1);
+      if (key === "00") {
+        if (!prev || prev === "0") return prev;
+        const next = parseInt(prev + "00", 10);
+        return String(Math.min(next, totalHoldingPoints));
+      }
+      const next = parseInt(prev + key, 10);
+      if (isNaN(next)) return prev;
+      return String(Math.min(next, totalHoldingPoints));
+    });
+  }
+
+  function addSellKeypadAmount(n: number) {
+    setSellKeypadStr((prev) => {
+      const cur = parseInt(prev || "0", 10);
+      return String(Math.min(cur + n, totalHoldingPoints));
+    });
+  }
+
+  async function executeSellAmount(amount: number) {
+    if (sellingAmt || !marketOpen || amount < 100) return;
+    setSellingAmt(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { showToast("로그인이 필요해요", false); return; }
+
+      const res = await fetch("/api/investments/sell-amount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ticker, amount }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        showToast(json.error ?? "매도에 실패했어요", false);
+        return;
+      }
+      const { finalPoints, profitLoss, questBonus } = json;
+      const sign = profitLoss >= 0 ? "+" : "";
+      showToast(`판매 완료! ${finalPoints.toLocaleString()}P 수령 (${sign}${profitLoss.toLocaleString()}P)`, true);
+      if (questBonus > 0) {
+        setTimeout(() => showQuestPopup("모의투자 수익 달성 퀘스트!", questBonus), 600);
+      }
+      setShowSellSheet(false);
+      setSellKeypadStr("");
+      await fetchHoldings();
+      window.dispatchEvent(new Event("pico:points:refresh"));
+    } finally {
+      setSellingAmt(false);
+    }
+  }
 
   // ─── 주문창 ──────────────────────────────────────────────────────────────────
   const orderPanel = (
@@ -965,85 +1025,125 @@ export default function StockChartPage() {
         <div style={{
           position: "fixed", inset: 0, zIndex: 100,
           background: "#0d0d0d", display: "flex", flexDirection: "column",
+          overflow: "hidden",
         }}>
           {/* 헤더 */}
           <div style={{
-            height: 56, display: "flex", alignItems: "center", padding: "0 16px", gap: 12, flexShrink: 0,
-            borderBottom: "0.5px solid rgba(255,255,255,0.07)",
+            height: 52, display: "flex", alignItems: "center", padding: "0 16px", flexShrink: 0,
+            borderBottom: "0.5px solid rgba(255,255,255,0.07)", position: "relative",
           }}>
-            <button onClick={() => setShowSellSheet(false)} style={{
+            <button onClick={() => { setShowSellSheet(false); setSellKeypadStr(""); }} style={{
               background: "none", border: "none", color: C.text2, fontSize: 20, cursor: "pointer", lineHeight: 1,
             }}>&lt;</button>
-            <span style={{ fontSize: 16, fontWeight: 600 }}>판매하기</span>
-            <span style={{ fontSize: 13, color: C.text2 }}>{ticker}</span>
+            <span style={{
+              position: "absolute", left: "50%", transform: "translateX(-50%)",
+              fontSize: 15, fontWeight: 600, color: C.text,
+            }}>{meta?.name ?? ticker}</span>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 40px" }}>
-            {holdingsLoading ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[1, 2].map((i) => <Skeleton key={i} w="100%" h={96} radius={14} />)}
+          {/* 정보 영역 */}
+          <div style={{ flexShrink: 0, padding: "12px 16px 0" }}>
+
+            {/* 현재가 박스 */}
+            <div style={{
+              background: "#141414", borderRadius: 12, padding: "10px 16px",
+              border: "0.5px solid rgba(255,255,255,0.07)", marginBottom: 8,
+            }}>
+              <div style={{ fontSize: 11, color: C.text2, marginBottom: 4 }}>현재가</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em", color: C.text }}>
+                  {loading ? "—" : kr ? data?.formattedPrice : (data?.formattedKRW ?? "—")}
+                </div>
+                {!kr && (
+                  <div style={{ fontSize: 13, color: C.text2 }}>
+                    {loading ? "" : (data?.formattedPrice ?? "—")}
+                  </div>
+                )}
               </div>
-            ) : holdingList.length === 0 ? (
-              <div style={{ padding: "60px 0", textAlign: "center" }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
-                <p style={{ fontSize: 14, color: C.text2, lineHeight: 1.8, margin: 0 }}>
-                  보유 중인 {ticker} 종목이 없어요<br />
-                  구매하기에서 투자해 보세요
-                </p>
+            </div>
+
+            {/* 총 보유 포인트 */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 2px" }}>
+              <span style={{ fontSize: 12, color: C.text2 }}>총 보유 포인트</span>
+              <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-inter)", color: C.text }}>
+                {totalHoldingPoints.toLocaleString("ko-KR")}P
+              </span>
+            </div>
+
+            {/* 판매 금액 박스 */}
+            <div style={{
+              background: "#141414", borderRadius: 12, padding: "10px 16px",
+              border: "0.5px solid rgba(255,255,255,0.08)", marginBottom: 8,
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <span style={{ fontSize: 12, color: C.text2 }}>판매 금액</span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
+                <span style={{
+                  fontSize: 24, fontWeight: 300, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em",
+                  color: sellKeypadAmt > 0 ? C.text : C.text2,
+                }}>
+                  {sellKeypadAmt > 0 ? sellKeypadAmt.toLocaleString("ko-KR") : "0"}
+                </span>
+                <span style={{ fontSize: 13, color: C.text2 }}>P</span>
               </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {holdingList.map((h) => {
-                  const isProfit = h.profitLoss >= 0;
-                  const pl = h.profitLoss;
-                  const plColor = isProfit ? "#7ed4a0" : "#f07878";
-                  const rate = h.profitRate ?? 0;
-                  return (
-                    <div key={h.id} style={{
-                      background: "#141414", borderRadius: 16, padding: "16px",
-                      border: "0.5px solid rgba(255,255,255,0.07)",
-                    }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-                        <div>
-                          <div style={{ fontSize: 12, color: C.text2, marginBottom: 4 }}>
-                            {new Date(h.buy_at).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} 구매
-                          </div>
-                          <div style={{ fontSize: 18, fontWeight: 500, fontFamily: "var(--font-inter)", letterSpacing: "-0.01em" }}>
-                            {h.invested_points.toLocaleString("ko-KR")}P
-                          </div>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 12, color: C.text2, marginBottom: 4 }}>현재 평가</div>
-                          <div style={{ fontSize: 18, fontWeight: 500, color: plColor, fontFamily: "var(--font-inter)", letterSpacing: "-0.01em" }}>
-                            {h.currentValue.toLocaleString("ko-KR")}P
-                          </div>
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: 13, color: plColor }}>
-                          {isProfit ? "▲" : "▼"} {isProfit ? "+" : ""}{pl.toLocaleString("ko-KR")}P ({rate >= 0 ? "+" : ""}{rate.toFixed(2)}%)
-                        </span>
-                        <button
-                          onClick={() => !marketOpen ? undefined : handleSell(h.id)}
-                          disabled={selling === h.id || !marketOpen}
-                          title={!marketOpen ? closedTooltip : undefined}
-                          style={{
-                            padding: "10px 24px", borderRadius: 12,
-                            background: !marketOpen || selling === h.id ? "#1e1e1e" : "rgba(240,120,120,0.15)",
-                            border: `0.5px solid ${!marketOpen ? "rgba(255,255,255,0.06)" : "rgba(240,120,120,0.3)"}`,
-                            color: !marketOpen || selling === h.id ? "#555" : "#f07878",
-                            fontSize: 14, fontWeight: 700,
-                            cursor: !marketOpen || selling === h.id ? "not-allowed" : "pointer",
-                          }}
-                        >
-                          {selling === h.id ? "처리 중..." : !marketOpen ? "휴장 중" : "판매하기"}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            </div>
+
+            {/* 빠른 입력 버튼 */}
+            <div style={{ display: "flex", gap: 6 }}>
+              {[100, 500, 1000].map((n) => (
+                <button key={n} onClick={() => addSellKeypadAmount(n)} style={{
+                  flex: 1, padding: "8px 0", borderRadius: 10,
+                  background: "rgba(240,120,120,0.06)", border: "0.5px solid rgba(240,120,120,0.2)",
+                  color: C.text2, fontSize: 12, fontWeight: 500, cursor: "pointer",
+                }}>+{n.toLocaleString()}P</button>
+              ))}
+              <button onClick={() => setSellKeypadStr(String(totalHoldingPoints))} style={{
+                flex: 1, padding: "8px 0", borderRadius: 10,
+                background: "rgba(240,120,120,0.12)", border: "0.5px solid rgba(240,120,120,0.3)",
+                color: "#f07878", fontSize: 12, fontWeight: 600, cursor: "pointer",
+              }}>전체</button>
+            </div>
+          </div>
+
+          {/* 키패드 + 판매 버튼 */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "14px 8px 32px", userSelect: "none" }}>
+            <div style={{
+              flex: 1, minHeight: 0,
+              display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gridTemplateRows: "repeat(4, 1fr)",
+              marginBottom: 8,
+            }}>
+              {["1","2","3","4","5","6","7","8","9","00","0","←"].map((key) => (
+                <button key={key} onClick={() => handleSellKeypad(key)} style={{
+                  background: "transparent", border: "none",
+                  color: C.text, fontSize: 24, fontWeight: 400,
+                  fontFamily: "var(--font-inter)", cursor: "pointer",
+                  maxHeight: 52,
+                }}>{key}</button>
+              ))}
+            </div>
+
+            <button
+              disabled={sellKeypadAmt < 100 || sellingAmt || totalHoldingPoints === 0 || !marketOpen}
+              onClick={() => executeSellAmount(sellKeypadAmt)}
+              style={{
+                width: "100%", padding: "15px 0", borderRadius: 14, border: "none", flexShrink: 0,
+                background: !marketOpen
+                  ? "#1e1e1e"
+                  : sellKeypadAmt >= 100 && !sellingAmt ? "rgba(240,120,120,0.85)" : "#1e1e1e",
+                color: !marketOpen
+                  ? "#555"
+                  : sellKeypadAmt >= 100 && !sellingAmt ? "#fff" : C.text2,
+                fontSize: 16, fontWeight: 700,
+                cursor: (!marketOpen || sellKeypadAmt < 100 || sellingAmt) ? "not-allowed" : "pointer",
+                transition: "background 0.15s, color 0.15s",
+              }}
+            >
+              {!marketOpen
+                ? "지금은 휴장 시간이에요 🌙"
+                : sellingAmt ? "처리 중..."
+                : sellKeypadAmt < 100 ? "100P 이상 입력해 주세요"
+                : `${sellKeypadAmt.toLocaleString("ko-KR")}P 판매하기`}
+            </button>
           </div>
         </div>
       )}

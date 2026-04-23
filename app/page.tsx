@@ -1806,8 +1806,17 @@ export default function Home() {
                       <div style={{ background:"#1c1c1c", borderRadius:20, padding:"18px 20px",
                         marginBottom:12, border:"0.5px solid rgba(255,255,255,0.08)" }}>
                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-                          <span style={{ fontSize:15, fontWeight:600, color:"#c8bfb0",
-                            fontFamily:"var(--font-paperlogy)" }}>내 투자 현황</span>
+                          <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+                            <span style={{ fontSize:15, fontWeight:600, color:"#c8bfb0",
+                              fontFamily:"var(--font-paperlogy)" }}>내 투자 현황</span>
+                            {!dashLoading && dashHoldings.length > 0 && (
+                              <span style={{ fontSize:12, color:"#5c5448" }}>
+                                총 투자 포인트 <span style={{ fontFamily:"var(--font-inter)", color:"#c8bfb0" }}>
+                                  {dashHoldings.reduce((s, h) => s + h.invested_points, 0).toLocaleString()}P
+                                </span>
+                              </span>
+                            )}
+                          </div>
                           <button onClick={() => router.push("/mypage/investments")} className="pico-btn"
                             style={{ fontSize:13, color:"#5c5448", background:"none", border:"none", cursor:"pointer" }}>
                             더보기 ›
@@ -1863,14 +1872,14 @@ export default function Home() {
                                           </div>
                                       }
                                       <div style={{ flex:1, textAlign:"left", minWidth:0 }}>
-                                        <div style={{ display:"flex", alignItems:"baseline", gap:6, flexWrap:"wrap" }}>
+                                        <div style={{ display:"flex", alignItems:"baseline", gap:6 }}>
                                           <span style={{ fontSize:15, fontWeight:500, color:"#e8e0d0",
                                             fontFamily:"var(--font-paperlogy)",
                                             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                                             {meta?.name ?? h.ticker}
                                           </span>
-                                          <span style={{ fontSize:12, color:"#c8bfb0", whiteSpace:"nowrap", flexShrink:0 }}>
-                                            총 투자 포인트 {h.invested_points.toLocaleString()}P
+                                          <span style={{ fontFamily:"var(--font-inter)", fontSize:13, color:"#c8bfb0", whiteSpace:"nowrap", flexShrink:0 }}>
+                                            {h.invested_points.toLocaleString()}P
                                           </span>
                                         </div>
                                       </div>
