@@ -41,7 +41,7 @@ export default function DnaPage() {
     <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <nav className="sticky top-0 z-30 border-b flex items-center px-5"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
-        <button onClick={() => router.back()} className="pico-btn" style={{ background: "none", border: "none", fontSize: 13, color: "#5c5448", cursor: "pointer" }}>
+        <button onClick={() => router.back()} className="pico-btn" style={{ background: "none", border: "none", fontSize: 13, color: "#c8bfb0", cursor: "pointer" }}>
           {"<"} 내 정보
         </button>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
@@ -67,7 +67,7 @@ export default function DnaPage() {
                   <p style={{ fontSize: "clamp(24px, 5vw, 36px)", fontWeight: 700, color: "#e8e0d0", lineHeight: 1.05, marginBottom: 6 }}>
                     {dnaType.name}
                   </p>
-                  <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.6, maxWidth: 420 }}>
+                  <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.6, maxWidth: 420 }}>
                     {dnaType.tagline}
                   </p>
                 </div>
@@ -87,7 +87,7 @@ export default function DnaPage() {
 
             {/* ── 성향 ── */}
             <div className="rounded-2xl px-5 py-4 border mb-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-              <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 10, fontWeight: 400 }}>투자 성향</p>
+              <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#c8bfb0", textTransform: "uppercase", marginBottom: 10, fontWeight: 400 }}>투자 성향</p>
               <p style={{ fontSize: 15, color: "#c8c0b0", lineHeight: 1.8 }}>{dnaType.desc}</p>
             </div>
 
@@ -95,7 +95,7 @@ export default function DnaPage() {
             <div className="grid gap-4 mb-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
               {/* 자산 배분 */}
               <div className="rounded-2xl px-5 py-4 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 14, fontWeight: 400 }}>적정 자산 배분</p>
+                <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#c8bfb0", textTransform: "uppercase", marginBottom: 14, fontWeight: 400 }}>적정 자산 배분</p>
                 <div className="flex flex-col gap-4">
                   {dnaType.allocation.map((item, i) => (
                     <div key={i}>
@@ -108,7 +108,7 @@ export default function DnaPage() {
 
               {/* 추천 종목 */}
               <div className="rounded-2xl px-5 py-4 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", marginBottom: 14, fontWeight: 400 }}>추천 종목 스타일</p>
+                <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#c8bfb0", textTransform: "uppercase", marginBottom: 14, fontWeight: 400 }}>추천 종목 스타일</p>
                 <div className="flex flex-col gap-3">
                   {dnaType.recommended.map((r, i) => (
                     <div key={i} className="pb-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
@@ -140,14 +140,14 @@ export default function DnaPage() {
                 {copied ? "링크 복사됨 ✓" : "🔗 공유하기 (카카오톡)"}
               </button>
               <Link href="/quiz" className="pico-btn px-6 py-4 rounded-2xl flex items-center"
-                style={{ background: "transparent", color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 15, textDecoration: "none", whiteSpace: "nowrap" }}>
+                style={{ background: "transparent", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 15, textDecoration: "none", whiteSpace: "nowrap" }}>
                 다시 테스트
               </Link>
             </div>
 
             {/* ── 모든 유형 ── */}
             <button onClick={() => setShowAllTypes((v) => !v)} className="pico-btn w-full rounded-2xl py-4 mb-5"
-              style={{ background: "transparent", color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 15 }}>
+              style={{ background: "transparent", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 15 }}>
               {showAllTypes ? "접기" : "모든 투자 유형 보기 (8가지)"}
             </button>
 
@@ -163,7 +163,7 @@ export default function DnaPage() {
                       <div className="flex-1 min-w-0">
                         <p style={{ fontSize: 12, color: t.color, marginBottom: 3, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>{t.modifier}</p>
                         <p style={{ fontSize: 20, fontWeight: 700, color: "#e8e0d0", marginBottom: 4 }}>{t.name}</p>
-                        <p style={{ fontSize: 13, color: "#5c5448", lineHeight: 1.5 }}>{t.tagline}</p>
+                        <p style={{ fontSize: 13, color: "#c8bfb0", lineHeight: 1.5 }}>{t.tagline}</p>
                       </div>
                       {isMe && (
                         <span style={{ fontSize: 11, color: t.color, background: `${t.color}18`, padding: "3px 8px", borderRadius: 5, flexShrink: 0, fontWeight: 600 }}>나</span>
@@ -178,8 +178,8 @@ export default function DnaPage() {
           /* ── 미완료 상태 ── */
           <div className="rounded-2xl p-12 border text-center" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
             <p style={{ fontSize: 48, marginBottom: 20 }}>🧬</p>
-            <p style={{ fontSize: 22, fontWeight: 600, color: "#a09688", marginBottom: 8 }}>아직 투자 DNA를 몰라</p>
-            <p style={{ fontSize: 15, color: "#5c5448", marginBottom: 28 }}>18개 질문으로 나만의 투자 유형을 찾아봐</p>
+            <p style={{ fontSize: 22, fontWeight: 600, color: "#c8bfb0", marginBottom: 8 }}>아직 투자 DNA를 몰라</p>
+            <p style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 28 }}>18개 질문으로 나만의 투자 유형을 찾아봐</p>
             <Link href="/quiz"
               style={{ display: "inline-block", background: "#FACA3E", color: "#0d0d0d", fontSize: 16, fontWeight: 600, padding: "14px 32px", borderRadius: 14, textDecoration: "none" }}>
               투자 DNA 테스트 시작

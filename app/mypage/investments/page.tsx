@@ -167,10 +167,10 @@ export default function InvestmentsPage() {
                 )}
               </div>
               <div style={{ marginTop: 8, display: "flex", gap: 16 }}>
-                <span style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
+                <span style={{ fontSize: "clamp(14px, 1.5vw, 15px)", color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
                   총 투자 포인트 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{totalInvested.toLocaleString("ko-KR")}P</span>
                 </span>
-                <span style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
+                <span style={{ fontSize: "clamp(14px, 1.5vw, 15px)", color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
                   종목 수 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{grouped.length}개</span>
                 </span>
               </div>
@@ -197,7 +197,7 @@ export default function InvestmentsPage() {
           ) : grouped.length === 0 ? (
             <div style={{ padding: "48px 20px", textAlign: "center" }}>
               <div style={{ fontSize: 40, marginBottom: 14 }}>🎯</div>
-              <p style={{ fontSize: 15, color: "#5c5448", fontFamily: "var(--font-paperlogy)", fontWeight: 300 }}>
+              <p style={{ fontSize: 15, color: "#c8bfb0", fontFamily: "var(--font-paperlogy)", fontWeight: 300 }}>
                 아직 투자한 종목이 없어요
               </p>
               <button onClick={() => router.push("/?tab=play")}

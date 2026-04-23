@@ -174,7 +174,7 @@ export default function QuestsPage() {
         borderBottom: `0.5px solid ${C.border}`,
         display: "flex", alignItems: "center", padding: "0 20px", gap: 14,
       }}>
-        <Link href="/mypage" style={{ fontSize: 13, color: C.text2, textDecoration: "none" }}>{"<"} 내 정보</Link>
+        <Link href="/mypage" style={{ fontSize: 14, color: C.text2, textDecoration: "none" }}>{"<"} 내 정보</Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: C.gold }}>퀘스트</span>
       </nav>
 
@@ -209,7 +209,7 @@ export default function QuestsPage() {
             {/* 섹션 헤더 */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 2 }}>
               <span style={{ fontSize: 16 }}>{section.emoji}</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.text2 }}>{section.label}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: C.text2 }}>{section.label}</span>
             </div>
 
             {/* 퀘스트 카드 */}
@@ -239,7 +239,7 @@ export default function QuestsPage() {
                       background: isDone ? C.gold : "transparent",
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                      {isDone && <span style={{ fontSize: 12, color: "#0d0d0d", fontWeight: 700 }}>✓</span>}
+                      {isDone && <span style={{ fontSize: 14, color: "#0d0d0d", fontWeight: 700 }}>✓</span>}
                     </div>
 
                     {/* 내용 */}
@@ -250,13 +250,13 @@ export default function QuestsPage() {
                         </span>
                         {/* 타입 뱃지 */}
                         {quest.comingSoon ? (
-                          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 6, background: "rgba(255,255,255,0.07)", color: C.text2, fontWeight: 500 }}>준비 중</span>
+                          <span style={{ fontSize: 14, padding: "2px 6px", borderRadius: 6, background: "rgba(255,255,255,0.07)", color: C.text2, fontWeight: 500 }}>준비 중</span>
                         ) : quest.type === "repeatable" ? (
-                          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 6, background: "rgba(126,212,160,0.12)", color: C.green, fontWeight: 500 }}>반복 가능</span>
+                          <span style={{ fontSize: 14, padding: "2px 6px", borderRadius: 6, background: "rgba(126,212,160,0.12)", color: C.green, fontWeight: 500 }}>반복 가능</span>
                         ) : quest.type === "daily" ? (
-                          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 6, background: "rgba(250,202,62,0.1)", color: C.gold, fontWeight: 500 }}>매일</span>
+                          <span style={{ fontSize: 14, padding: "2px 6px", borderRadius: 6, background: "rgba(250,202,62,0.1)", color: C.gold, fontWeight: 500 }}>매일</span>
                         ) : quest.type === "weekly" ? (
-                          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 6, background: "rgba(150,120,255,0.12)", color: "#a890f0", fontWeight: 500 }}>주간</span>
+                          <span style={{ fontSize: 14, padding: "2px 6px", borderRadius: 6, background: "rgba(150,120,255,0.12)", color: "#a890f0", fontWeight: 500 }}>주간</span>
                         ) : null}
                       </div>
                       <p className="lbl" style={{ color: C.text2, margin: "2px 0 0", lineHeight: 1.4 }}>
@@ -267,7 +267,7 @@ export default function QuestsPage() {
 
                     {/* 포인트 */}
                     <div style={{ textAlign: "right", flexShrink: 0, marginRight: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: isDone ? C.text2 : C.gold, fontFamily: "var(--font-inter)" }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: isDone ? C.text2 : C.gold, fontFamily: "var(--font-inter)" }}>
                         +{quest.points}P{quest.pointSuffix ?? ""}
                       </span>
                     </div>
@@ -280,7 +280,7 @@ export default function QuestsPage() {
                         onClick={() => router.push(quest.href)}
                         style={{
                           flexShrink: 0, padding: "7px 12px",
-                          borderRadius: 10, fontSize: 12, fontWeight: 600,
+                          borderRadius: 10, fontSize: 14, fontWeight: 600,
                           border: `0.5px solid ${isDone ? "rgba(255,255,255,0.08)" : "rgba(250,202,62,0.3)"}`,
                           background: isDone ? "rgba(255,255,255,0.04)" : "rgba(250,202,62,0.08)",
                           color: isDone ? C.text2 : C.gold,

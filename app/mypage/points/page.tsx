@@ -38,7 +38,7 @@ export default function PointsPage() {
           borderColor: "rgba(255,255,255,0.06)",
         }}
       >
-        <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>{"<"} 내 정보</Link>
+        <Link href="/mypage" style={{ fontSize: 13, color: "#c8bfb0", textDecoration: "none" }}>{"<"} 내 정보</Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 
@@ -48,19 +48,19 @@ export default function PointsPage() {
       >
         {/* ── 헤더 ── */}
         <div className="mb-8">
-          <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          <p style={{ fontSize: 13, fontWeight: 400, color: "#c8bfb0", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             포인트 내역
           </p>
           <p style={{ fontFamily: "var(--font-inter)", fontSize: 36, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.03em", lineHeight: 1 }}>
             {userRow.total_points.toLocaleString()}P
           </p>
-          <p style={{ fontSize: 13, fontWeight: 300, color: "#5c5448", marginTop: 6 }}>누적 포인트</p>
+          <p style={{ fontSize: 13, fontWeight: 300, color: "#c8bfb0", marginTop: 6 }}>누적 포인트</p>
         </div>
 
         {/* ── 내역 리스트 ── */}
         <div className="rounded-2xl border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
           {!fetched ? null : history.length === 0 ? (
-            <p style={{ fontSize: 13, fontWeight: 300, color: "#3a3a3a", padding: "32px 20px", textAlign: "center" }}>
+            <p style={{ fontSize: 13, fontWeight: 300, color: "#c8bfb0", padding: "32px 20px", textAlign: "center" }}>
               아직 포인트 내역이 없어요
             </p>
           ) : (
@@ -74,8 +74,8 @@ export default function PointsPage() {
                   style={{ borderBottom: i < history.length - 1 ? "0.5px solid rgba(255,255,255,0.05)" : "none" }}
                 >
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 400, color: "#a09688" }}>{item.reason}</p>
-                    <p style={{ fontSize: 12, fontWeight: 300, color: "#3a3a3a", marginTop: 3 }}>{label}</p>
+                    <p style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0" }}>{item.reason}</p>
+                    <p style={{ fontSize: 12, fontWeight: 300, color: "#c8bfb0", marginTop: 3 }}>{label}</p>
                   </div>
                   <span style={{ fontFamily: "var(--font-inter)", fontSize: 16, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
                     +{item.points.toLocaleString()}P

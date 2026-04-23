@@ -143,7 +143,7 @@ export default function AttendancePage() {
           borderColor: "rgba(255,255,255,0.06)",
         }}
       >
-        <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>{"<"} 내 정보</Link>
+        <Link href="/mypage" style={{ fontSize: 13, color: "#c8bfb0", textDecoration: "none" }}>{"<"} 내 정보</Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 
@@ -160,7 +160,7 @@ export default function AttendancePage() {
             className="w-full rounded-2xl py-4"
             style={{
               background: todayAttended ? "#1c1c1c" : "#FACA3E",
-              color: todayAttended ? "#5c5448" : "#0d0d0d",
+              color: todayAttended ? "#c8bfb0" : "#0d0d0d",
               fontSize: 15,
               fontWeight: 500,
               border: todayAttended ? "0.5px solid rgba(255,255,255,0.08)" : "none",
@@ -191,9 +191,9 @@ export default function AttendancePage() {
           <p style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0", marginBottom: 6 }}>
             연속 출석 중
           </p>
-          <p style={{ fontSize: 13, fontWeight: 300, color: "#5c5448" }}>
+          <p style={{ fontSize: 13, fontWeight: 300, color: "#c8bfb0" }}>
             이번 달 출석률&nbsp;
-            <span style={{ color: "#a09688", fontWeight: 400 }}>{attendRate}%</span>
+            <span style={{ color: "#c8bfb0", fontWeight: 400 }}>{attendRate}%</span>
             &nbsp;·&nbsp;{attendCount}/{daysInMonth}일
           </p>
         </div>
@@ -203,7 +203,7 @@ export default function AttendancePage() {
           className="rounded-2xl p-5 border mb-6"
           style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}
         >
-          <p style={{ fontSize: 13, fontWeight: 400, color: "#a09688", marginBottom: 16 }}>
+          <p style={{ fontSize: 13, fontWeight: 400, color: "#c8bfb0", marginBottom: 16 }}>
             {now.toLocaleDateString("ko-KR", { year: "numeric", month: "long" })}
           </p>
 
@@ -216,7 +216,7 @@ export default function AttendancePage() {
                   textAlign: "center",
                   fontSize: 13,
                   fontWeight: 400,
-                  color: i === 0 ? "#f07878" : i === 6 ? "#7eb8f7" : "#5c5448",
+                  color: i === 0 ? "#f07878" : i === 6 ? "#7eb8f7" : "#c8bfb0",
                   paddingBottom: 8,
                 }}
               >
@@ -257,7 +257,7 @@ export default function AttendancePage() {
                       fontFamily: "var(--font-inter)",
                       fontSize: 15,
                       fontWeight: 400,
-                      color: isToday ? "#e8e0d0" : isFuture ? "#3a3a3a" : "#a09688",
+                      color: isToday ? "#e8e0d0" : isFuture ? "#c8bfb0" : "#c8bfb0",
                       lineHeight: 1.2,
                       marginBottom: 2,
                       border: isToday ? "1.5px solid rgba(255,255,255,0.4)" : "1.5px solid transparent",
@@ -306,7 +306,7 @@ export default function AttendancePage() {
                       style={{
                         fontSize: 9,
                         fontWeight: 400,
-                        color: segDone ? "#5c5448" : seg.color,
+                        color: segDone ? "#c8bfb0" : seg.color,
                         marginTop: 1,
                         lineHeight: 1,
                       }}
@@ -350,15 +350,15 @@ export default function AttendancePage() {
                 PICO
               </span>
             </div>
-            <span style={{ fontSize: 12, fontWeight: 300, color: "#5c5448" }}>출석 완료</span>
-            <span style={{ fontSize: 12, fontWeight: 300, color: "#3a3a3a", marginLeft: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 300, color: "#c8bfb0" }}>출석 완료</span>
+            <span style={{ fontSize: 12, fontWeight: 300, color: "#c8bfb0", marginLeft: 8 }}>
               {attendCount} / {daysInMonth}일
             </span>
           </div>
         </div>
 
         {/* ── 연속 출석 보너스 ── */}
-        <p style={{ fontSize: 13, fontWeight: 400, color: "#5c5448", marginBottom: 12 }}>연속 출석 보너스</p>
+        <p style={{ fontSize: 13, fontWeight: 400, color: "#c8bfb0", marginBottom: 12 }}>연속 출석 보너스</p>
         <div className="flex flex-col gap-2 mb-8">
           {BONUS_LIST.map((b) => {
             const achieved = streak >= b.days;
@@ -373,7 +373,7 @@ export default function AttendancePage() {
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <span style={{ fontSize: 13, fontWeight: 400, color: achieved ? b.color : "#5c5448" }}>
+                  <span style={{ fontSize: 13, fontWeight: 400, color: achieved ? b.color : "#c8bfb0" }}>
                     {b.days}일 연속
                   </span>
                   {achieved && (
@@ -415,7 +415,7 @@ export default function AttendancePage() {
             className="pico-btn w-full py-2 rounded-xl"
             style={{
               background: "transparent",
-              color: "#3a3a3a",
+              color: "#c8bfb0",
               fontSize: 11,
               fontWeight: 300,
               border: "0.5px solid rgba(255,255,255,0.06)",
@@ -472,7 +472,7 @@ export default function AttendancePage() {
                   </p>
                 )}
               </div>
-              <p style={{ fontSize: 14, color: "#a09688", textAlign: "center", marginBottom: 20, fontWeight: 300 }}>
+              <p style={{ fontSize: 14, color: "#c8bfb0", textAlign: "center", marginBottom: 20, fontWeight: 300 }}>
                 오늘의 대결도 참여할래요?
               </p>
               <div className="flex flex-col gap-2">
@@ -493,7 +493,7 @@ export default function AttendancePage() {
                   className="w-full rounded-xl py-3"
                   style={{
                     background: "transparent",
-                    color: "#5c5448",
+                    color: "#c8bfb0",
                     fontSize: 13,
                     fontWeight: 300,
                     border: "0.5px solid rgba(255,255,255,0.08)",

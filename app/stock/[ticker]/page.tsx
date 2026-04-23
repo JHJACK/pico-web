@@ -787,7 +787,7 @@ export default function StockChartPage() {
           minWidth: 240,
         }}>
           <div style={{ fontSize: 36, marginBottom: 10 }}>🎯</div>
-          <div style={{ fontSize: 13, color: C.text2, marginBottom: 6, fontWeight: 500 }}>퀘스트 완료!</div>
+          <div style={{ fontSize: 14, color: C.text2, marginBottom: 6, fontWeight: 500 }}>퀘스트 완료!</div>
           <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 14 }}>{questPopup.title}</div>
           <div style={{
             display: "inline-block",
@@ -826,12 +826,12 @@ export default function StockChartPage() {
               ? <TickerLogo src={logo} ticker={ticker} size={22} />
               : <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#242424", flexShrink: 0,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, fontWeight: 600, color: C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
+                  fontSize: 14, fontWeight: 600, color: C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
             }
             <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>
               {meta?.name ?? ticker}
             </span>
-            <span style={{ fontSize: 13, color: C.text2 }}>{ticker} · {exch}</span>
+            <span style={{ fontSize: 14, color: C.text2 }}>{ticker} · {exch}</span>
           </div>
 
           {loading ? (
@@ -973,13 +973,13 @@ export default function StockChartPage() {
               background: "#141414", borderRadius: 12, padding: "10px 16px",
               border: "0.5px solid rgba(255,255,255,0.07)", marginBottom: 8,
             }}>
-              <div style={{ fontSize: 11, color: C.text2, marginBottom: 4 }}>현재가</div>
+              <div style={{ fontSize: 14, color: C.text2, marginBottom: 4 }}>현재가</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em", color: C.text }}>
                   {loading ? "—" : kr ? data?.formattedPrice : (data?.formattedKRW ?? "—")}
                 </div>
                 {!kr && (
-                  <div style={{ fontSize: 13, color: C.text2 }}>
+                  <div style={{ fontSize: 14, color: C.text2 }}>
                     {loading ? "" : (data?.formattedPrice ?? "—")}
                   </div>
                 )}
@@ -988,7 +988,7 @@ export default function StockChartPage() {
 
             {/* 주문 가능 포인트 */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 2px" }}>
-              <span style={{ fontSize: 12, color: C.text2 }}>주문 가능 포인트</span>
+              <span style={{ fontSize: 14, color: C.text2 }}>주문 가능 포인트</span>
               <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-inter)", color: C.text }}>
                 {totalPoints.toLocaleString("ko-KR")}P
               </span>
@@ -1000,7 +1000,7 @@ export default function StockChartPage() {
               border: "0.5px solid rgba(255,255,255,0.08)", marginBottom: 8,
               display: "flex", alignItems: "center", justifyContent: "space-between",
             }}>
-              <span style={{ fontSize: 12, color: C.text2 }}>투자 금액</span>
+              <span style={{ fontSize: 14, color: C.text2 }}>투자 금액</span>
               <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
                 <span style={{
                   fontSize: 24, fontWeight: 300, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em",
@@ -1008,7 +1008,7 @@ export default function StockChartPage() {
                 }}>
                   {keypadAmt > 0 ? keypadAmt.toLocaleString("ko-KR") : "0"}
                 </span>
-                <span style={{ fontSize: 13, color: C.text2 }}>P</span>
+                <span style={{ fontSize: 14, color: C.text2 }}>P</span>
               </div>
             </div>
 
@@ -1018,13 +1018,13 @@ export default function StockChartPage() {
                 <button key={n} onClick={() => addKeypadAmount(n)} style={{
                   flex: 1, padding: "8px 0", borderRadius: 10,
                   background: "rgba(250,202,62,0.06)", border: "0.5px solid rgba(250,202,62,0.2)",
-                  color: C.text2, fontSize: 12, fontWeight: 500, cursor: "pointer",
+                  color: C.text2, fontSize: 14, fontWeight: 500, cursor: "pointer",
                 }}>+{n.toLocaleString()}P</button>
               ))}
               <button onClick={() => setKeypadStr(String(totalPoints))} style={{
                 flex: 1, padding: "8px 0", borderRadius: 10,
                 background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.3)",
-                color: "#FACA3E", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                color: "#FACA3E", fontSize: 14, fontWeight: 600, cursor: "pointer",
               }}>전체</button>
             </div>
           </div>
@@ -1101,13 +1101,13 @@ export default function StockChartPage() {
               background: "#141414", borderRadius: 12, padding: "10px 16px",
               border: "0.5px solid rgba(255,255,255,0.07)", marginBottom: 8,
             }}>
-              <div style={{ fontSize: 11, color: C.text2, marginBottom: 4 }}>현재가</div>
+              <div style={{ fontSize: 14, color: C.text2, marginBottom: 4 }}>현재가</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em", color: C.text }}>
                   {loading ? "—" : kr ? data?.formattedPrice : (data?.formattedKRW ?? "—")}
                 </div>
                 {!kr && (
-                  <div style={{ fontSize: 13, color: C.text2 }}>
+                  <div style={{ fontSize: 14, color: C.text2 }}>
                     {loading ? "" : (data?.formattedPrice ?? "—")}
                   </div>
                 )}
@@ -1116,7 +1116,7 @@ export default function StockChartPage() {
 
             {/* 총 보유 포인트 */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 2px" }}>
-              <span style={{ fontSize: 12, color: C.text2 }}>총 보유 포인트</span>
+              <span style={{ fontSize: 14, color: C.text2 }}>총 보유 포인트</span>
               <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-inter)", color: C.text }}>
                 {totalHoldingPoints.toLocaleString("ko-KR")}P
               </span>
@@ -1128,7 +1128,7 @@ export default function StockChartPage() {
               border: "0.5px solid rgba(255,255,255,0.08)", marginBottom: 8,
               display: "flex", alignItems: "center", justifyContent: "space-between",
             }}>
-              <span style={{ fontSize: 12, color: C.text2 }}>판매 금액</span>
+              <span style={{ fontSize: 14, color: C.text2 }}>판매 금액</span>
               <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
                 <span style={{
                   fontSize: 24, fontWeight: 300, fontFamily: "var(--font-inter)", letterSpacing: "-0.02em",
@@ -1136,7 +1136,7 @@ export default function StockChartPage() {
                 }}>
                   {sellKeypadAmt > 0 ? sellKeypadAmt.toLocaleString("ko-KR") : "0"}
                 </span>
-                <span style={{ fontSize: 13, color: C.text2 }}>P</span>
+                <span style={{ fontSize: 14, color: C.text2 }}>P</span>
               </div>
             </div>
 
@@ -1146,13 +1146,13 @@ export default function StockChartPage() {
                 <button key={n} onClick={() => addSellKeypadAmount(n)} style={{
                   flex: 1, padding: "8px 0", borderRadius: 10,
                   background: "rgba(240,120,120,0.06)", border: "0.5px solid rgba(240,120,120,0.2)",
-                  color: C.text2, fontSize: 12, fontWeight: 500, cursor: "pointer",
+                  color: C.text2, fontSize: 14, fontWeight: 500, cursor: "pointer",
                 }}>+{n.toLocaleString()}P</button>
               ))}
               <button onClick={() => setSellKeypadStr(String(totalHoldingPoints))} style={{
                 flex: 1, padding: "8px 0", borderRadius: 10,
                 background: "rgba(240,120,120,0.12)", border: "0.5px solid rgba(240,120,120,0.3)",
-                color: "#f07878", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                color: "#f07878", fontSize: 14, fontWeight: 600, cursor: "pointer",
               }}>전체</button>
             </div>
           </div>

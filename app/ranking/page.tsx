@@ -262,7 +262,7 @@ export default function RankingPage() {
               <div style={{ textAlign: "center", padding: "60px 0" }}>
                 <div style={{ fontSize: 40, marginBottom: 16 }}>🎮</div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: "#e8e0d0", marginBottom: 8 }}>이번 주 게임이 시작됐어요</div>
-                <div style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#c8bfb0", lineHeight: 1.7 }}>
+                <div style={{ fontSize: "clamp(14px, 1.5vw, 15px)", color: "#c8bfb0", lineHeight: 1.7 }}>
                   종목에서 매수하면<br />수익률 순위에 자동으로 올라가요!
                 </div>
               </div>

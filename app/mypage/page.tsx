@@ -129,7 +129,7 @@ export default function MyPage() {
         className="sticky top-0 z-30 border-b flex items-center px-6"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
-        <Link href="/" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>{"<"} 홈</Link>
+        <Link href="/" style={{ fontSize: 13, color: "#c8bfb0", textDecoration: "none" }}>{"<"} 홈</Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 
@@ -171,7 +171,7 @@ export default function MyPage() {
                 {avatarSrc ? (
                   <img src={avatarSrc} alt="프로필" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(250,202,62,0.4)" }} />
                 ) : (
-                  <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#242424", border: "2px dashed rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "#5c5448" }}>
+                  <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#242424", border: "2px dashed rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "#c8bfb0" }}>
                     {userRow.nickname[0]?.toUpperCase() ?? "?"}
                   </div>
                 )}
@@ -179,7 +179,7 @@ export default function MyPage() {
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
             </div>
-            <p style={{ fontSize: 13, color: "#a09688", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
+            <p style={{ fontSize: 13, color: "#c8bfb0", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
 
             {/* 이메일 (소셜 로그인이 아닐 때만 표시) */}
             {!["kakao", "google"].includes(user.app_metadata?.provider ?? "") && (
@@ -359,7 +359,7 @@ export default function MyPage() {
 
         {!showDeleteConfirm ? (
           <button onClick={() => setShowDeleteConfirm(true)} className="pico-btn w-full py-2"
-            style={{ background: "transparent", color: "#5c5448", fontSize: 14, fontWeight: 400, border: "none" }}>
+            style={{ background: "transparent", color: "#c8bfb0", fontSize: 14, fontWeight: 400, border: "none" }}>
             회원 탈퇴
           </button>
         ) : (
@@ -371,7 +371,7 @@ export default function MyPage() {
                 {deleteLoading ? "처리 중..." : "탈퇴할게요"}
               </button>
               <button onClick={() => setShowDeleteConfirm(false)} className="pico-btn flex-1 py-2.5 rounded-xl"
-                style={{ background: "#1c1c1c", color: "#a09688", fontSize: 13, fontWeight: 400, border: "0.5px solid rgba(255,255,255,0.1)" }}>
+                style={{ background: "#1c1c1c", color: "#c8bfb0", fontSize: 13, fontWeight: 400, border: "0.5px solid rgba(255,255,255,0.1)" }}>
                 취소
               </button>
             </div>

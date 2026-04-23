@@ -51,7 +51,7 @@ export default function BattlesPage() {
           borderColor: "rgba(255,255,255,0.06)",
         }}
       >
-        <Link href="/mypage" style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>
+        <Link href="/mypage" style={{ fontSize: 13, color: "#c8bfb0", textDecoration: "none" }}>
           {"<"} 내 정보
         </Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>
@@ -80,17 +80,17 @@ export default function BattlesPage() {
             padding: "18px 20px",
           }}
         >
-          <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#5c5448", textTransform: "uppercase", fontWeight: 500, marginBottom: 10 }}>
+          <p style={{ fontSize: 11, letterSpacing: "0.12em", color: "#c8bfb0", textTransform: "uppercase", fontWeight: 500, marginBottom: 10 }}>
             내일의 선택 👀
           </p>
           <div className="flex items-center gap-3">
             <div style={{ fontSize: 22 }}>📊</div>
             <div>
               <span style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>{tomorrow.name}</span>
-              <span style={{ fontSize: 13, color: "#5c5448", marginLeft: 8 }}>· {tomorrow.category}</span>
+              <span style={{ fontSize: 13, color: "#c8bfb0", marginLeft: 8 }}>· {tomorrow.category}</span>
             </div>
           </div>
-          <p style={{ fontSize: 12, color: "#5c5448", fontWeight: 300, marginTop: 8 }}>
+          <p style={{ fontSize: 12, color: "#c8bfb0", fontWeight: 300, marginTop: 8 }}>
             결과는 내일 오전 7시에 발표돼
           </p>
         </div>
@@ -106,7 +106,7 @@ export default function BattlesPage() {
               textAlign: "center",
             }}
           >
-            <p style={{ fontSize: 15, color: "#5c5448", fontWeight: 300 }}>
+            <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>
               아직 참여 기록이 없어요
             </p>
           </div>
@@ -136,7 +136,7 @@ export default function BattlesPage() {
                       style={{
                         fontSize: 13,
                         fontWeight: 400,
-                        color: "#5c5448",
+                        color: "#c8bfb0",
                         flexShrink: 0,
                         minWidth: 48,
                       }}
@@ -170,11 +170,11 @@ export default function BattlesPage() {
                           정답 🎉 +100P
                         </span>
                       ) : isCorrect === false ? (
-                        <span style={{ fontSize: 14, fontWeight: 400, color: "#5c5448" }}>
+                        <span style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0" }}>
                           오답 😅
                         </span>
                       ) : (
-                        <span style={{ fontSize: 13, fontWeight: 300, color: "#3a3a3a" }}>
+                        <span style={{ fontSize: 13, fontWeight: 300, color: "#c8bfb0" }}>
                           집계 중
                         </span>
                       )}

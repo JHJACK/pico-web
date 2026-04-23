@@ -91,7 +91,7 @@ export default function BadgesPage() {
         {/* 타이틀 */}
         <div style={{ padding: "28px 0 24px", textAlign: "center" }}>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, marginBottom: 8, fontFamily: "var(--font-paperlogy)" }}>🎖️ 뱃지 도감</h1>
-          <p style={{ fontSize: 13, color: "#c8bfb0" }}>
+          <p style={{ fontSize: 14, color: "#c8bfb0" }}>
             {totalEarned > 0 ? `총 ${totalEarned}종 획득 · 전체 ${ALL_CATEGORIES.length}종` : "아직 획득한 뱃지가 없어요"}
           </p>
           <div style={{ margin: "12px auto 0", maxWidth: 200, height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2 }}>
@@ -110,7 +110,7 @@ export default function BadgesPage() {
           }}>
             <span style={{ fontSize: 28 }}>{BADGE_META[equippedTitle].emoji}</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: "#c8bfb0", marginBottom: 2 }}>현재 착용 중인 수식어</div>
+              <div style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 2 }}>현재 착용 중인 수식어</div>
               <div style={{ fontSize: 15, fontWeight: 600, color: BADGE_META[equippedTitle].color }}>
                 {BADGE_META[equippedTitle].title}
               </div>
@@ -119,7 +119,7 @@ export default function BadgesPage() {
               onClick={() => handleEquip(equippedTitle)}
               disabled={equipping}
               style={{
-                padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                padding: "6px 14px", borderRadius: 8, fontSize: 14, fontWeight: 600,
                 background: "rgba(240,112,112,0.12)",
                 border: "0.5px solid rgba(240,112,112,0.3)",
                 color: "#f07878", cursor: equipping ? "default" : "pointer",
@@ -171,17 +171,17 @@ export default function BadgesPage() {
                 <div style={{ fontSize: 36, marginBottom: 10, filter: isOwned ? "none" : "grayscale(1)" }}>
                   {meta.emoji}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: isOwned ? meta.color : "#c8bfb0", marginBottom: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: isOwned ? meta.color : "#c8bfb0", marginBottom: 4 }}>
                   {meta.title}
                 </div>
-                <div style={{ fontSize: 11, color: "#c8bfb0" }}>{meta.subtitle}</div>
+                <div style={{ fontSize: 14, color: "#c8bfb0" }}>{meta.subtitle}</div>
                 <div style={{ marginTop: 10 }}>
                   {isOwned ? (
-                    <span style={{ fontSize: 11, background: `${meta.color}20`, color: meta.color, borderRadius: 6, padding: "2px 10px", fontWeight: 600 }}>
+                    <span style={{ fontSize: 14, background: `${meta.color}20`, color: meta.color, borderRadius: 6, padding: "2px 10px", fontWeight: 600 }}>
                       {earned}회 획득
                     </span>
                   ) : (
-                    <span style={{ fontSize: 11, color: "#c8bfb0" }}>미획득</span>
+                    <span style={{ fontSize: 14, color: "#c8bfb0" }}>미획득</span>
                   )}
                 </div>
               </button>
@@ -205,7 +205,7 @@ export default function BadgesPage() {
                 <span style={{ fontSize: 32 }}>{meta.emoji}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: meta.color }}>{meta.title}</div>
-                  <div style={{ fontSize: 12, color: "#c8bfb0", marginTop: 2 }}>{meta.subtitle}</div>
+                  <div style={{ fontSize: 14, color: "#c8bfb0", marginTop: 2 }}>{meta.subtitle}</div>
                 </div>
                 {/* 착용 / 해제 버튼 */}
                 {isOwned && (
@@ -213,7 +213,7 @@ export default function BadgesPage() {
                     onClick={(e) => { e.stopPropagation(); handleEquip(selected); }}
                     disabled={equipping}
                     style={{
-                      padding: "8px 18px", borderRadius: 10, fontSize: 13, fontWeight: 700,
+                      padding: "8px 18px", borderRadius: 10, fontSize: 14, fontWeight: 700,
                       background: isEquipped
                         ? "rgba(240,112,112,0.12)"
                         : `${meta.color}20`,
@@ -229,14 +229,14 @@ export default function BadgesPage() {
                   </button>
                 )}
               </div>
-              <p style={{ fontSize: 13, color: "#c8bfb0", lineHeight: 1.6, marginBottom: 16 }}>{meta.desc}</p>
+              <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.6, marginBottom: 16 }}>{meta.desc}</p>
 
               {history.length > 0 ? (
                 <>
-                  <div style={{ fontSize: 12, color: "#c8bfb0", marginBottom: 8 }}>획득 기록</div>
+                  <div style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 8 }}>획득 기록</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {history.map((h, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#c8bfb0", background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 12px" }}>
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#c8bfb0", background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 12px" }}>
                         <span>{weekLabel(h.week_start)}</span>
                         <span style={{ color: meta.color }}>획득</span>
                       </div>
@@ -244,7 +244,7 @@ export default function BadgesPage() {
                   </div>
                 </>
               ) : (
-                <div style={{ fontSize: 13, color: "#c8bfb0", textAlign: "center", padding: "8px 0" }}>
+                <div style={{ fontSize: 14, color: "#c8bfb0", textAlign: "center", padding: "8px 0" }}>
                   아직 획득하지 못했어요. 도전해 보세요!
                 </div>
               )}
@@ -255,7 +255,7 @@ export default function BadgesPage() {
         {/* 최근 획득 내역 */}
         {badges.length > 0 && !selected && (
           <div style={{ marginTop: 28 }}>
-            <p style={{ fontSize: 13, color: "#c8bfb0", marginBottom: 12 }}>최근 획득 내역</p>
+            <p style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 12 }}>최근 획득 내역</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {badges.slice(0, 10).map((b, i) => {
                 const meta = BADGE_META[b.category];
@@ -264,11 +264,11 @@ export default function BadgesPage() {
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.02)", border: `0.5px solid ${isEquipped ? meta?.color + "40" : "rgba(255,255,255,0.05)"}`, borderRadius: 12, padding: "12px 14px" }}>
                     <span style={{ fontSize: 22 }}>{meta?.emoji}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: meta?.color }}>{meta?.title}</div>
-                      <div style={{ fontSize: 11, color: "#c8bfb0" }}>{weekLabel(b.week_start)}</div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: meta?.color }}>{meta?.title}</div>
+                      <div style={{ fontSize: 14, color: "#c8bfb0" }}>{weekLabel(b.week_start)}</div>
                     </div>
                     {isEquipped && (
-                      <span style={{ fontSize: 10, background: meta?.color + "20", color: meta?.color, borderRadius: 4, padding: "2px 7px", fontWeight: 600 }}>착용 중</span>
+                      <span style={{ fontSize: 14, background: meta?.color + "20", color: meta?.color, borderRadius: 4, padding: "2px 7px", fontWeight: 600 }}>착용 중</span>
                     )}
                   </div>
                 );

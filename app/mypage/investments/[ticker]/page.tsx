@@ -104,7 +104,7 @@ export default function TickerHistoryPage() {
         {/* 총 투자 포인트 요약 */}
         <div style={{ background: "#1c1c1c", borderRadius: 16, padding: "18px 20px",
           marginBottom: 16, border: "0.5px solid rgba(255,255,255,0.08)" }}>
-          <p style={{ fontSize: 13, color: "#c8bfb0", marginBottom: 6,
+          <p style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 6,
             fontFamily: "var(--font-paperlogy)", fontWeight: 400 }}>
             총 투자 포인트
           </p>
@@ -156,7 +156,7 @@ export default function TickerHistoryPage() {
                         fontFamily: "var(--font-paperlogy)", marginBottom: 5 }}>
                         {formatKoreanDate(r.buy_at)}
                       </p>
-                      <p style={{ fontSize: 13, color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
+                      <p style={{ fontSize: 14, color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
                         매수가 {priceStr}
                         {r.status === "sold" && (
                           <span style={{ marginLeft: 8, color: "#c8bfb0" }}>· 매도 완료</span>
@@ -168,7 +168,7 @@ export default function TickerHistoryPage() {
                         {r.invested_points.toLocaleString("ko-KR")}P
                       </p>
                       {r.status === "sold" && r.final_points != null && (
-                        <p style={{ ...NUM_MONO, fontSize: 12, marginTop: 3,
+                        <p style={{ ...NUM_MONO, fontSize: 14, marginTop: 3,
                           color: r.final_points >= r.invested_points ? "#7ed4a0" : "#f07878" }}>
                           → {r.final_points.toLocaleString("ko-KR")}P
                         </p>
@@ -181,7 +181,7 @@ export default function TickerHistoryPage() {
           )}
         </div>
 
-        <p style={{ fontSize: 12, color: "#c8bfb0", textAlign: "center", marginTop: 20,
+        <p style={{ fontSize: 14, color: "#c8bfb0", textAlign: "center", marginTop: 20,
           fontFamily: "var(--font-paperlogy)", fontWeight: 300, opacity: 0.5 }}>
           15분 지연 · 투자 참고용
         </p>
