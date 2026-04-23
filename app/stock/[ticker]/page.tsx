@@ -319,7 +319,7 @@ export default function StockChartPage() {
   const soldList    = holdings.filter((h) => h.status === "sold");
 
   // 매도 키패드
-  const totalHoldingPoints = holdingList.reduce((s, h) => s + h.invested_points, 0);
+  const totalHoldingPoints = holdingList.reduce((s, h) => s + h.currentValue, 0);
   const sellKeypadAmt = Math.min(parseInt(sellKeypadStr || "0", 10), totalHoldingPoints);
 
   function handleSellKeypad(key: string) {
