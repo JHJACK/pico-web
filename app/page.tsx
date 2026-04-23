@@ -365,6 +365,7 @@ function GameDashboardPanel({
   myRank: { rank_position: number; return_rate: number } | null;
 }) {
   const [holdingsExpanded, setHoldingsExpanded] = useState(false);
+  const router = useRouter();
 
   // 같은 티커 합산
   const grouped: DashHolding[] = Object.values(
@@ -473,22 +474,27 @@ function GameDashboardPanel({
                     const up   = h.profitLoss >= 0;
                     const meta = isKrTicker(h.ticker) ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
                     return (
-                      <div key={h.ticker} className={up ? "flash-green" : "flash-red"}
+                      <button key={h.ticker} className={`pico-btn ${up ? "flash-green" : "flash-red"}`}
+                        onClick={() => router.push(`/stock/${h.ticker}?tab=sell`)}
                         style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-                          padding: "3px 0" }}>
+                          padding: "6px 8px", width: "100%", background: "none", border: "none",
+                          cursor: "pointer", borderRadius: 8, textAlign: "left",
+                          transition: "background 0.15s" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "none")}>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 5, minWidth: 0 }}>
                           <span style={{ fontSize: 14, color: "#e8e0d0",
                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {meta?.name ?? h.ticker}
                           </span>
-                          <span style={{ ...NUM_MONO, fontSize: 12, color: "#c8bfb0", flexShrink: 0 }}>
+                          <span style={{ ...NUM_MONO, fontSize: 14, color: "#c8bfb0", flexShrink: 0 }}>
                             {h.invested_points.toLocaleString()}P
                           </span>
                         </div>
                         <span style={{ ...NUM_MONO, fontSize: 14, color: up ? "#7ed4a0" : "#f07878", flexShrink: 0, marginLeft: 8 }}>
                           {up ? "+" : ""}{h.profitLoss.toLocaleString()}P
                         </span>
-                      </div>
+                      </button>
                     );
                   })}
                   {grouped.length > 4 && (

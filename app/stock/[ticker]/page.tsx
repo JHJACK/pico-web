@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { formatUS, formatKR, type StockData } from "@/app/lib/stocks";
 import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
 import { useAuth } from "@/app/lib/authContext";
@@ -84,6 +84,7 @@ function Card({ children, style, className }: { children: React.ReactNode; style
 export default function StockChartPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { userRow } = useAuth();
 
   const ticker = (params?.ticker as string ?? "").toUpperCase();
@@ -103,7 +104,9 @@ export default function StockChartPage() {
 
   const [data, setData]             = useState<StockData | null>(null);
   const [loading, setLoading]       = useState(true);
-  const [orderTab, setOrderTab]     = useState<OrderTab>("buy");
+  const [orderTab, setOrderTab]     = useState<OrderTab>(() =>
+    searchParams?.get("tab") === "sell" ? "sell" : "buy"
+  );
   const [orderAmt, setOrderAmt]     = useState(0);
   const [exchangeRate, setExchangeRate] = useState(1470);
 
