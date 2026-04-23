@@ -167,10 +167,10 @@ export default function InvestmentsPage() {
                 )}
               </div>
               <div style={{ marginTop: 8, display: "flex", gap: 16 }}>
-                <span style={{ fontSize: 13, color: "#5c5448", fontFamily: "var(--font-paperlogy)" }}>
+                <span style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
                   총 투자 포인트 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{totalInvested.toLocaleString("ko-KR")}P</span>
                 </span>
-                <span style={{ fontSize: 13, color: "#5c5448", fontFamily: "var(--font-paperlogy)" }}>
+                <span style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
                   종목 수 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{grouped.length}개</span>
                 </span>
               </div>
@@ -240,7 +240,7 @@ export default function InvestmentsPage() {
                       <div style={{ marginTop: 3 }}>
                         {stocksLoading
                           ? <Skeleton w={60} h={12} />
-                          : <span style={{ fontSize: 11, color: "#5c5448" }}>
+                          : <span style={{ fontSize: 13, color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
                               총 투자 포인트 {h.invested_points.toLocaleString()}P
                             </span>
                         }
@@ -263,8 +263,8 @@ export default function InvestmentsPage() {
           )}
         </div>
 
-        <p style={{ fontSize: 12, color: "#3a3530", textAlign: "center", marginTop: 20,
-          fontFamily: "var(--font-paperlogy)", fontWeight: 300 }}>
+        <p style={{ fontSize: 12, color: "#c8bfb0", textAlign: "center", marginTop: 20,
+          fontFamily: "var(--font-paperlogy)", fontWeight: 300, opacity: 0.5 }}>
           15분 지연 · 투자 참고용
         </p>
       </div>

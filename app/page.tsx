@@ -405,12 +405,12 @@ function GameDashboardPanel({
         padding: "18px 18px 16px",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: "#c8bfb0", letterSpacing: "0.04em", margin: 0 }}>
-            ⚔️ 내 게임 현황
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#e8e0d0", letterSpacing: "0.04em", margin: 0 }}>
+            내 투자 현황
           </p>
           {user && !loading && grouped.length > 0 && (
             <Link href="/mypage/investments"
-              style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>
+              style={{ fontSize: 15, color: "#c8bfb0", textDecoration: "none" }}>
               더보기 ›
             </Link>
           )}
@@ -429,9 +429,10 @@ function GameDashboardPanel({
           <>
             {/* 보유 포인트 */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 3 }}>보유 포인트</div>
-              <div style={{ ...NUM_MONO, fontSize: 24, color: "#FACA3E", fontWeight: 400 }}>
-                {(userRow?.total_points ?? 0).toLocaleString("ko-KR")}P
+              <div style={{ fontSize: 13, color: "#c8bfb0", marginBottom: 4 }}>보유 포인트</div>
+              <div style={{ fontFamily: "var(--font-paperlogy)", fontSize: 32, fontWeight: 700, color: "#FACA3E", letterSpacing: "-0.02em", lineHeight: 1 }}>
+                {(userRow?.total_points ?? 0).toLocaleString("ko-KR")}
+                <span style={{ fontSize: 18, fontWeight: 600, marginLeft: 3 }}>P</span>
               </div>
             </div>
 
@@ -464,7 +465,7 @@ function GameDashboardPanel({
             ) : (
               <>
                 {/* 총 투자 포인트 레이블 */}
-                <div style={{ fontSize: 12, color: "#5c5448", marginBottom: 8 }}>
+                <div style={{ fontSize: 13, color: "#c8bfb0", marginBottom: 8 }}>
                   총 투자 포인트 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{totalInvested.toLocaleString()}P</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1842,7 +1843,7 @@ export default function Home() {
                             <span style={{ fontSize:15, fontWeight:600, color:"#c8bfb0",
                               fontFamily:"var(--font-paperlogy)" }}>내 투자 현황</span>
                             {!dashLoading && dashHoldings.length > 0 && (
-                              <span style={{ fontSize:12, color:"#5c5448" }}>
+                              <span style={{ fontSize:13, color:"#c8bfb0" }}>
                                 총 투자 포인트 <span style={{ fontFamily:"var(--font-inter)", color:"#c8bfb0" }}>
                                   {dashHoldings.reduce((s, h) => s + h.invested_points, 0).toLocaleString()}P
                                 </span>
@@ -1850,7 +1851,7 @@ export default function Home() {
                             )}
                           </div>
                           <button onClick={() => router.push("/mypage/investments")} className="pico-btn"
-                            style={{ fontSize:13, color:"#5c5448", background:"none", border:"none", cursor:"pointer" }}>
+                            style={{ fontSize:15, color:"#c8bfb0", background:"none", border:"none", cursor:"pointer" }}>
                             더보기 ›
                           </button>
                         </div>

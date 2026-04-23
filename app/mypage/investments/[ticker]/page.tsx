@@ -136,7 +136,7 @@ export default function TickerHistoryPage() {
           ) : records.length === 0 ? (
             <div style={{ padding: "48px 20px", textAlign: "center" }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
-              <p style={{ fontSize: 15, color: "#5c5448", fontFamily: "var(--font-paperlogy)", fontWeight: 300 }}>
+              <p style={{ fontSize: 15, color: "#c8bfb0", fontFamily: "var(--font-paperlogy)", fontWeight: 300 }}>
                 투자 내역이 없어요
               </p>
             </div>
@@ -156,7 +156,7 @@ export default function TickerHistoryPage() {
                         fontFamily: "var(--font-paperlogy)", marginBottom: 5 }}>
                         {formatKoreanDate(r.buy_at)}
                       </p>
-                      <p style={{ fontSize: 12, color: "#5c5448", fontFamily: "var(--font-paperlogy)" }}>
+                      <p style={{ fontSize: 13, color: "#c8bfb0", fontFamily: "var(--font-paperlogy)" }}>
                         매수가 {priceStr}
                         {r.status === "sold" && (
                           <span style={{ marginLeft: 8, color: "#c8bfb0" }}>· 매도 완료</span>
@@ -181,8 +181,8 @@ export default function TickerHistoryPage() {
           )}
         </div>
 
-        <p style={{ fontSize: 12, color: "#3a3530", textAlign: "center", marginTop: 20,
-          fontFamily: "var(--font-paperlogy)", fontWeight: 300 }}>
+        <p style={{ fontSize: 12, color: "#c8bfb0", textAlign: "center", marginTop: 20,
+          fontFamily: "var(--font-paperlogy)", fontWeight: 300, opacity: 0.5 }}>
           15분 지연 · 투자 참고용
         </p>
       </div>
