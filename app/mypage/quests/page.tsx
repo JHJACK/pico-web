@@ -159,10 +159,10 @@ export default function QuestsPage() {
   if (loading || !user || !userRow) return null;
 
   return (
-    <main style={{ minHeight: "100vh", background: C.bg, color: C.text }}>
+    <main style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <style>{`
-        .lbl { font-size: 12px; }
-        @media (min-width: 768px) { .lbl { font-size: 14px; } }
+        .lbl { font-size: 13px; }
+        @media (min-width: 768px) { .lbl { font-size: 15px; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
         .quest-row { animation: fadeIn 0.2s ease; }
       `}</style>

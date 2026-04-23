@@ -75,7 +75,7 @@ export default function BadgesPage() {
   const totalEarned = Object.keys(countMap).length;
 
   return (
-    <main style={{ minHeight: "100vh", background: "#0d0d0d", color: "#e8e0d0" }}>
+    <main style={{ minHeight: "100vh", background: "#0d0d0d", color: "#e8e0d0", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <nav style={{
         position: "sticky", top: 0, zIndex: 30, height: 56,
         background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)",
@@ -90,7 +90,7 @@ export default function BadgesPage() {
 
         {/* 타이틀 */}
         <div style={{ padding: "28px 0 24px", textAlign: "center" }}>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0, marginBottom: 8 }}>🎖️ 뱃지 도감</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, marginBottom: 8, fontFamily: "var(--font-paperlogy)" }}>🎖️ 뱃지 도감</h1>
           <p style={{ fontSize: 13, color: "#c8bfb0" }}>
             {totalEarned > 0 ? `총 ${totalEarned}종 획득 · 전체 ${ALL_CATEGORIES.length}종` : "아직 획득한 뱃지가 없어요"}
           </p>

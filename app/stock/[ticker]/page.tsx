@@ -706,7 +706,7 @@ export default function StockChartPage() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, color: C.text }}>
+    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <style>{`
         @keyframes shimmer {
           0%   { background-position: 200% 0; }

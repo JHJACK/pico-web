@@ -82,7 +82,7 @@ export default function TickerHistoryPage() {
   if (!user) return null;
 
   return (
-    <main className="min-h-screen" style={{ background: "#0d0d0d" }}>
+    <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       {/* 네비 */}
       <nav className="sticky top-0 z-30 border-b flex items-center gap-4 px-5"
         style={{ height: 56, background: "rgba(13,13,13,0.96)",

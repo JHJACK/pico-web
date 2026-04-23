@@ -38,7 +38,7 @@ export default function DnaPage() {
   const dnaType = userRow.investor_type ? INVESTOR_TYPES[userRow.investor_type as TypeKey] : null;
 
   return (
-    <main className="min-h-screen" style={{ background: "#0d0d0d" }}>
+    <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <nav className="sticky top-0 z-30 border-b flex items-center px-5"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
         <button onClick={() => router.back()} className="pico-btn" style={{ background: "none", border: "none", fontSize: 13, color: "#5c5448", cursor: "pointer" }}>

@@ -41,7 +41,7 @@ export default function BattlesPage() {
   const tomorrow = getTomorrowStock();
 
   return (
-    <main className="min-h-screen" style={{ background: "#0d0d0d" }}>
+    <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <nav
         className="sticky top-0 z-30 border-b flex items-center px-6"
         style={{
@@ -67,7 +67,7 @@ export default function BattlesPage() {
           paddingRight: "clamp(16px, 4vw, 24px)",
         }}
       >
-        <h1 style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", marginBottom: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 600, color: "#e8e0d0", marginBottom: 24, fontFamily: "var(--font-paperlogy)" }}>
           오늘의 선택 히스토리
         </h1>
 

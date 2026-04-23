@@ -136,7 +136,7 @@ export default function RankingPage() {
     : "";
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0d0d0d", color: "#e8e0d0" }}>
+    <div style={{ minHeight: "100vh", background: "#0d0d0d", color: "#e8e0d0", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
 
       {/* ── 헤더 ── */}
       <nav style={{
@@ -155,7 +155,7 @@ export default function RankingPage() {
         {/* ── 타이틀 ── */}
         <div style={{ padding: "28px 0 20px", textAlign: "center" }}>
           <p style={{ fontSize: 13, color: "#c8bfb0", marginBottom: 6, ...NUM }}>{weekLabel}</p>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#e8e0d0", margin: 0 }}>이번 주 투자의 신 🏆</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#e8e0d0", margin: 0, fontFamily: "var(--font-paperlogy)" }}>이번 주 투자의 신 🏆</h1>
           <p style={{ fontSize: 12, color: "#c8bfb0", marginTop: 6, letterSpacing: "0.04em" }}>
             투자 수익률로 결정되는 진짜 실력 대결
           </p>
@@ -262,7 +262,7 @@ export default function RankingPage() {
               <div style={{ textAlign: "center", padding: "60px 0" }}>
                 <div style={{ fontSize: 40, marginBottom: 16 }}>🎮</div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: "#e8e0d0", marginBottom: 8 }}>이번 주 게임이 시작됐어요</div>
-                <div style={{ fontSize: 13, color: "#c8bfb0", lineHeight: 1.7 }}>
+                <div style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#c8bfb0", lineHeight: 1.7 }}>
                   종목에서 매수하면<br />수익률 순위에 자동으로 올라가요!
                 </div>
               </div>
@@ -396,7 +396,7 @@ function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden" }}>
-          <span style={{ fontSize: 14, fontWeight: isMe ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#e8e0d0" }}>
+          <span style={{ fontSize: 15, fontWeight: isMe ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#e8e0d0" }}>
             {row.nickname}
           </span>
           {isMe && <span style={{ fontSize: 10, background: "#FACA3E", color: "#0d0d0d", borderRadius: 4, padding: "1px 5px", fontWeight: 700, flexShrink: 0 }}>나</span>}

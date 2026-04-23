@@ -176,7 +176,7 @@ export default function QuizPage() {
   } : null;
 
   return (
-    <main className="min-h-screen" style={{ background: "#0d0d0d" }}>
+    <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
 
       {/* 토스트 */}
       {toast && (
@@ -244,7 +244,7 @@ export default function QuizPage() {
             <div style={{ fontSize: 10, letterSpacing: "0.16em", color: "#FACA3E", fontWeight: 500, textTransform: "uppercase", marginBottom: 12 }}>
               PICO — 투자 DNA 테스트 v2.0
             </div>
-            <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(24px, 6vw, 34px)", color: "#e8e0d0", lineHeight: 1.15, marginBottom: 12 }}>
+            <h1 style={{ fontFamily: "var(--font-paperlogy)", fontWeight: 800, fontSize: "clamp(24px, 6vw, 34px)", color: "#e8e0d0", lineHeight: 1.15, marginBottom: 12 }}>
               나는 어떤 투자자일까?
             </h1>
             <p style={{ fontSize: "clamp(13px, 3vw, 15px)", color: "#a09688", lineHeight: 1.8, maxWidth: 320, margin: "0 auto 16px" }}>
@@ -365,7 +365,7 @@ export default function QuizPage() {
               <div style={{ fontSize: "clamp(14px, 3vw, 18px)", letterSpacing: "0.1em", color: typeData.color, textTransform: "uppercase", marginBottom: 6, fontWeight: 700 }}>
                 {typeData.modifier}
               </div>
-              <div style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(28px, 7vw, 42px)", color: typeData.color, marginBottom: 8 }}>
+              <div style={{ fontFamily: "var(--font-paperlogy)", fontWeight: 800, fontSize: "clamp(28px, 7vw, 42px)", color: typeData.color, marginBottom: 8 }}>
                 {typeData.name}
               </div>
               <p style={{ fontSize: "clamp(14px, 3.2vw, 17px)", color: "#a09688", lineHeight: 1.75, maxWidth: 340, margin: "0 auto 20px" }}>

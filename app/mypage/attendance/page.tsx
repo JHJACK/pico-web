@@ -133,7 +133,7 @@ export default function AttendancePage() {
   }
 
   return (
-    <main className="min-h-screen" style={{ background: "#0d0d0d" }}>
+    <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <nav
         className="sticky top-0 z-30 border-b flex items-center px-6"
         style={{
