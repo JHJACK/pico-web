@@ -430,10 +430,10 @@ export async function awardBattleCorrect(uid: string) {
   await insertPointHistory(uid, 100, "오늘의 선택 정답");
 }
 
-// ── 결과 판정: 어제 미판정 투표 처리 (더미) ──────────
-// 오전 6시(KST) 이후 첫 접속 시 호출
-// 실제 주가 API 연결 후 winner를 battles 테이블에서 읽어오는 방식으로 교체 예정
-// winner: 'UP' | 'DOWN'
+// ── 결과 판정: 어제 미판정 투표 처리 ──────────────────
+// 오전 6시(KST) 이후 첫 접속 시 호출.
+// 해당 종목의 실제 등락률(changePercent)로 UP/DOWN 판정.
+// changePercent >= 0 → UP 승, < 0 → DOWN 승.
 export async function judgeYesterdayBattle(
   uid: string
 ): Promise<{ winner: string | null; myVote: BattleVoteRow | null }> {
@@ -460,9 +460,18 @@ export async function judgeYesterdayBattle(
     return { winner, myVote: vote as BattleVoteRow };
   }
 
-  // 더미 판정: 랜덤으로 UP/DOWN 결정 (실제 주가 API 연결 전 임시)
-  // PICO Play API 연동 시 battles 테이블의 winner 컬럼으로 교체
-  const winner = Math.random() < 0.5 ? "UP" : "DOWN";
+  // 실제 주가 등락률로 UP/DOWN 판정
+  let winner: string;
+  try {
+    const res = await fetch(`/api/stocks?tickers=${vote.ticker}`, { cache: "no-store" });
+    const data = await res.json();
+    const changePercent: number = data?.[vote.ticker]?.changePercent ?? 0;
+    winner = changePercent >= 0 ? "UP" : "DOWN";
+  } catch {
+    // API 실패 시 랜덤 폴백
+    winner = Math.random() < 0.5 ? "UP" : "DOWN";
+  }
+
   const isCorrect = vote.voted_for === winner;
 
   await supabase

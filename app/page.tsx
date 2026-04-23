@@ -2117,16 +2117,24 @@ export default function Home() {
                     )}
 
                     {/* 종목 헤더 */}
-                    <div className="flex items-center gap-3 mb-1">
+                    <div className="flex items-center gap-3 mb-3">
                       <TickerLogo src={`https://logo.clearbit.com/${todayStock.ticker.toLowerCase()}.com`} ticker={todayStock.ticker} size={32} />
-                      <div>
-                        <span style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>{todayStock.name}</span>
-                        <span style={{ fontSize: 12, color: "#5c5448", marginLeft: 6 }}>· {todayStock.category}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                          <span style={{ fontSize: 16, fontWeight: 500, color: "#e8e0d0" }}>{todayStock.name}</span>
+                          <span style={{ fontSize: 12, color: "#c8bfb0" }}>· {todayStock.category}</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 2 }}>
+                          <PriceDisplay ticker={todayStock.ticker} krwSize={14} usdSize={12} />
+                          <span style={{ ...NUM, fontSize: 12, color: upOf(todayStock.ticker) ? "#7ed4a0" : "#f07878" }}>
+                            {upOf(todayStock.ticker) ? "▲" : "▼"} {changeOf(todayStock.ticker)}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     {/* 타이틀 */}
-                    <div className="mb-5 mt-3">
+                    <div className="mb-5 mt-1">
                       <p style={{ fontSize: 19, fontWeight: 500, color: "#e8e0d0", marginBottom: 4, letterSpacing: "-0.01em" }}>
                         오늘 {todayStock.name}, 어떻게 될까?
                       </p>
