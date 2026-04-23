@@ -836,35 +836,39 @@ export default function StockChartPage() {
               position: "relative", zIndex: 1,
               animation: "popIn 0.32s ease forwards",
               boxShadow: "0 12px 48px rgba(0,0,0,0.6)",
+              fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
             }}>
               {sellResultPopup.profitLoss > 0 ? (
                 <>
                   <div style={{ fontSize: 48, marginBottom: 12, lineHeight: 1 }}>🔥</div>
-                  <div style={{ fontSize: 19, fontWeight: 700, color: C.text, marginBottom: 10 }}>축하해요!</div>
-                  <div style={{
-                    fontSize: 34, fontWeight: 700, color: "#7ed4a0", marginBottom: 6,
-                    fontFamily: "var(--font-inter)", letterSpacing: "-0.03em",
-                  }}>
+                  {/* 800 ExtraBold — 감탄 타이틀 */}
+                  <div style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 8, letterSpacing: "-0.01em" }}>
+                    축하해요!
+                  </div>
+                  {/* 700 Bold — 수익 금액 강조 */}
+                  <div style={{ fontSize: 36, fontWeight: 700, color: "#7ed4a0", marginBottom: 4, letterSpacing: "-0.02em" }}>
                     +{sellResultPopup.profitLoss.toLocaleString()}P
                   </div>
-                  <div style={{ fontSize: 13, color: C.text2, marginBottom: 28 }}>
+                  {/* 300 Light — 보조 정보 */}
+                  <div style={{ fontSize: 14, fontWeight: 300, color: C.text2, marginBottom: 28 }}>
                     총 {sellResultPopup.finalPoints.toLocaleString()}P 수령
                   </div>
                 </>
               ) : (
                 <>
-                  <div style={{ fontSize: 13, color: C.text2, marginBottom: 10 }}>판매 완료</div>
-                  <div style={{
-                    fontSize: 26, fontWeight: 600, color: C.text, marginBottom: 6,
-                    fontFamily: "var(--font-inter)", letterSpacing: "-0.02em",
-                  }}>
+                  {/* 400 Regular — 중립 레이블 */}
+                  <div style={{ fontSize: 13, fontWeight: 400, color: C.text2, marginBottom: 10 }}>판매 완료</div>
+                  {/* 600 SemiBold — 수령 금액 */}
+                  <div style={{ fontSize: 28, fontWeight: 600, color: C.text, marginBottom: 6, letterSpacing: "-0.02em" }}>
                     {sellResultPopup.finalPoints.toLocaleString()}P 수령
                   </div>
-                  <div style={{ fontSize: 13, color: "#f07878", marginBottom: 28 }}>
+                  {/* 300 Light — 손실 금액 (조용하게) */}
+                  <div style={{ fontSize: 13, fontWeight: 300, color: "#f07878", marginBottom: 28 }}>
                     {sellResultPopup.profitLoss.toLocaleString()}P
                   </div>
                 </>
               )}
+              {/* 700 Bold — 확인 버튼 */}
               <button
                 onClick={() => setSellResultPopup(null)}
                 style={{
@@ -872,6 +876,7 @@ export default function StockChartPage() {
                   background: sellResultPopup.profitLoss > 0 ? "#7ed4a0" : "rgba(255,255,255,0.09)",
                   color: sellResultPopup.profitLoss > 0 ? "#0d0d0d" : C.text,
                   fontSize: 15, fontWeight: 700, cursor: "pointer",
+                  fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
                 }}
               >확인</button>
             </div>
