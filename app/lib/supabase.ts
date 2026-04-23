@@ -702,3 +702,38 @@ export async function submitAttendanceOnly(
 
   return { bonusDays: streak, bonusPoints, alreadyAttended: false };
 }
+
+// ── 도감 수집 ──────────────────────────────────────────────────────────────
+
+export async function getLearnCollection(uid: string): Promise<string[]> {
+  if (!uid) return [];
+  const { data, error } = await supabase
+    .from("learn_collections")
+    .select("term_id")
+    .eq("user_id", uid);
+  if (error) { console.error("[getLearnCollection]", error.message); return []; }
+  return (data ?? []).map((r: { term_id: string }) => r.term_id);
+}
+
+export async function collectLearnCard(
+  uid: string,
+  termId: string,
+  points: number,
+  termName: string
+): Promise<{ newly_collected: boolean }> {
+  if (!uid) return { newly_collected: false };
+
+  const { error } = await supabase
+    .from("learn_collections")
+    .insert({ user_id: uid, term_id: termId });
+
+  if (error) {
+    if (error.code === "23505") return { newly_collected: false };
+    console.error("[collectLearnCard]", error.message);
+    return { newly_collected: false };
+  }
+
+  await addPoints(uid, points);
+  await insertPointHistory(uid, points, `도감 수집: ${termName}`);
+  return { newly_collected: true };
+}

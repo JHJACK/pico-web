@@ -1149,10 +1149,15 @@ export default function Home() {
                 {tab === "event" ? "이벤트" : "PICO Play"}
               </button>
             ))}
-            <Link href="/ranking" style={{ fontSize: 14, fontWeight: 400, color: "#3a3530", textDecoration: "none", transition: "color 0.15s" }}
+            <Link href="/ranking" style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", textDecoration: "none", transition: "color 0.15s" }}
               onMouseEnter={e => (e.currentTarget.style.color = "#e8e0d0")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#3a3530")}>
+              onMouseLeave={e => (e.currentTarget.style.color = "#c8bfb0")}>
               🏆 랭킹
+            </Link>
+            <Link href="/learn" style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", textDecoration: "none", transition: "color 0.15s" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#e8e0d0")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#c8bfb0")}>
+              📚 도감
             </Link>
           </div>
 
@@ -1210,8 +1215,12 @@ export default function Home() {
           </button>
         ))}
         <Link href="/ranking" className="flex-1 py-3 flex items-center justify-center"
-          style={{ fontSize: 14, color: "#3a3530", textDecoration: "none" }}>
+          style={{ fontSize: 14, color: "#c8bfb0", textDecoration: "none" }}>
           🏆 랭킹
+        </Link>
+        <Link href="/learn" className="flex-1 py-3 flex items-center justify-center"
+          style={{ fontSize: 14, color: "#c8bfb0", textDecoration: "none" }}>
+          📚 도감
         </Link>
       </div>
 
