@@ -365,9 +365,26 @@ function GameDashboardPanel({
   myRank: { rank_position: number; return_rate: number } | null;
 }) {
   const [holdingsExpanded, setHoldingsExpanded] = useState(false);
-  const activeHoldings = holdings;
-  const totalInvested = activeHoldings.reduce((s, h) => s + h.invested_points, 0);
-  const totalValue    = activeHoldings.reduce((s, h) => s + h.currentValue, 0);
+
+  // 같은 티커 합산
+  const grouped: DashHolding[] = Object.values(
+    holdings.reduce<Record<string, DashHolding>>((acc, h) => {
+      if (!acc[h.ticker]) {
+        acc[h.ticker] = { ...h };
+      } else {
+        acc[h.ticker].invested_points += h.invested_points;
+        acc[h.ticker].currentValue    += h.currentValue;
+        acc[h.ticker].profitLoss      += h.profitLoss;
+      }
+      return acc;
+    }, {})
+  ).map(h => ({
+    ...h,
+    profitRate: h.invested_points > 0 ? (h.profitLoss / h.invested_points) * 100 : 0,
+  }));
+
+  const totalInvested = holdings.reduce((s, h) => s + h.invested_points, 0);
+  const totalValue    = holdings.reduce((s, h) => s + h.currentValue, 0);
   const totalPL       = totalValue - totalInvested;
   const totalPLRate   = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
   const isProfit      = totalPL >= 0;
@@ -387,10 +404,17 @@ function GameDashboardPanel({
         borderRadius: 16,
         padding: "18px 18px 16px",
       }}>
-        <p style={{ fontSize: 15, fontWeight: 600, color: "#c8bfb0",
-          letterSpacing: "0.04em", marginBottom: 14 }}>
-          ⚔️ 내 게임 현황
-        </p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#c8bfb0", letterSpacing: "0.04em", margin: 0 }}>
+            ⚔️ 내 게임 현황
+          </p>
+          {user && !loading && grouped.length > 0 && (
+            <Link href="/mypage/investments"
+              style={{ fontSize: 13, color: "#5c5448", textDecoration: "none" }}>
+              더보기 ›
+            </Link>
+          )}
+        </div>
 
         {!user ? (
           <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300, lineHeight: 1.6 }}>
@@ -412,7 +436,7 @@ function GameDashboardPanel({
             </div>
 
             {/* 평가손익 */}
-            {activeHoldings.length > 0 && (
+            {grouped.length > 0 && (
               <div style={{
                 background: isProfit ? "rgba(126,212,160,0.06)" : "rgba(240,120,120,0.06)",
                 border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.22)" : "rgba(240,120,120,0.22)"}`,
@@ -433,53 +457,61 @@ function GameDashboardPanel({
             )}
 
             {/* 보유 종목 미니 리스트 */}
-            {activeHoldings.length === 0 ? (
+            {grouped.length === 0 ? (
               <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>
                 보유 종목 없음 · 지금 투자해 보세요 🎯
               </p>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {(holdingsExpanded ? activeHoldings : activeHoldings.slice(0, 4)).map((h, i) => {
-                  const up   = h.profitLoss >= 0;
-                  const meta = isKrTicker(h.ticker) ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
-                  return (
-                    <div key={`${h.ticker}-${i}`} className={up ? "flash-green" : "flash-red"}
-                      style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-                        padding: "3px 0" }}>
-                      <span style={{ fontSize: 15, color: "#e8e0d0",
-                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 120 }}>
-                        {meta?.name ?? h.ticker}
-                      </span>
-                      <span style={{ ...NUM_MONO, fontSize: 15, color: up ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
-                        {up ? "+" : ""}{h.profitLoss.toLocaleString()}P
-                      </span>
-                    </div>
-                  );
-                })}
-                {activeHoldings.length > 4 && (
-                  <button
-                    onClick={() => setHoldingsExpanded(v => !v)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 5,
-                      marginTop: 2, padding: "4px 0",
-                      background: "none", border: "none", cursor: "pointer",
-                      color: "#c8bfb0", fontSize: 15,
-                    }}
-                  >
-                    <span style={{
-                      display: "inline-flex", alignItems: "center", justifyContent: "center",
-                      width: 18, height: 18, borderRadius: "50%",
-                      background: "rgba(255,255,255,0.06)",
-                      fontSize: 11,
-                      transition: "transform 0.2s",
-                      transform: holdingsExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                    }}>▼</span>
-                    {holdingsExpanded
-                      ? "접기"
-                      : `전체 확인 (${activeHoldings.length - 4}개 더)`}
-                  </button>
-                )}
-              </div>
+              <>
+                {/* 총 투자 포인트 레이블 */}
+                <div style={{ fontSize: 12, color: "#5c5448", marginBottom: 8 }}>
+                  총 투자 포인트 <span style={{ ...NUM_MONO, color: "#c8bfb0" }}>{totalInvested.toLocaleString()}P</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {(holdingsExpanded ? grouped : grouped.slice(0, 4)).map((h) => {
+                    const up   = h.profitLoss >= 0;
+                    const meta = isKrTicker(h.ticker) ? KR_STOCK_META[h.ticker] : STOCK_META[h.ticker];
+                    return (
+                      <div key={h.ticker} className={up ? "flash-green" : "flash-red"}
+                        style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+                          padding: "3px 0" }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 5, minWidth: 0 }}>
+                          <span style={{ fontSize: 14, color: "#e8e0d0",
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {meta?.name ?? h.ticker}
+                          </span>
+                          <span style={{ ...NUM_MONO, fontSize: 12, color: "#c8bfb0", flexShrink: 0 }}>
+                            {h.invested_points.toLocaleString()}P
+                          </span>
+                        </div>
+                        <span style={{ ...NUM_MONO, fontSize: 14, color: up ? "#7ed4a0" : "#f07878", flexShrink: 0, marginLeft: 8 }}>
+                          {up ? "+" : ""}{h.profitLoss.toLocaleString()}P
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {grouped.length > 4 && (
+                    <button
+                      onClick={() => setHoldingsExpanded(v => !v)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        marginTop: 2, padding: "4px 0",
+                        background: "none", border: "none", cursor: "pointer",
+                        color: "#c8bfb0", fontSize: 14,
+                      }}
+                    >
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: "rgba(255,255,255,0.06)",
+                        fontSize: 11, transition: "transform 0.2s",
+                        transform: holdingsExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                      }}>▼</span>
+                      {holdingsExpanded ? "접기" : `전체 확인 (${grouped.length - 4}개 더)`}
+                    </button>
+                  )}
+                </div>
+              </>
             )}
           </>
         )}

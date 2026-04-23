@@ -506,10 +506,10 @@ export default function StockChartPage() {
           </div>
         ) : (
           /* ── 매도 패널 ── */
-          <div style={{ padding: "16px 16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ padding: "16px 16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
             {holdingsLoading ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[1,2].map((i) => <Skeleton key={i} w="100%" h={72} radius={12} />)}
+                {[1,2].map((i) => <Skeleton key={i} w="100%" h={52} radius={12} />)}
               </div>
             ) : holdingList.length === 0 ? (
               <div style={{ padding: "24px 0", textAlign: "center" }}>
@@ -520,57 +520,109 @@ export default function StockChartPage() {
                 </p>
               </div>
             ) : (
-              holdingList.map((h) => {
-                const isProfit = h.profitLoss >= 0;
-                const pl = h.profitLoss;
-                const plColor = isProfit ? "#7ed4a0" : "#f07878";
-                const rate = h.profitRate ?? 0;
-                return (
-                  <div key={h.id} style={{
-                    background: C.inner, borderRadius: 12, padding: "14px",
-                    border: "0.5px solid rgba(255,255,255,0.07)",
-                  }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                      <div>
-                        <div className="lbl" style={{ color: C.text2, marginBottom: 2 }}>
-                          {new Date(h.buy_at).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} 구매
-                        </div>
-                        <div style={{ ...NUM_MONO, fontSize: 16, color: C.text }}>
-                          {h.invested_points.toLocaleString("ko-KR")}P 투자
-                        </div>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <div className="lbl" style={{ color: C.text2, marginBottom: 2 }}>현재 평가</div>
-                        <div style={{ ...NUM_MONO, fontSize: 16, color: plColor }}>
-                          {h.currentValue.toLocaleString("ko-KR")}P
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span className="lbl" style={{ color: plColor }}>
-                        {isProfit ? "▲" : "▼"} {isProfit ? "+" : ""}{pl.toLocaleString("ko-KR")}P ({rate >= 0 ? "+" : ""}{rate.toFixed(2)}%)
-                      </span>
-                      <button
-                        onClick={() => !marketOpen ? undefined : handleSell(h.id)}
-                        disabled={selling === h.id || !marketOpen}
-                        title={!marketOpen ? closedTooltip : undefined}
-                        style={{
-                          padding: "8px 20px", borderRadius: 10,
-                          background: !marketOpen || selling === h.id
-                            ? "#1e1e1e"
-                            : "rgba(240,120,120,0.15)",
-                          border: `0.5px solid ${!marketOpen ? "rgba(255,255,255,0.06)" : "rgba(240,120,120,0.3)"}`,
-                          color: !marketOpen || selling === h.id ? "#555" : "#f07878",
-                          fontSize: 13, fontWeight: 600,
-                          cursor: !marketOpen || selling === h.id ? "not-allowed" : "pointer",
-                        }}
-                      >
-                        {selling === h.id ? "처리 중..." : !marketOpen ? "휴장 중" : "판매하기"}
-                      </button>
-                    </div>
+              <>
+                {/* 총 보유 포인트 */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span className="lbl" style={{ color: C.text2 }}>총 보유 포인트</span>
+                  <span style={{ ...NUM_MONO, color: C.text }}>{totalHoldingPoints.toLocaleString("ko-KR")}P</span>
+                </div>
+
+                {/* 판매 금액 디스플레이 */}
+                <div style={{
+                  background: C.inner, borderRadius: 12, padding: "14px 16px",
+                  border: "0.5px solid rgba(255,255,255,0.08)",
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                }}>
+                  <span className="lbl" style={{ color: C.text2 }}>판매 금액</span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                    <span style={{ ...NUM_MONO, fontSize: 22, color: sellKeypadAmt > 0 ? C.text : C.text2 }}>
+                      {sellKeypadAmt > 0 ? sellKeypadAmt.toLocaleString("ko-KR") : "0"}
+                    </span>
+                    <span className="lbl" style={{ color: C.text2 }}>P</span>
+                    {sellKeypadAmt > 0 && (
+                      <button onClick={() => setSellKeypadStr("")} style={{
+                        background: "none", border: "none", color: C.text2,
+                        fontSize: 14, cursor: "pointer", marginLeft: 6, padding: 0,
+                      }}>✕</button>
+                    )}
                   </div>
-                );
-              })
+                </div>
+
+                {/* 빠른 입력 버튼 */}
+                <div style={{ display: "flex", gap: 8 }}>
+                  {[100, 500, 1000].map((n) => (
+                    <button key={n} onClick={() => addSellKeypadAmount(n)}
+                      className="quick-btn lbl"
+                      style={{
+                        flex: 1, padding: "9px 0", fontWeight: 500,
+                        borderRadius: 10, cursor: "pointer",
+                        border: "0.5px solid rgba(240,120,120,0.2)",
+                        background: "rgba(240,120,120,0.06)",
+                        color: C.text2,
+                      }}
+                    >+{n.toLocaleString()}P</button>
+                  ))}
+                  <button onClick={() => setSellKeypadStr(String(totalHoldingPoints))}
+                    className="quick-btn lbl"
+                    style={{
+                      flex: 1, padding: "9px 0", fontWeight: 500,
+                      borderRadius: 10, cursor: "pointer",
+                      border: "0.5px solid rgba(240,120,120,0.3)",
+                      background: "rgba(240,120,120,0.12)",
+                      color: "#f07878",
+                    }}
+                  >전체</button>
+                </div>
+
+                {/* 직접 입력 */}
+                <input
+                  type="number"
+                  min={0}
+                  max={totalHoldingPoints}
+                  placeholder="포인트 직접 입력"
+                  value={sellKeypadStr}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value || "0", 10);
+                    setSellKeypadStr(isNaN(v) ? "" : String(Math.min(v, totalHoldingPoints)));
+                  }}
+                  style={{
+                    width: "100%", background: C.inner, border: "0.5px solid rgba(255,255,255,0.08)",
+                    borderRadius: 10, padding: "10px 14px", color: C.text, fontSize: 15,
+                    outline: "none", boxSizing: "border-box",
+                  }}
+                />
+
+                {/* 매도 버튼 */}
+                <button
+                  disabled={sellKeypadAmt < 100 || sellingAmt || !marketOpen}
+                  onClick={() => executeSellAmount(sellKeypadAmt)}
+                  title={!marketOpen ? closedTooltip : undefined}
+                  style={{
+                    width: "100%",
+                    background: !marketOpen
+                      ? "#1e1e1e"
+                      : sellKeypadAmt >= 100 && !sellingAmt ? "rgba(240,120,120,0.85)" : "#1e1e1e",
+                    color: !marketOpen
+                      ? "#555"
+                      : sellKeypadAmt >= 100 && !sellingAmt ? "#fff" : C.text2,
+                    fontSize: 15, fontWeight: 700,
+                    padding: "16px 0", borderRadius: 14,
+                    border: !marketOpen ? "0.5px solid rgba(255,255,255,0.06)" : "none",
+                    cursor: (!marketOpen || sellKeypadAmt < 100 || sellingAmt) ? "not-allowed" : "pointer",
+                    transition: "background 0.15s, color 0.15s",
+                  }}
+                >
+                  {!marketOpen
+                    ? "지금은 휴장 시간이에요 🌙"
+                    : sellingAmt ? "처리 중..."
+                    : sellKeypadAmt < 100 ? "100P 이상 입력해 주세요"
+                    : `${sellKeypadAmt.toLocaleString("ko-KR")}P 판매하기`}
+                </button>
+
+                <p className="lbl" style={{ color: C.text2, textAlign: "center", margin: 0 }}>
+                  가상 투자 참고용 · 실제 거래 아님
+                </p>
+              </>
             )}
           </div>
         )}
