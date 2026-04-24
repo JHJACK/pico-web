@@ -1172,7 +1172,7 @@ export default function Home() {
                     {userRow.nickname[0]?.toUpperCase() ?? "?"}
                   </div>
                 )}
-                <span className="hidden sm:inline" style={{ fontSize: 13, fontWeight: 500, color: "#e8e0d0", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginLeft: 8 }}>{userRow.nickname}</span>
+                <span className="hidden sm:inline text-[13px] md:text-[16px]" style={{ fontWeight: 500, color: "#e8e0d0", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginLeft: 8 }}>{userRow.nickname}</span>
               </button>
             </div>
           ) : (
@@ -2066,14 +2066,6 @@ export default function Home() {
           );
         })()}
 
-        {/* ── 서비스 소개 배너 ── */}
-        <div className="rounded-2xl px-6 py-5 border mb-4" style={{ background: "rgba(250,202,62,0.05)", borderColor: "rgba(250,202,62,0.18)" }}>
-          <p style={{ fontSize: 16, color: "#e8e0d0", lineHeight: 1.75, marginBottom: 4, fontWeight: 300 }}>
-            PICO는 투자 공부 앱이 아니야.<br />
-            <strong style={{ color: "#FACA3E", fontWeight: 500 }}>결정을 도와주는 파트너야. 🤝</strong>
-          </p>
-          <p style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>주식 입문자를 위한 넛지형 투자 가이드</p>
-        </div>
       </main>
 
       {/* ════════ 오늘의 선택 팝업 (로그인 유저 첫 접속) ════════ */}
