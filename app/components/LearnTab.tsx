@@ -49,7 +49,7 @@ function HomeView({
   const progressPct = Math.round((collectedCount / TOTAL_CARDS) * 100);
 
   return (
-    <div style={{ maxWidth: 700, margin: "0 auto", padding: "14px clamp(16px,4vw,24px) 56px" }}>
+    <div style={{ maxWidth: 700, margin: "0 auto", padding: "6px clamp(16px,4vw,24px) 56px" }}>
       {/* 전체 수집 현황 */}
       <div style={{ background: C.card, borderRadius: 20, padding: "22px 22px 18px", border: `0.5px solid ${C.border}`, marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 14 }}>
@@ -173,7 +173,7 @@ function CategoryView({
 
   return (
     <>
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: "14px clamp(16px,4vw,24px) 56px" }}>
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: "6px clamp(16px,4vw,24px) 56px" }}>
         {/* 뒤로 + 진행 바 */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <button onClick={onBack} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", flexShrink: 0 }}>

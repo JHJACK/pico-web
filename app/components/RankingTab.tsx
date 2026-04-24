@@ -182,7 +182,7 @@ export default function RankingTab() {
     <div style={{ color: "#e8e0d0", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px 80px" }}>
 
-        <div style={{ padding: "14px 0 16px", textAlign: "center" }}>
+        <div style={{ padding: "6px 0 16px", textAlign: "center" }}>
           <p style={{ fontSize: 13, color: "#c8bfb0", marginBottom: 6, ...NUM }}>{weekLabel}</p>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: "#e8e0d0", margin: 0, fontFamily: "var(--font-paperlogy)" }}>이번 주 투자의 신 🏆</h1>
           <p style={{ fontSize: 12, color: "#c8bfb0", marginTop: 6, letterSpacing: "0.04em" }}>투자 수익률로 결정되는 진짜 실력 대결</p>
