@@ -42,10 +42,12 @@ function OptInModal({ onConfirm, onDismiss, loading }: {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-5"
       style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+      onClick={onDismiss}
     >
       <div
         className="w-full max-w-sm rounded-3xl p-7 border"
         style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)" }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* 아이콘 */}
         <div
@@ -289,8 +291,9 @@ export default function ReportListPage() {
   useEffect(() => {
     if (!user || !userRow) return;
 
-    // 옵트인 상태 확인
-    const opted = (userRow as { report_opted_in?: boolean }).report_opted_in ?? false;
+    // 옵트인 상태 확인 (sessionStorage 캐시 우선 → stale userRow 보정)
+    const cached = typeof window !== "undefined" && sessionStorage.getItem("pico_report_opted_in") === "true";
+    const opted  = cached || ((userRow as { report_opted_in?: boolean }).report_opted_in ?? false);
     setOptedIn(opted);
     if (!opted) {
       setShowModal(true);
@@ -343,6 +346,8 @@ export default function ReportListPage() {
       method: "POST",
       headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
     });
+    // 뒤로가기 후 userRow가 stale해도 팝업이 재출현하지 않도록 캐시
+    if (typeof window !== "undefined") sessionStorage.setItem("pico_report_opted_in", "true");
     setOptedIn(true);
     setShowModal(false);
     setOptInLoading(false);

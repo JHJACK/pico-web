@@ -186,6 +186,7 @@ export default function ReportDetailPage() {
   const [report, setReport]        = useState<{ content: ReportContent } | null>(null);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [notFound, setNotFound]    = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   const market = params.market as "kr" | "us";
   const week   = params.week;
@@ -207,6 +208,23 @@ export default function ReportDetailPage() {
       setFetchLoading(false);
     })();
   }, [user, week, market]);
+
+  async function handleRegenerate() {
+    if (!user || regenerating) return;
+    setRegenerating(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    await fetch("/api/insights/report/generate", {
+      method:  "POST",
+      headers: { Authorization: `Bearer ${session?.access_token ?? ""}`, "Content-Type": "application/json" },
+      body:    JSON.stringify({ market }),
+    });
+    const res  = await fetch(`/api/insights/report?week=${week}&market=${market}`, {
+      headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+    });
+    const json = await res.json();
+    if (json.report) setReport(json.report);
+    setRegenerating(false);
+  }
 
   if (loading || !user) return null;
 
@@ -366,12 +384,40 @@ export default function ReportDetailPage() {
             </div>
 
             {/* ── AI 분석 ── */}
-            {c.aiNarrative && (
+            {c.aiNarrative ? (
               <Section title="AI 분석">
                 <p style={{ fontSize: 15, color: "#c8bfb0", lineHeight: 1.8 }}>
                   <RichText text={c.aiNarrative} />
                 </p>
               </Section>
+            ) : (
+              <div
+                className="rounded-2xl p-5 mb-3 flex flex-col gap-3"
+                style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.07)" }}
+              >
+                <p style={{ fontSize: 13, fontWeight: 600, color: "#c8bfb0", letterSpacing: "0.06em" }}>AI 분석</p>
+                <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.7 }}>
+                  아직 AI 분석이 없어요.<br />지금 바로 생성할 수 있어요.
+                </p>
+                <button
+                  onClick={handleRegenerate}
+                  disabled={regenerating}
+                  className="rounded-xl py-3"
+                  style={{
+                    background:  regenerating ? "rgba(250,202,62,0.5)" : "#FACA3E",
+                    color:       "#0d0d0d",
+                    fontSize:    14,
+                    fontWeight:  600,
+                  }}
+                >
+                  {regenerating ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span style={{ width: 12, height: 12, border: "2px solid rgba(0,0,0,0.3)", borderTop: "2px solid #0d0d0d", borderRadius: "50%", display: "inline-block", animation: "spin 0.8s linear infinite" }} />
+                      AI 분석 중... (30초 내외)
+                    </span>
+                  ) : "AI 분석 생성하기 →"}
+                </button>
+              </div>
             )}
 
             {/* ── 종목별 타임라인 ── */}
@@ -398,7 +444,7 @@ export default function ReportDetailPage() {
             )}
 
             {/* ── 이번 주 패턴 ── */}
-            {c.behavior.tags.length > 0 && (
+            {(c.behavior?.tags?.length ?? 0) > 0 && (
               <Section title="이번 주 패턴">
                 <div className="flex flex-col gap-2">
                   {c.behavior.tags.map((tag, i) => (
@@ -414,7 +460,7 @@ export default function ReportDetailPage() {
             )}
 
             {/* ── DNA 코멘트 ── */}
-            {c.dna.commentary && (
+            {c.dna?.commentary && (
               <Section title={`${c.dna.emoji || "🧬"} ${c.dna.type ? "투자 DNA" : "DNA 분석"}`}>
                 <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.7 }}>
                   <RichText text={c.dna.commentary} />
