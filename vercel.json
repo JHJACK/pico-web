@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/insights/report/generate-batch?market=kr",
+      "schedule": "0 8 * * 5"
+    },
+    {
+      "path": "/api/insights/report/generate-batch?market=us",
+      "schedule": "0 3 * * 6"
+    }
+  ]
+}

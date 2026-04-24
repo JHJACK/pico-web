@@ -276,6 +276,21 @@ export default function MyPage() {
           </button>
         </div>
 
+        {/* ── AI 주간 리포트 카드 ── */}
+        <button
+          className="pico-btn border w-full mb-[10px]"
+          style={{ background: "#141414", borderColor: "rgba(126,180,247,0.25)", borderRadius: 16, padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, textAlign: "left" }}
+          onClick={() => router.push("/mypage/report")}
+        >
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: FS.cardLabel, fontWeight: 500, color: "#7eb8f7", marginBottom: 4 }}>매주 금·토 발송</p>
+            <p style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>AI 주간 리포트 📊</p>
+          </div>
+          <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
+          </div>
+        </button>
+
         {/* ── 퀘스트 카드 ── */}
         <button
           className="pico-btn border w-full mb-[10px]"
