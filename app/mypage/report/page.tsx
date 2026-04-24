@@ -118,7 +118,7 @@ function OptInModal({ onConfirm, onDismiss, loading }: {
             fontWeight: 600,
           }}
         >
-          {loading ? "등록 중..." : "받아보기 시작하기 →"}
+          {loading ? "등록 중..." : "받아보기 시작하기"}
         </button>
         <button
           onClick={onDismiss}
@@ -175,7 +175,7 @@ function WaitingState({ onGenerate, generating }: {
             />
             AI 분석 중... (30초 내외)
           </span>
-        ) : "이번 주 리포트 지금 받아보기 →"}
+        ) : "이번 주 리포트 지금 받아보기"}
       </button>
 
       <button
@@ -266,7 +266,7 @@ function ReportCard({ report }: { report: ReportMeta }) {
 
       {/* 화살표 */}
       <div className="flex justify-end mt-3">
-        <span style={{ fontSize: 13, color: "#FACA3E" }}>리포트 보기 →</span>
+        <span style={{ fontSize: 13, color: "#FACA3E" }}>리포트 보기</span>
       </div>
     </button>
   );
