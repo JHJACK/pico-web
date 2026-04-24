@@ -15,6 +15,24 @@ const C = {
   green: "#7ed4a0", red: "#f07878", border: "rgba(255,255,255,0.07)",
 } as const;
 
+function renderText(text: string) {
+  const tokens = text.split(/(\*\*[^*]+\*\*|==[^=]+==|\n)/);
+  return tokens.map((token, i) => {
+    if (token.startsWith("**") && token.endsWith("**") && token.length > 4) {
+      return <strong key={i} style={{ fontWeight: 700, color: "inherit" }}>{token.slice(2, -2)}</strong>;
+    }
+    if (token.startsWith("==") && token.endsWith("==") && token.length > 4) {
+      return (
+        <mark key={i} style={{ background: "rgba(250,202,62,0.22)", color: "inherit", borderRadius: "3px", padding: "1px 4px", fontWeight: 500 } as React.CSSProperties}>
+          {token.slice(2, -2)}
+        </mark>
+      );
+    }
+    if (token === "\n") return <br key={i} />;
+    return <span key={i}>{token}</span>;
+  });
+}
+
 type FilterType = "all" | "collected" | "uncollected";
 const CATEGORY_ORDER: CardCategory[] = ["beginner", "intermediate", "advanced", "tax"];
 
@@ -209,8 +227,8 @@ function CategoryView({
 
       {/* ── 플립 카드 모달 ── */}
       {activeCard && (
-        <div onClick={closeModal} style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", animation: "overlayIn 0.2s ease" }}>
-          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 360, animation: "cardIn 0.25s cubic-bezier(0.34,1.56,0.64,1)" }}>
+        <div onClick={closeModal} style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(8px)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "64px 16px 24px", animation: "overlayIn 0.2s ease" }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 380, animation: "cardIn 0.25s cubic-bezier(0.34,1.56,0.64,1)" }}>
             <div style={{ perspective: "1200px" }}>
               <div style={{ transition: "transform 0.55s cubic-bezier(0.4,0,0.2,1)", transformStyle: "preserve-3d", position: "relative", transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}>
 
@@ -235,8 +253,8 @@ function CategoryView({
                 <div style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", top: 0, left: 0, right: 0, background: C.card, borderRadius: 24, border: `0.5px solid rgba(168,144,240,0.2)`, padding: "24px 20px", minHeight: 320, overflowY: "auto", maxHeight: "80vh" }}>
                   <div style={{ background: C.inner, borderRadius: 14, padding: "16px", marginBottom: 16 }}>
                     <p style={{ fontSize: 11, color: C.text2, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>쉽게 말하면?</p>
-                    <p style={{ fontSize: 14, color: C.text, lineHeight: 1.7, margin: 0 }}>{activeCard.description}</p>
-                    {activeCard.tip && <p style={{ fontSize: 12, color: C.gold, marginTop: 10, paddingTop: 10, borderTop: "0.5px solid rgba(255,255,255,0.06)", lineHeight: 1.6, margin: "10px 0 0" }}>💡 {activeCard.tip}</p>}
+                    <p style={{ fontSize: 14, color: C.text, lineHeight: 1.8, margin: 0 }}>{renderText(activeCard.description)}</p>
+                    {activeCard.tip && <p style={{ fontSize: 12, color: C.gold, marginTop: 10, paddingTop: 10, borderTop: "0.5px solid rgba(255,255,255,0.06)", lineHeight: 1.7, margin: "10px 0 0" }}>💡 {renderText(activeCard.tip)}</p>}
                   </div>
 
                   <div>
@@ -266,7 +284,7 @@ function CategoryView({
                       <div>
                         <div style={{ padding: "12px 14px", borderRadius: 12, marginBottom: 10, background: correct ? "rgba(126,212,160,0.1)" : "rgba(240,120,120,0.1)", border: `0.5px solid ${correct ? C.green : C.red}` }}>
                           <p style={{ fontSize: 13, fontWeight: 600, color: correct ? C.green : C.red, marginBottom: 4 }}>{correct ? "🎉 정답이에요!" : "🤔 아쉬워요, 다시 도전해봐요"}</p>
-                          <p style={{ fontSize: 12, color: C.text2, margin: 0, lineHeight: 1.5 }}>{correct ? activeCard.quiz.explanation : (activeCard.quiz.hint ?? activeCard.quiz.explanation)}</p>
+                          <p style={{ fontSize: 12, color: C.text2, margin: 0, lineHeight: 1.7 }}>{renderText(correct ? activeCard.quiz.explanation : (activeCard.quiz.hint ?? activeCard.quiz.explanation))}</p>
                         </div>
                         {justCollected && (
                           <div style={{ padding: "10px 14px", borderRadius: 12, marginBottom: 10, background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.3)", display: "flex", alignItems: "center", gap: 8 }}>
