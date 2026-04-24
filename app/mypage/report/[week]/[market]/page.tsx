@@ -322,7 +322,7 @@ export default function ReportDetailPage() {
                         <span style={{ width: 10, height: 10, border: "2px solid rgba(0,0,0,0.3)", borderTop: "2px solid #0d0d0d", borderRadius: "50%", display: "inline-block", animation: "spin 0.8s linear infinite" }} />
                         분석 중...
                       </span>
-                    ) : "AI 분석 받기 →"}
+                    ) : "AI 분석 받기"}
                   </button>
                 )}
               </div>
