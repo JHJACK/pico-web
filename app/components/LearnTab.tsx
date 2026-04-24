@@ -266,7 +266,7 @@ function CategoryView({
                       <div>
                         <div style={{ padding: "12px 14px", borderRadius: 12, marginBottom: 10, background: correct ? "rgba(126,212,160,0.1)" : "rgba(240,120,120,0.1)", border: `0.5px solid ${correct ? C.green : C.red}` }}>
                           <p style={{ fontSize: 13, fontWeight: 600, color: correct ? C.green : C.red, marginBottom: 4 }}>{correct ? "🎉 정답이에요!" : "🤔 아쉬워요, 다시 도전해봐요"}</p>
-                          <p style={{ fontSize: 12, color: C.text2, margin: 0, lineHeight: 1.5 }}>{activeCard.quiz.explanation}</p>
+                          <p style={{ fontSize: 12, color: C.text2, margin: 0, lineHeight: 1.5 }}>{correct ? activeCard.quiz.explanation : (activeCard.quiz.hint ?? activeCard.quiz.explanation)}</p>
                         </div>
                         {justCollected && (
                           <div style={{ padding: "10px 14px", borderRadius: 12, marginBottom: 10, background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.3)", display: "flex", alignItems: "center", gap: 8 }}>
