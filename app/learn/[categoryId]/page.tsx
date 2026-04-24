@@ -137,22 +137,7 @@ export default function CategoryPage() {
         .filter-btn { transition: background 0.12s, color 0.12s; }
       `}</style>
 
-      {/* 헤더 */}
-      <nav style={{
-        position: "sticky", top: 0, zIndex: 30, height: 56,
-        background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)",
-        borderBottom: `0.5px solid ${C.border}`,
-        display: "flex", alignItems: "center", padding: "0 20px", gap: 12,
-      }}>
-        <Link href="/learn" style={{ fontSize: 14, color: C.text2, textDecoration: "none" }}>{"<"} 도감</Link>
-        <span style={{ fontSize: 16 }}>{info.emoji}</span>
-        <span style={{ fontSize: 16, fontWeight: 600, color: C.text }}>{info.label}</span>
-        <span style={{ fontSize: 12, color: C.text2, marginLeft: "auto", fontFamily: "var(--font-inter)" }}>
-          {doneCount}/{cards.length}
-        </span>
-      </nav>
-
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 56px" }}>
+<div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 56px" }}>
 
         {/* 진행 바 */}
         <div style={{ marginBottom: 20 }}>

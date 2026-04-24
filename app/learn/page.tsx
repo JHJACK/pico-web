@@ -53,21 +53,7 @@ export default function LearnPage() {
         .today-glow { box-shadow: 0 0 30px rgba(250,202,62,0.08); }
       `}</style>
 
-      {/* 헤더 */}
-      <nav style={{
-        position: "sticky", top: 0, zIndex: 30, height: 56,
-        background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)",
-        borderBottom: `0.5px solid ${C.border}`,
-        display: "flex", alignItems: "center", padding: "0 20px", gap: 14,
-      }}>
-        <button onClick={() => router.back()} style={{ background: "none", border: "none", color: C.text2, fontSize: 14, cursor: "pointer", padding: 0 }}>{"<"} 뒤로</button>
-        <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: C.gold }}>도감</span>
-        <span style={{ fontSize: 12, color: C.text2, marginLeft: "auto" }}>
-          투자 용어 수집소
-        </span>
-      </nav>
-
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: "24px clamp(16px,4vw,24px) 56px" }}>
+<div style={{ maxWidth: 700, margin: "0 auto", padding: "24px clamp(16px,4vw,24px) 56px" }}>
 
         {/* 전체 수집 현황 */}
         <div className="fade-up" style={{

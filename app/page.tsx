@@ -10,12 +10,14 @@ import { supabase, getTodayVote, submitVoteAndAttendance, getTodayVoteCounts, ge
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
 import { isKrMarketOpen, isUSMarketOpen } from "@/app/lib/marketStatus";
+import RankingTab from "@/app/components/RankingTab";
+import LearnTab from "@/app/components/LearnTab";
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
 // ═══════════════════════════════════════════════
 type ModalType = "login" | "vs_battle" | null;
-type MainTab   = "event" | "play";
+type MainTab   = "event" | "play" | "ranking" | "learn";
 
 const ANIMAL_NAMES: Record<string, { emoji: string; modifier: string; name: string }> = {
   tiger:     { emoji: "🐯", modifier: "공격적 개척자",   name: "호랑이"   },
@@ -865,7 +867,8 @@ export default function Home() {
   function switchTab(tab: MainTab) {
     setPrevTab(mainTab);
     setMainTab(tab);
-    router.replace(tab === "play" ? "/?tab=play" : "/");
+    if (tab === "play") router.replace("/?tab=play");
+    else if (tab === "event") router.replace("/");
   }
   const tabAnim = mainTab === "play"
     ? (prevTab === "event" ? "tab-enter" : "tab-enter-left")
@@ -1143,34 +1146,23 @@ export default function Home() {
           </Link>
 
           <div className="hidden sm:flex items-center gap-10">
-            {(["event","play"] as MainTab[]).map((tab) => (
+            {(["event","play","ranking","learn"] as MainTab[]).map((tab) => (
               <button key={tab} onClick={() => switchTab(tab)} className="pico-btn relative py-2"
-                style={{ fontSize: 14, fontWeight: mainTab === tab ? 600 : 400, color: mainTab === tab ? "#e8e0d0" : "#3a3530", background: "none", border: "none", transition: "color 0.15s" }}>
-                {tab === "event" ? "이벤트" : "PICO Play"}
+                style={{
+                  fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
+                  fontSize: mainTab === tab ? 17 : 16,
+                  fontWeight: mainTab === tab ? 600 : 500,
+                  color: mainTab === tab ? "#FACA3E" : "#e8e0d0",
+                  background: "none", border: "none", cursor: "pointer", transition: "color 0.15s, font-size 0.1s",
+                }}>
+                {tab === "event" ? "이벤트" : tab === "play" ? "PICO Play" : tab === "ranking" ? "🏆 랭킹" : "📚 도감"}
               </button>
             ))}
-            <Link href="/ranking" style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", textDecoration: "none", transition: "color 0.15s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#e8e0d0")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#c8bfb0")}>
-              🏆 랭킹
-            </Link>
-            <Link href="/learn" style={{ fontSize: 14, fontWeight: 400, color: "#c8bfb0", textDecoration: "none", transition: "color 0.15s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#e8e0d0")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#c8bfb0")}>
-              📚 도감
-            </Link>
           </div>
 
           {user && userRow ? (
-            /* ── 로그인 후: 검색(모바일) + 프로필 ── */
+            /* ── 로그인 후: 프로필 ── */
             <div className="flex items-center gap-2">
-              <button className="sm:hidden pico-btn" onClick={() => setMobileSearchOpen(true)}
-                style={{ background: "none", border: "none", padding: "6px", color: "#c8bfb0", display: "flex", alignItems: "center" }}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
-                  <path d="M13.5 13.5L17 17" stroke="#c8bfb0" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              </button>
               <button onClick={() => router.push("/mypage")} className="pico-btn flex items-center"
                 style={{ background: "none", border: "none", padding: "4px 0" }}>
                 {userRow.avatar_url ? (
@@ -1184,15 +1176,8 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            /* ── 비로그인: 검색(모바일) + 로그인/회원가입 ── */
+            /* ── 비로그인: 로그인/회원가입 ── */
             <div className="flex items-center gap-2">
-              <button className="sm:hidden pico-btn" onClick={() => setMobileSearchOpen(true)}
-                style={{ background: "none", border: "none", padding: "6px", color: "#c8bfb0", display: "flex", alignItems: "center" }}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <circle cx="9" cy="9" r="6" stroke="#c8bfb0" strokeWidth="1.6"/>
-                  <path d="M13.5 13.5L17 17" stroke="#c8bfb0" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              </button>
               <button onClick={() => openLogin()} className="pico-btn px-4 py-2 rounded-lg"
                 style={{ fontSize: 13, fontWeight: 500, color: "#a09688", border: "0.5px solid rgba(255,255,255,0.1)", background: "transparent" }}>
                 로그인
@@ -1208,20 +1193,18 @@ export default function Home() {
 
       {/* 모바일 탭 */}
       <div className="sm:hidden flex border-b sticky z-20" style={{ top: 64, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(16px)", borderColor: "rgba(255,255,255,0.06)" }}>
-        {(["event","play"] as MainTab[]).map((tab) => (
+        {(["event","play","ranking","learn"] as MainTab[]).map((tab) => (
           <button key={tab} onClick={() => switchTab(tab)} className="flex-1 py-3 relative pico-btn"
-            style={{ fontSize: 14, fontWeight: mainTab === tab ? 600 : 400, color: mainTab === tab ? "#e8e0d0" : "#3a3530", background: "none", border: "none" }}>
-            {tab === "event" ? "이벤트" : "PICO Play"}
+            style={{
+              fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
+              fontSize: mainTab === tab ? 14 : 13,
+              fontWeight: mainTab === tab ? 600 : 500,
+              color: mainTab === tab ? "#FACA3E" : "#e8e0d0",
+              background: "none", border: "none", cursor: "pointer",
+            }}>
+            {tab === "event" ? "이벤트" : tab === "play" ? "PICO Play" : tab === "ranking" ? "🏆 랭킹" : "📚 도감"}
           </button>
         ))}
-        <Link href="/ranking" className="flex-1 py-3 flex items-center justify-center"
-          style={{ fontSize: 14, color: "#c8bfb0", textDecoration: "none" }}>
-          🏆 랭킹
-        </Link>
-        <Link href="/learn" className="flex-1 py-3 flex items-center justify-center"
-          style={{ fontSize: 14, color: "#c8bfb0", textDecoration: "none" }}>
-          📚 도감
-        </Link>
       </div>
 
       {/* ══════════ 히어로 (이벤트 탭 전용) ══════════ */}
@@ -2514,6 +2497,12 @@ export default function Home() {
           </>
         );
       })()}
+
+      {/* ════ 랭킹 탭 ════ */}
+      {mainTab === "ranking" && <RankingTab />}
+
+      {/* ════ 도감 탭 ════ */}
+      {mainTab === "learn" && <LearnTab />}
     </div>
   );
 }
