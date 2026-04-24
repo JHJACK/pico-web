@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase, todayKST } from "@/app/lib/supabase";
+import { BackIcon } from "@/app/components/BackIcon";
 
 // ─── 색상 ────────────────────────────────────────────────────────────────────
 const C = {
@@ -174,7 +175,7 @@ export default function QuestsPage() {
         borderBottom: `0.5px solid ${C.border}`,
         display: "flex", alignItems: "center", padding: "0 20px", gap: 14,
       }}>
-        <Link href="/mypage" style={{ fontSize: 14, color: C.text2, textDecoration: "none" }}>{"<"} 내 정보</Link>
+        <Link href="/mypage" style={{ textDecoration: "none" }}><BackIcon /></Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: C.gold }}>퀘스트</span>
       </nav>
 

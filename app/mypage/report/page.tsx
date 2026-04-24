@@ -5,6 +5,7 @@ import { useRouter }           from "next/navigation";
 import Link                    from "next/link";
 import { useAuth }             from "@/app/lib/authContext";
 import { supabase }            from "@/app/lib/supabase";
+import { BackIcon }            from "@/app/components/BackIcon";
 
 type ReportMeta = {
   id:           string;
@@ -384,7 +385,7 @@ export default function ReportListPage() {
         className="sticky top-0 z-30 border-b flex items-center px-6"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
-        <Link href="/mypage" style={{ fontSize: 13, color: "#c8bfb0", textDecoration: "none" }}>{"<"} 내 정보</Link>
+        <Link href="/mypage" style={{ textDecoration: "none" }}><BackIcon /></Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 

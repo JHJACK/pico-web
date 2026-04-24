@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase, uploadAvatar } from "@/app/lib/supabase";
 import { INVESTOR_TYPES, type TypeKey } from "@/app/lib/quizTypes";
+import { BackIcon } from "@/app/components/BackIcon";
 
 
 export default function MyPage() {
@@ -129,7 +130,7 @@ export default function MyPage() {
         className="sticky top-0 z-30 border-b flex items-center px-6"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
-        <Link href="/" style={{ fontSize: 13, color: "#c8bfb0", textDecoration: "none" }}>{"<"} 홈</Link>
+        <Link href="/" style={{ textDecoration: "none" }}><BackIcon /></Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 

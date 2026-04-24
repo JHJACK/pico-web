@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES, TYPE_KEYS, type TypeKey } from "@/app/lib/quizTypes";
+import { BackIcon } from "@/app/components/BackIcon";
 
 export default function DnaPage() {
   const router = useRouter();
@@ -41,8 +42,8 @@ export default function DnaPage() {
     <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <nav className="sticky top-0 z-30 border-b flex items-center px-5"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
-        <button onClick={() => router.back()} className="pico-btn" style={{ background: "none", border: "none", fontSize: 13, color: "#c8bfb0", cursor: "pointer" }}>
-          {"<"} 내 정보
+        <button onClick={() => router.back()} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+          <BackIcon />
         </button>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
         <button onClick={share} className="pico-btn ml-auto px-4 py-2 rounded-xl"

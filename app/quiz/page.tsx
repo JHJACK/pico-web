@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
+import { BackIcon } from "@/app/components/BackIcon";
 import { supabase, saveQuizResult } from "@/app/lib/supabase";
 import {
   QUESTIONS, INVESTOR_TYPES, calcInvestorType,
@@ -190,7 +191,7 @@ export default function QuizPage() {
       {/* 네비게이션 */}
       <nav className="sticky top-0 z-50 flex items-center px-5 border-b"
         style={{ height: 50, background: "rgba(13,13,13,0.95)", backdropFilter: "blur(16px)", borderColor: "rgba(255,255,255,0.06)" }}>
-        <Link href="/" style={{ color: "#c8bfb0", fontSize: 13, textDecoration: "none" }}>{"<"} 홈</Link>
+        <Link href="/" style={{ textDecoration: "none" }}><BackIcon /></Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 16, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
         {step >= 1 && step <= TOTAL && (
           <span style={{ fontFamily: "var(--font-inter)", fontSize: 11, color: "#c8bfb0", marginLeft: "auto" }}>{step} / {TOTAL}</span>

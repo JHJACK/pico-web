@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { supabase, getTomorrowStock, getStockForDate, type BattleVoteRow } from "@/app/lib/supabase";
+import { BackIcon } from "@/app/components/BackIcon";
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
@@ -51,9 +52,7 @@ export default function BattlesPage() {
           borderColor: "rgba(255,255,255,0.06)",
         }}
       >
-        <Link href="/mypage" style={{ fontSize: 13, color: "#c8bfb0", textDecoration: "none" }}>
-          {"<"} 내 정보
-        </Link>
+        <Link href="/mypage" style={{ textDecoration: "none" }}><BackIcon /></Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>
           PICO
         </span>

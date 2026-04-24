@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/app/lib/authContext";
 import { getLearnCollection, collectLearnCard } from "@/app/lib/supabase";
+import { BackIcon } from "@/app/components/BackIcon";
 import {
   LEARN_CARDS, CATEGORY_INFO, RARITY_INFO,
   TOTAL_CARDS, getTodayCard, getCardsByCategory,
@@ -175,8 +176,8 @@ function CategoryView({
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 56px" }}>
         {/* 뒤로 + 진행 바 */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <button onClick={onBack} style={{ background: "none", border: "none", color: C.text2, fontSize: 14, cursor: "pointer", padding: 0, flexShrink: 0 }}>
-            ← 도감 홈
+          <button onClick={onBack} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", flexShrink: 0 }}>
+            <BackIcon size={18} />
           </button>
           <span style={{ fontSize: 16 }}>{info.emoji}</span>
           <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{info.label}</span>

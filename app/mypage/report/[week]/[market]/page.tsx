@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link                     from "next/link";
 import { useAuth }              from "@/app/lib/authContext";
 import { supabase }             from "@/app/lib/supabase";
+import { BackIcon }             from "@/app/components/BackIcon";
 import type { ReportContent }   from "@/app/lib/gemini";
 
 const MARKET_LABEL = { kr: "한국 주식", us: "해외 주식" };
@@ -247,7 +248,7 @@ export default function ReportDetailPage() {
         className="sticky top-0 z-30 border-b flex items-center px-6"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
-        <Link href="/mypage/report" style={{ fontSize: 13, color: "#c8bfb0", textDecoration: "none" }}>{"<"} 리포트 목록</Link>
+        <Link href="/mypage/report" style={{ textDecoration: "none" }}><BackIcon /></Link>
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 
@@ -287,7 +288,7 @@ export default function ReportDetailPage() {
           <>
             {/* ── 헤더 ── */}
             <div className="mb-5">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-2">
                 <span
                   className="rounded-full px-2.5 py-1"
                   style={{ fontSize: 11, fontWeight: 600, color: "#0d0d0d", background: MARKET_COLOR[market] }}
@@ -295,10 +296,36 @@ export default function ReportDetailPage() {
                   {MARKET_LABEL[market]}
                 </span>
               </div>
-              <h1 style={{ fontSize: 20, fontWeight: 600, color: "#e8e0d0", marginBottom: 2 }}>
-                AI 주간 리포트
-              </h1>
-              <p style={{ fontSize: 13, color: "#c8bfb0" }}>{c.weekLabel}</p>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h1 style={{ fontSize: 20, fontWeight: 600, color: "#e8e0d0", marginBottom: 2 }}>
+                    AI 주간 리포트
+                  </h1>
+                  <p style={{ fontSize: 13, color: "#c8bfb0" }}>{c.weekLabel}</p>
+                </div>
+                {!c.aiNarrative && (
+                  <button
+                    onClick={handleRegenerate}
+                    disabled={regenerating}
+                    className="rounded-xl px-3 py-2 flex-shrink-0"
+                    style={{
+                      background: regenerating ? "rgba(250,202,62,0.4)" : "#FACA3E",
+                      color: "#0d0d0d",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      border: "none",
+                      cursor: regenerating ? "default" : "pointer",
+                    }}
+                  >
+                    {regenerating ? (
+                      <span className="flex items-center gap-1.5">
+                        <span style={{ width: 10, height: 10, border: "2px solid rgba(0,0,0,0.3)", borderTop: "2px solid #0d0d0d", borderRadius: "50%", display: "inline-block", animation: "spin 0.8s linear infinite" }} />
+                        분석 중...
+                      </span>
+                    ) : "AI 분석 받기 →"}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* ── 요약 카드 ── */}
@@ -384,40 +411,12 @@ export default function ReportDetailPage() {
             </div>
 
             {/* ── AI 분석 ── */}
-            {c.aiNarrative ? (
+            {c.aiNarrative && (
               <Section title="AI 분석">
                 <p style={{ fontSize: 15, color: "#c8bfb0", lineHeight: 1.8 }}>
                   <RichText text={c.aiNarrative} />
                 </p>
               </Section>
-            ) : (
-              <div
-                className="rounded-2xl p-5 mb-3 flex flex-col gap-3"
-                style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.07)" }}
-              >
-                <p style={{ fontSize: 13, fontWeight: 600, color: "#c8bfb0", letterSpacing: "0.06em" }}>AI 분석</p>
-                <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.7 }}>
-                  아직 AI 분석이 없어요.<br />지금 바로 생성할 수 있어요.
-                </p>
-                <button
-                  onClick={handleRegenerate}
-                  disabled={regenerating}
-                  className="rounded-xl py-3"
-                  style={{
-                    background:  regenerating ? "rgba(250,202,62,0.5)" : "#FACA3E",
-                    color:       "#0d0d0d",
-                    fontSize:    14,
-                    fontWeight:  600,
-                  }}
-                >
-                  {regenerating ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span style={{ width: 12, height: 12, border: "2px solid rgba(0,0,0,0.3)", borderTop: "2px solid #0d0d0d", borderRadius: "50%", display: "inline-block", animation: "spin 0.8s linear infinite" }} />
-                      AI 분석 중... (30초 내외)
-                    </span>
-                  ) : "AI 분석 생성하기 →"}
-                </button>
-              </div>
             )}
 
             {/* ── 종목별 타임라인 ── */}
