@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
+import AuthGuard from "@/app/components/AuthGuard";
 import { getLearnCollection } from "@/app/lib/supabase";
 import {
   LEARN_CARDS,
@@ -45,6 +46,7 @@ export default function LearnPage() {
   const progressPct = Math.round((collectedCount / TOTAL_CARDS) * 100);
 
   return (
+    <AuthGuard>
     <main style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
@@ -190,5 +192,6 @@ export default function LearnPage() {
         </div>
       </div>
     </main>
+    </AuthGuard>
   );
 }

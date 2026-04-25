@@ -607,7 +607,7 @@ function GameDashboardPanel({
 // ═══════════════════════════════════════════════
 export default function Home() {
   const router = useRouter();
-  const { user, userRow, refreshUserRow } = useAuth();
+  const { user, userRow, loading, refreshUserRow } = useAuth();
 
   const [quizDone,   setQuizDone]   = useState(false);
   const [battleDone, setBattleDone] = useState(false);
@@ -653,9 +653,14 @@ export default function Home() {
   const [prevTab, setPrevTab] = useState<MainTab>("event");
 
   // URL ?tab=play 로 복원 (stock 상세에서 뒤로가기 시)
+  // URL ?openLogin=1 로 로그인 모달 자동 오픈 (비로그인 상태로 보호된 페이지 접근 시)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("tab") === "play") setMainTab("play");
+    if (params.get("openLogin") === "1") {
+      openLogin();
+      router.replace("/");
+    }
   }, []);
 
   const [justVoted,      setJustVoted]      = useState<"UP"|"DOWN"|null>(null);
@@ -860,6 +865,7 @@ export default function Home() {
   }, [user, mainTab, fetchDashboard]);
 
   const isBlurred = modal === "vs_battle";
+  const tabNeedsAuth = !user && !loading && mainTab !== "event";
   const totalVotes = votesUp + votesDown;
   const pctUp   = totalVotes > 0 ? Math.round((votesUp   / totalVotes) * 100) : 50;
   const pctDown = 100 - pctUp;
@@ -867,6 +873,7 @@ export default function Home() {
   function switchTab(tab: MainTab) {
     setPrevTab(mainTab);
     setMainTab(tab);
+    if (tab !== "event" && !user) openLogin();
     if (tab === "play") router.replace("/?tab=play");
     else if (tab === "event") router.replace("/");
   }
@@ -1155,7 +1162,7 @@ export default function Home() {
                   color: mainTab === tab ? "#FACA3E" : "#e8e0d0",
                   background: "none", border: "none", cursor: "pointer", transition: "color 0.15s, font-size 0.1s",
                 }}>
-                {tab === "event" ? "이벤트" : tab === "play" ? "PICO Play" : tab === "ranking" ? "🏆 랭킹" : "📚 도감"}
+                {tab === "event" ? "홈" : tab === "play" ? "PICO Play" : tab === "ranking" ? "🏆 랭킹" : "📚 도감"}
               </button>
             ))}
           </div>
@@ -1202,7 +1209,7 @@ export default function Home() {
               color: mainTab === tab ? "#FACA3E" : "#e8e0d0",
               background: "none", border: "none", cursor: "pointer",
             }}>
-            {tab === "event" ? "이벤트" : tab === "play" ? "PICO Play" : tab === "ranking" ? "🏆 랭킹" : "📚 도감"}
+            {tab === "event" ? "홈" : tab === "play" ? "PICO Play" : tab === "ranking" ? "🏆 랭킹" : "📚 도감"}
           </button>
         ))}
       </div>
@@ -1588,7 +1595,9 @@ export default function Home() {
         )}
 
         {/* ════ PICO Play 탭 ════ */}
-        {mainTab === "play" && (() => {
+        {mainTab === "play" && (
+          <div style={tabNeedsAuth ? { filter: "blur(8px)", pointerEvents: "none", userSelect: "none" } : {}}>
+          {(() => {
           // 필터 → 종목 목록 계산
           const filteredTickers: string[] = (() => {
             switch (playFilter) {
@@ -2065,6 +2074,8 @@ export default function Home() {
             </div>
           );
         })()}
+          </div>
+        )}
 
       </main>
 
@@ -2491,10 +2502,18 @@ export default function Home() {
       })()}
 
       {/* ════ 랭킹 탭 ════ */}
-      {mainTab === "ranking" && <RankingTab />}
+      {mainTab === "ranking" && (
+        <div style={tabNeedsAuth ? { filter: "blur(8px)", pointerEvents: "none", userSelect: "none" } : {}}>
+          <RankingTab />
+        </div>
+      )}
 
       {/* ════ 도감 탭 ════ */}
-      {mainTab === "learn" && <LearnTab />}
+      {mainTab === "learn" && (
+        <div style={tabNeedsAuth ? { filter: "blur(8px)", pointerEvents: "none", userSelect: "none" } : {}}>
+          <LearnTab />
+        </div>
+      )}
     </div>
   );
 }

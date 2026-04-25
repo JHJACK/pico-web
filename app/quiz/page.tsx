@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
+import AuthGuard from "@/app/components/AuthGuard";
 import { BackIcon } from "@/app/components/BackIcon";
 import { supabase, saveQuizResult } from "@/app/lib/supabase";
 import {
@@ -177,6 +178,7 @@ export default function QuizPage() {
   } : null;
 
   return (
+    <AuthGuard>
     <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
 
       {/* 토스트 */}
@@ -501,5 +503,6 @@ export default function QuizPage() {
         )}
       </div>
     </main>
+    </AuthGuard>
   );
 }

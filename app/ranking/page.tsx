@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/lib/authContext";
+import AuthGuard from "@/app/components/AuthGuard";
 
 // ── 타입 ──────────────────────────────────────────────────────
 type RankRow = {
@@ -136,6 +137,7 @@ export default function RankingPage() {
     : "";
 
   return (
+    <AuthGuard>
     <div style={{ minHeight: "100vh", background: "#0d0d0d", color: "#e8e0d0", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
 
       {/* ── 헤더 ── */}
@@ -309,6 +311,7 @@ export default function RankingPage() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 }
 

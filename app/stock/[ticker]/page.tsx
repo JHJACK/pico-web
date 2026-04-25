@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { formatUS, formatKR, type StockData } from "@/app/lib/stocks";
 import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
 import { useAuth } from "@/app/lib/authContext";
+import AuthGuard from "@/app/components/AuthGuard";
 import { supabase, type MockInvestmentRow } from "@/app/lib/supabase";
 import { isKrMarketOpen, isUSMarketOpen, getClosedText, getMarketClosedTooltip } from "@/app/lib/marketStatus";
 import { useStockCache } from "@/app/lib/stockCacheContext";
@@ -742,6 +743,7 @@ export default function StockChartPage() {
   );
 
   return (
+    <AuthGuard>
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <style>{`
         @keyframes shimmer {
@@ -1316,5 +1318,6 @@ export default function StockChartPage() {
         </div>
       )}
     </div>
+    </AuthGuard>
   );
 }
