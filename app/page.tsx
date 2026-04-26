@@ -1170,118 +1170,67 @@ export default function Home() {
       {/* ══════════ 히어로 (이벤트 탭 전용) ══════════ */}
       {mainTab === "event" && (
         <section
-          className="overflow-hidden border-b"
+          className="relative overflow-hidden border-b"
           style={{
             borderColor: "rgba(255,255,255,0.06)",
             background: "#0d0d0d",
-            height: "calc(100vh - 57px)",
-            display: "flex",
-            flexDirection: "column",
+            height: "calc(100vh - 64px)",
           }}
         >
-          {/* ── 데스크톱: flex row ── */}
-          <div className="hidden lg:flex" style={{ flex: 1, minHeight: 0 }}>
-            {/* 텍스트 열 */}
-            <div style={{
-              flexShrink: 0,
-              width: "clamp(260px, 28%, 360px)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              padding: "0 0 0 clamp(28px, 4vw, 60px)",
-            }}>
-              <h1 style={{ lineHeight: 1.14, marginBottom: 18 }}>
-                <span style={{
-                  display: "block",
-                  fontFamily: "var(--font-mona12), monospace",
-                  fontWeight: 400,
-                  fontSize: "clamp(26px, 2.8vw, 44px)",
-                  color: "#e8e0d0",
-                  textDecoration: "line-through",
-                  textDecorationColor: "rgba(232,224,208,0.65)",
-                  textDecorationThickness: "2px",
-                  textUnderlineOffset: "5px",
-                  letterSpacing: "-0.01em",
-                }}>
-                  금융은 어렵다
-                </span>
-                <span style={{
-                  display: "block",
-                  fontFamily: "var(--font-mona12), monospace",
-                  fontWeight: 700,
-                  fontSize: "clamp(26px, 2.8vw, 44px)",
-                  color: "#FACA3E",
-                  letterSpacing: "-0.01em",
-                  marginTop: 5,
-                }}>
-                  아니다. 재밌다
-                </span>
-              </h1>
-              <div style={{
-                display: "flex",
-                gap: 12,
-                flexWrap: "wrap",
-                fontFamily: "var(--font-mona12-emoji), var(--font-mona12), sans-serif",
-                fontSize: "clamp(20px, 2vw, 30px)",
-                lineHeight: 1,
-                userSelect: "none",
-              }}>
-                {["📈","😊","💡","😄","🤖","😍","⚡","😜"].map((e) => (
-                  <span key={e}>{e}</span>
-                ))}
-              </div>
-            </div>
-
-            {/* 글로브 열 */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <StockGlobe />
-            </div>
+          {/* 지구본 — 섹션 전체 배경 채움 */}
+          <div className="absolute inset-0">
+            <StockGlobe />
           </div>
 
-          {/* ── 모바일: flex column ── */}
-          <div className="lg:hidden flex flex-col" style={{ flex: 1, minHeight: 0 }}>
-            <div style={{ padding: "44px 24px 20px", flexShrink: 0 }}>
-              <h1 style={{ lineHeight: 1.16, marginBottom: 14 }}>
-                <span style={{
-                  display: "block",
-                  fontFamily: "var(--font-mona12), monospace",
-                  fontWeight: 400,
-                  fontSize: "clamp(28px, 8vw, 44px)",
-                  color: "#e8e0d0",
-                  textDecoration: "line-through",
-                  textDecorationColor: "rgba(232,224,208,0.65)",
-                  textDecorationThickness: "2px",
-                  textUnderlineOffset: "4px",
-                }}>
-                  금융은 어렵다
-                </span>
-                <span style={{
-                  display: "block",
-                  fontFamily: "var(--font-mona12), monospace",
-                  fontWeight: 700,
-                  fontSize: "clamp(28px, 8vw, 44px)",
-                  color: "#FACA3E",
-                  marginTop: 4,
-                }}>
-                  아니다. 재밌다
-                </span>
-              </h1>
-              <div style={{
-                display: "flex",
-                gap: 10,
-                flexWrap: "wrap",
-                fontFamily: "var(--font-mona12-emoji), var(--font-mona12), sans-serif",
-                fontSize: 24,
-                lineHeight: 1,
-                userSelect: "none",
+          {/* 텍스트 오버레이 — 좌상단 */}
+          <div
+            className="relative"
+            style={{
+              zIndex: 2,
+              padding: "clamp(40px, 7vh, 72px) clamp(24px, 5vw, 64px)",
+            }}
+          >
+            <h1 style={{ lineHeight: 1.14, marginBottom: 16 }}>
+              <span style={{
+                display: "block",
+                fontFamily: "var(--font-mona12), monospace",
+                fontWeight: 400,
+                fontSize: "clamp(22px, 2.4vw, 38px)",
+                color: "#e8e0d0",
+                textDecoration: "line-through",
+                textDecorationColor: "rgba(232,224,208,0.65)",
+                textDecorationThickness: "2px",
+                textUnderlineOffset: "5px",
+                letterSpacing: "-0.01em",
+                textShadow: "0 2px 16px rgba(0,0,0,0.9)",
               }}>
-                {["📈","😊","💡","😄","🤖","😍","⚡","😜"].map((e) => (
-                  <span key={e}>{e}</span>
-                ))}
-              </div>
-            </div>
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <StockGlobe />
+                금융은 어렵다
+              </span>
+              <span style={{
+                display: "block",
+                fontFamily: "var(--font-mona12), monospace",
+                fontWeight: 700,
+                fontSize: "clamp(22px, 2.4vw, 38px)",
+                color: "#FACA3E",
+                letterSpacing: "-0.01em",
+                marginTop: 5,
+                textShadow: "0 2px 16px rgba(0,0,0,0.9)",
+              }}>
+                아니다. 재밌다
+              </span>
+            </h1>
+            <div style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "nowrap",
+              fontFamily: "var(--font-mona12-emoji), var(--font-mona12), sans-serif",
+              fontSize: "clamp(18px, 1.8vw, 26px)",
+              lineHeight: 1,
+              userSelect: "none",
+            }}>
+              {["📈","😊","💡","😄","🤖","😍","⚡","😜"].map((e) => (
+                <span key={e}>{e}</span>
+              ))}
             </div>
           </div>
         </section>

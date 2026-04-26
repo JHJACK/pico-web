@@ -2,46 +2,31 @@
 import { useEffect, useRef } from "react";
 
 const POINTS = [
-  // 🇰🇷 Korea — 허브
-  { lat: 37.5665, lng: 126.978,  label: "서울",         size: 0.62, color: "#FACA3E" },
-  // 🇺🇸 USA
-  { lat: 37.3688, lng: -122.036, label: "NVIDIA",       size: 0.46, color: "#F5C030" },
-  { lat: 37.3317, lng: -122.031, label: "Apple",        size: 0.46, color: "#F5C030" },
-  { lat: 30.2281, lng: -97.749,  label: "Tesla",        size: 0.38, color: "#F5C030" },
-  { lat: 47.6423, lng: -122.139, label: "Microsoft",    size: 0.42, color: "#F5C030" },
-  { lat: 47.6204, lng: -122.349, label: "Amazon",       size: 0.38, color: "#F5C030" },
-  { lat: 37.4847, lng: -122.148, label: "Meta",         size: 0.38, color: "#F5C030" },
-  { lat: 40.7128, lng: -74.006,  label: "뉴욕",         size: 0.48, color: "#F5C030" },
-  { lat: 41.2565, lng: -95.934,  label: "Berkshire",    size: 0.30, color: "#E8B828" },
-  // 🇯🇵 Japan
-  { lat: 35.6762, lng: 139.650,  label: "도쿄",         size: 0.44, color: "#E8C860" },
-  { lat: 35.0828, lng: 137.156,  label: "Toyota",       size: 0.32, color: "#E8C860" },
-  // 🇹🇼 Taiwan
-  { lat: 24.7794, lng: 120.996,  label: "TSMC",         size: 0.44, color: "#E8C060" },
-  // 🇨🇳 China
-  { lat: 30.2741, lng: 120.155,  label: "Alibaba",      size: 0.36, color: "#D4B050" },
-  { lat: 22.5431, lng: 114.058,  label: "Tencent",      size: 0.36, color: "#D4B050" },
-  { lat: 31.2304, lng: 121.474,  label: "상하이",       size: 0.38, color: "#D4B050" },
-  // 🇸🇬 Singapore
-  { lat: 1.3521,  lng: 103.820,  label: "싱가포르",     size: 0.34, color: "#E0C458" },
-  // 🇮🇳 India
-  { lat: 19.076,  lng: 72.878,   label: "뭄바이",       size: 0.30, color: "#CCA840" },
-  // 🇬🇧 UK
-  { lat: 51.5074, lng: -0.128,   label: "런던",         size: 0.44, color: "#C8A840" },
-  // 🇫🇷 France
-  { lat: 48.8566, lng: 2.352,    label: "파리",         size: 0.34, color: "#C8A840" },
-  // 🇩🇪 Germany
-  { lat: 52.520,  lng: 13.405,   label: "베를린",       size: 0.30, color: "#C8A840" },
-  // 🇳🇱 Netherlands
-  { lat: 51.4416, lng: 5.470,    label: "ASML",         size: 0.36, color: "#C8A840" },
-  // 🇦🇺 Australia
-  { lat: -33.869, lng: 151.209,  label: "시드니",       size: 0.30, color: "#BEA040" },
-  // 🇧🇷 Brazil
-  { lat: -23.550, lng: -46.633,  label: "상파울루",     size: 0.28, color: "#BEA040" },
-  // 🇷🇺 Russia
-  { lat: 55.751,  lng: 37.618,   label: "모스크바",     size: 0.26, color: "#B89830" },
-  // 🇿🇦 South Africa
-  { lat: -26.204, lng: 28.047,   label: "요하네스버그", size: 0.24, color: "#B09030" },
+  { lat: 37.5665, lng: 126.978,  size: 0.62, color: "#FACA3E" },
+  { lat: 37.3688, lng: -122.036, size: 0.46, color: "#F5C030" },
+  { lat: 37.3317, lng: -122.031, size: 0.46, color: "#F5C030" },
+  { lat: 30.2281, lng: -97.749,  size: 0.38, color: "#F5C030" },
+  { lat: 47.6423, lng: -122.139, size: 0.42, color: "#F5C030" },
+  { lat: 47.6204, lng: -122.349, size: 0.38, color: "#F5C030" },
+  { lat: 37.4847, lng: -122.148, size: 0.38, color: "#F5C030" },
+  { lat: 40.7128, lng: -74.006,  size: 0.48, color: "#F5C030" },
+  { lat: 41.2565, lng: -95.934,  size: 0.30, color: "#E8B828" },
+  { lat: 35.6762, lng: 139.650,  size: 0.44, color: "#E8C860" },
+  { lat: 35.0828, lng: 137.156,  size: 0.32, color: "#E8C860" },
+  { lat: 24.7794, lng: 120.996,  size: 0.44, color: "#E8C060" },
+  { lat: 30.2741, lng: 120.155,  size: 0.36, color: "#D4B050" },
+  { lat: 22.5431, lng: 114.058,  size: 0.36, color: "#D4B050" },
+  { lat: 31.2304, lng: 121.474,  size: 0.38, color: "#D4B050" },
+  { lat: 1.3521,  lng: 103.820,  size: 0.34, color: "#E0C458" },
+  { lat: 19.076,  lng: 72.878,   size: 0.30, color: "#CCA840" },
+  { lat: 51.5074, lng: -0.128,   size: 0.44, color: "#C8A840" },
+  { lat: 48.8566, lng: 2.352,    size: 0.34, color: "#C8A840" },
+  { lat: 52.520,  lng: 13.405,   size: 0.30, color: "#C8A840" },
+  { lat: 51.4416, lng: 5.470,    size: 0.36, color: "#C8A840" },
+  { lat: -33.869, lng: 151.209,  size: 0.30, color: "#BEA040" },
+  { lat: -23.550, lng: -46.633,  size: 0.28, color: "#BEA040" },
+  { lat: 55.751,  lng: 37.618,   size: 0.26, color: "#B89830" },
+  { lat: -26.204, lng: 28.047,   size: 0.24, color: "#B09030" },
 ];
 
 const SL = 37.5665, SG = 126.978;
@@ -83,28 +68,30 @@ export default function StockGlobe() {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!mountRef.current) return;
     const el = mountRef.current;
-    let globe: any;
+    if (!el) return;
+    let globe: any = null;
     let destroyed = false;
+    let rafId = 0;
 
-    const init = async () => {
-      const rect = el.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height;
-      if (w === 0 || h === 0 || destroyed) return;
+    const doInit = async () => {
+      if (destroyed || globe) return;
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      if (!w || !h) return;
 
       const { default: Globe } = await import("globe.gl");
-      if (destroyed || !mountRef.current) return;
+      if (destroyed) return;
 
-      globe = new (Globe as any)({ animateIn: false })(el)
+      globe = new (Globe as any)({ animateIn: false })(el);
+      globe
         .width(w)
         .height(h)
         .backgroundColor("rgba(0,0,0,0)")
-        .globeImageUrl("//unpkg.com/three-globe/example/img/earth-night.jpg")
-        .bumpImageUrl("//unpkg.com/three-globe/example/img/earth-topology.png")
-        .atmosphereColor("rgba(250,202,62,0.60)")
-        .atmosphereAltitude(0.18)
+        .globeImageUrl("/earth-night.jpg")
+        .bumpImageUrl("/earth-topology.png")
+        .atmosphereColor("rgba(250,202,62,0.50)")
+        .atmosphereAltitude(0.16)
         .pointsData(POINTS)
         .pointLat("lat")
         .pointLng("lng")
@@ -138,33 +125,21 @@ export default function StockGlobe() {
       ctrl.enableRotate = false;
     };
 
-    // Try immediately — works if element is already laid out
-    init();
+    rafId = requestAnimationFrame(() => doInit());
 
-    // Fallback: ResizeObserver fires when element gets actual dimensions
     const ro = new ResizeObserver(() => {
-      if (!globe) init();
+      if (!globe) doInit();
     });
     ro.observe(el);
 
     return () => {
       destroyed = true;
+      cancelAnimationFrame(rafId);
       ro.disconnect();
       try { globe?._destructor?.(); } catch {}
       if (mountRef.current) mountRef.current.innerHTML = "";
     };
   }, []);
 
-  return (
-    <div
-      ref={mountRef}
-      style={{
-        width: "100%",
-        height: "100%",
-        cursor: "default",
-        // 글로브 로드 전 자리 잡아주는 배경
-        background: "radial-gradient(circle at 55% 50%, rgba(40,35,25,0.9) 0%, rgba(10,10,13,1) 70%)",
-      }}
-    />
-  );
+  return <div ref={mountRef} style={{ width: "100%", height: "100%", display: "block" }} />;
 }
