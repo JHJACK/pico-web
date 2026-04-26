@@ -1169,60 +1169,111 @@ export default function Home() {
 
       {/* ══════════ 히어로 (이벤트 탭 전용) ══════════ */}
       {mainTab === "event" && (
-        <section className="relative overflow-hidden border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "radial-gradient(ellipse 90% 70% at 65% 50%, rgba(250,202,62,0.055) 0%, transparent 65%)" }}>
-          {/* 글로우 오버레이 */}
-          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 40% 60% at 70% 50%, rgba(250,202,62,0.04) 0%, transparent 70%)", zIndex: 0 }} />
+        <section
+          className="relative overflow-hidden border-b"
+          style={{
+            borderColor: "rgba(255,255,255,0.06)",
+            background: "#0d0d0d",
+            minHeight: "calc(100vh - 57px)",
+          }}
+        >
+          {/* 골드 라디얼 글로우 — 오른쪽 */}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 80% at 72% 48%, rgba(250,202,62,0.055) 0%, transparent 60%)", zIndex: 0 }} />
 
-          <div className="relative mx-auto px-5 lg:px-10" style={{ maxWidth: 1280, zIndex: 1 }}>
-            <div className="flex flex-col lg:flex-row items-center" style={{ minHeight: 580 }}>
-
-              {/* 텍스트 영역 */}
-              <div style={{ flex: "0 0 auto", width: "100%", maxWidth: 420, paddingTop: 56, paddingBottom: 40, zIndex: 2 }}>
-                <div style={{ fontSize: 11, letterSpacing: "0.18em", color: "#5c5448", textTransform: "uppercase", fontWeight: 500, marginBottom: 20 }}>
-                  글로벌 투자 플랫폼 — PICO
-                </div>
-                <h1 style={{ lineHeight: 1.10, marginBottom: 18, fontWeight: 500 }}>
-                  <span style={{ display: "block", fontSize: "clamp(40px, 5.8vw, 72px)", color: "#e8e0d0" }}>세계가</span>
-                  <span style={{ display: "block", fontSize: "clamp(40px, 5.8vw, 72px)", color: "#FACA3E" }}>연결된다.</span>
-                </h1>
-                <p style={{ fontSize: 15, color: "#a09688", lineHeight: 1.85, maxWidth: 360, marginBottom: 30, fontWeight: 300 }}>
-                  서울에서 실리콘밸리까지. 글로벌 시장의 흐름을 PICO와 함께 읽어요.
-                </p>
-                <div className="flex flex-wrap gap-3 mb-10">
-                  <button onClick={() => router.push("/quiz")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
-                    투자 DNA 찾기
-                  </button>
-                  <button onClick={() => router.push("/mypage/battles")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "transparent", color: "#e8e0d0", fontSize: 14, fontWeight: 500, border: "0.5px solid rgba(255,255,255,0.14)" }}>
-                    오늘의 선택
-                  </button>
-                </div>
-                {/* 스탯 */}
-                <div className="flex gap-8">
-                  {[
-                    { val: "25+", sub: "글로벌 기업" },
-                    { val: "6",   sub: "대륙" },
-                    { val: "8",   sub: "투자자 유형" },
-                  ].map((s) => (
-                    <div key={s.sub}>
-                      <div style={{ ...NUM, fontSize: 22, color: "#FACA3E", fontWeight: 400, marginBottom: 3 }}>{s.val}</div>
-                      <div style={{ fontSize: 11, color: "#5c5448", fontWeight: 300 }}>{s.sub}</div>
-                    </div>
-                  ))}
-                </div>
+          {/* ── 데스크톱: 2열 레이아웃 ── */}
+          <div className="hidden lg:flex absolute inset-0" style={{ zIndex: 1 }}>
+            {/* 텍스트 열 */}
+            <div style={{ width: "38%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 0 0 clamp(32px, 5vw, 80px)", zIndex: 2 }}>
+              <h1 style={{ lineHeight: 1.12, marginBottom: 20 }}>
+                <span style={{
+                  display: "block",
+                  fontFamily: "var(--font-mona12), monospace",
+                  fontWeight: 400,
+                  fontSize: "clamp(38px, 4.6vw, 68px)",
+                  color: "#e8e0d0",
+                  textDecoration: "line-through",
+                  textDecorationColor: "rgba(232,224,208,0.7)",
+                  textDecorationThickness: "3px",
+                  textUnderlineOffset: "6px",
+                  letterSpacing: "-0.01em",
+                }}>
+                  금융은 어렵다
+                </span>
+                <span style={{
+                  display: "block",
+                  fontFamily: "var(--font-mona12), monospace",
+                  fontWeight: 700,
+                  fontSize: "clamp(38px, 4.6vw, 68px)",
+                  color: "#FACA3E",
+                  letterSpacing: "-0.01em",
+                  marginTop: 6,
+                }}>
+                  아니다. 재밌다
+                </span>
+              </h1>
+              <div style={{
+                fontFamily: "var(--font-mona12-emoji), var(--font-mona12), sans-serif",
+                fontSize: "clamp(22px, 2.6vw, 36px)",
+                letterSpacing: "0.08em",
+                color: "#FACA3E",
+                lineHeight: 1,
+                userSelect: "none",
+              }}>
+                📈 💡 🤖 ⚡
               </div>
+            </div>
 
-              {/* 글로브 영역 */}
-              <div className="flex-1 relative" style={{ minWidth: 0, height: 580 }}>
-                {/* 모바일: 글로브 아래 배치 */}
-                <div className="absolute inset-0 hidden lg:block">
-                  <StockGlobe height={580} />
-                </div>
-                {/* 모바일 전용 */}
-                <div className="lg:hidden w-full" style={{ height: 340, marginTop: 8 }}>
-                  <StockGlobe height={340} />
-                </div>
+            {/* 글로브 열 — 나머지 전체 */}
+            <div style={{ flex: 1, position: "relative", minWidth: 0 }}>
+              <div style={{ position: "absolute", inset: 0 }}>
+                <StockGlobe />
               </div>
+            </div>
+          </div>
 
+          {/* ── 모바일: 세로 스택 ── */}
+          <div className="lg:hidden flex flex-col" style={{ minHeight: "calc(100vh - 57px)", zIndex: 1, position: "relative" }}>
+            {/* 텍스트 */}
+            <div style={{ padding: "52px 24px 24px" }}>
+              <h1 style={{ lineHeight: 1.15, marginBottom: 16 }}>
+                <span style={{
+                  display: "block",
+                  fontFamily: "var(--font-mona12), monospace",
+                  fontWeight: 400,
+                  fontSize: "clamp(32px, 9vw, 52px)",
+                  color: "#e8e0d0",
+                  textDecoration: "line-through",
+                  textDecorationColor: "rgba(232,224,208,0.7)",
+                  textDecorationThickness: "2.5px",
+                  textUnderlineOffset: "5px",
+                }}>
+                  금융은 어렵다
+                </span>
+                <span style={{
+                  display: "block",
+                  fontFamily: "var(--font-mona12), monospace",
+                  fontWeight: 700,
+                  fontSize: "clamp(32px, 9vw, 52px)",
+                  color: "#FACA3E",
+                  marginTop: 4,
+                }}>
+                  아니다. 재밌다
+                </span>
+              </h1>
+              <div style={{
+                fontFamily: "var(--font-mona12-emoji), var(--font-mona12), sans-serif",
+                fontSize: 28,
+                letterSpacing: "0.08em",
+                color: "#FACA3E",
+                lineHeight: 1,
+                userSelect: "none",
+              }}>
+                📈 💡 🤖 ⚡
+              </div>
+            </div>
+            {/* 글로브 */}
+            <div style={{ flex: 1, minHeight: 340 }}>
+              <StockGlobe />
             </div>
           </div>
         </section>

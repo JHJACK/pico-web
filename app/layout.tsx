@@ -43,6 +43,21 @@ const paperlogy = localFont({
   display: "swap",
 });
 
+const mona12 = localFont({
+  src: [
+    { path: "../public/fonts/MonaS12.ttf",      weight: "400" },
+    { path: "../public/fonts/MonaS12-Bold.ttf", weight: "700" },
+  ],
+  variable: "--font-mona12",
+  display: "swap",
+});
+
+const mona12Emoji = localFont({
+  src: [{ path: "../public/fonts/Mona12ColorEmoji.ttf", weight: "400" }],
+  variable: "--font-mona12-emoji",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "PICO — 투자, 흐름을 읽어",
   description: "VS 배틀로 매일 예측하고, 투자 DNA 퀴즈로 나를 알아가는 투자 입문 서비스",
@@ -54,7 +69,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={`${notoSansKR.variable} ${dmSerifDisplay.variable} ${instrumentSans.variable} ${inter.variable} ${paperlogy.variable}`}>
+    <html lang="ko" className={`${notoSansKR.variable} ${dmSerifDisplay.variable} ${instrumentSans.variable} ${inter.variable} ${paperlogy.variable} ${mona12.variable} ${mona12Emoji.variable}`}>
       <body className="min-h-screen" style={{ fontFamily: "var(--font-sans), var(--font-noto), sans-serif", fontWeight: 300, lineHeight: 1.65 }}>
         <AuthProvider>
           <StockCacheProvider>{children}</StockCacheProvider>
