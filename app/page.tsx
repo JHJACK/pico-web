@@ -10,9 +10,10 @@ import { supabase, getTodayVote, submitVoteAndAttendance, getTodayVoteCounts, ge
 import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
 import { isKrMarketOpen, isUSMarketOpen } from "@/app/lib/marketStatus";
+import dynamic from "next/dynamic";
 import RankingTab from "@/app/components/RankingTab";
 import LearnTab from "@/app/components/LearnTab";
-import StockGlobe from "@/app/components/StockGlobe";
+const StockGlobe = dynamic(() => import("@/app/components/StockGlobe"), { ssr: false });
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
@@ -1178,23 +1179,17 @@ export default function Home() {
             minHeight: 480,
           }}
         >
-          {/* 배경 금빛 방사형 그로우 */}
-          <div className="absolute inset-0 pointer-events-none" style={{
-            background: "radial-gradient(ellipse 60% 70% at 72% 50%, rgba(250,202,62,0.045) 0%, transparent 70%)",
-            zIndex: 0,
-          }} />
-
           {/* 지구본 — 모바일: 전체 / 데스크탑: 오른쪽 65% */}
           <div className="absolute top-0 bottom-0 right-0 left-0 md:left-[35%]" style={{ zIndex: 1 }}>
             <StockGlobe />
           </div>
 
-          {/* 데스크탑 좌측 그라디언트 (텍스트 가독성) */}
+          {/* 데스크탑 좌측 그라디언트 */}
           <div
             className="absolute inset-y-0 left-0 pointer-events-none hidden md:block"
             style={{
-              width: "58%",
-              background: "linear-gradient(to right, #0d0d0d 52%, rgba(13,13,13,0.7) 72%, transparent 100%)",
+              width: "55%",
+              background: "linear-gradient(to right, #0d0d0d 55%, rgba(13,13,13,0.6) 75%, transparent 100%)",
               zIndex: 2,
             }}
           />
@@ -1202,49 +1197,31 @@ export default function Home() {
           <div
             className="absolute inset-x-0 top-0 pointer-events-none md:hidden"
             style={{
-              height: "60%",
-              background: "linear-gradient(to bottom, rgba(13,13,13,0.88) 0%, rgba(13,13,13,0.55) 55%, transparent 100%)",
+              height: "55%",
+              background: "linear-gradient(to bottom, rgba(13,13,13,0.9) 0%, rgba(13,13,13,0.5) 60%, transparent 100%)",
               zIndex: 2,
             }}
           />
 
-          {/* 텍스트 패널 */}
+          {/* 텍스트 오버레이 */}
           <div
             className="absolute inset-0 flex items-start md:items-center"
             style={{ zIndex: 3 }}
           >
-            <div style={{
-              width: "min(92%, 480px)",
-              padding: "clamp(36px, 7vh, 68px) clamp(22px, 4vw, 72px)",
-            }}>
-              {/* 레이블 */}
-              <p style={{
-                fontFamily: "var(--font-inter), monospace",
-                fontSize: "clamp(10px, 1vw, 12px)",
-                fontWeight: 500,
-                letterSpacing: "0.14em",
-                color: "rgba(250,202,62,0.7)",
-                textTransform: "uppercase",
-                marginBottom: 20,
-                textShadow: "0 1px 8px rgba(0,0,0,0.8)",
-              }}>
-                글로벌 투자 플랫폼 — PICO
-              </p>
-
-              {/* 헤드라인 */}
-              <h1 style={{ lineHeight: 1.12, marginBottom: 20 }}>
+            <div style={{ padding: "clamp(40px, 7vh, 72px) clamp(24px, 5vw, 64px)" }}>
+              <h1 style={{ lineHeight: 1.14, marginBottom: 16 }}>
                 <span style={{
                   display: "block",
                   fontFamily: "var(--font-mona12), monospace",
                   fontWeight: 400,
-                  fontSize: "clamp(26px, 2.8vw, 46px)",
+                  fontSize: "clamp(22px, 2.4vw, 38px)",
                   color: "#e8e0d0",
                   textDecoration: "line-through",
-                  textDecorationColor: "rgba(232,224,208,0.55)",
+                  textDecorationColor: "rgba(232,224,208,0.65)",
                   textDecorationThickness: "2px",
-                  textUnderlineOffset: "6px",
-                  letterSpacing: "-0.015em",
-                  textShadow: "0 2px 20px rgba(0,0,0,0.95)",
+                  textUnderlineOffset: "5px",
+                  letterSpacing: "-0.01em",
+                  textShadow: "0 2px 16px rgba(0,0,0,0.9)",
                 }}>
                   금융은 어렵다
                 </span>
@@ -1252,74 +1229,26 @@ export default function Home() {
                   display: "block",
                   fontFamily: "var(--font-mona12), monospace",
                   fontWeight: 700,
-                  fontSize: "clamp(26px, 2.8vw, 46px)",
+                  fontSize: "clamp(22px, 2.4vw, 38px)",
                   color: "#FACA3E",
-                  letterSpacing: "-0.015em",
-                  marginTop: 6,
-                  textShadow: "0 0 40px rgba(250,202,62,0.4), 0 2px 20px rgba(0,0,0,0.95)",
+                  letterSpacing: "-0.01em",
+                  marginTop: 5,
+                  textShadow: "0 2px 16px rgba(0,0,0,0.9)",
                 }}>
                   아니다. 재밌다
                 </span>
               </h1>
-
-              {/* 서브타이틀 */}
-              <p style={{
-                fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
-                fontSize: "clamp(13px, 1.1vw, 15px)",
-                fontWeight: 300,
-                color: "rgba(232,224,208,0.65)",
-                lineHeight: 1.7,
-                marginBottom: 32,
-                textShadow: "0 1px 12px rgba(0,0,0,0.9)",
-                letterSpacing: "0.01em",
-              }}>
-                세계 주요 기업 주식을 게임처럼 배우고 투자해요.<br />
-                지금 바로 글로벌 시장과 연결되어요.
-              </p>
-
-              {/* 이모지 로우 */}
               <div style={{
                 display: "flex",
-                gap: 8,
+                gap: 10,
                 flexWrap: "nowrap",
                 fontFamily: "var(--font-mona12-emoji), var(--font-mona12), sans-serif",
-                fontSize: "clamp(16px, 1.6vw, 22px)",
+                fontSize: "clamp(18px, 1.8vw, 26px)",
                 lineHeight: 1,
                 userSelect: "none",
-                marginBottom: 40,
               }}>
                 {["📈","😊","💡","😄","🤖","😍","⚡","😜"].map((e) => (
                   <span key={e}>{e}</span>
-                ))}
-              </div>
-
-              {/* 스탯 수치 */}
-              <div style={{ display: "flex", gap: "clamp(20px, 3vw, 40px)" }}>
-                {[
-                  { num: "26+", label: "글로벌 기업" },
-                  { num: "24",  label: "연결 노드" },
-                  { num: "6",   label: "대륙" },
-                ].map(({ num, label }) => (
-                  <div key={label}>
-                    <div style={{
-                      fontFamily: "var(--font-inter), monospace",
-                      fontSize: "clamp(22px, 2.2vw, 34px)",
-                      fontWeight: 300,
-                      letterSpacing: "-0.03em",
-                      color: "#FACA3E",
-                      textShadow: "0 0 24px rgba(250,202,62,0.5)",
-                      lineHeight: 1,
-                    }}>{num}</div>
-                    <div style={{
-                      fontFamily: "var(--font-inter), monospace",
-                      fontSize: "clamp(9px, 0.8vw, 11px)",
-                      fontWeight: 500,
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
-                      color: "rgba(232,224,208,0.45)",
-                      marginTop: 5,
-                    }}>{label}</div>
-                  </div>
                 ))}
               </div>
             </div>
