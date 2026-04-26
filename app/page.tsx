@@ -1208,7 +1208,7 @@ export default function Home() {
             className="absolute inset-0 flex items-start md:items-center"
             style={{ zIndex: 3 }}
           >
-            <div style={{ padding: "clamp(40px, 7vh, 72px) clamp(24px, 5vw, 64px)" }}>
+            <div style={{ padding: "clamp(40px, 7vh, 72px) clamp(24px, 5vw, 64px)" }} className="md:pl-20 lg:pl-28">
               <h1 style={{ lineHeight: 1.14, marginBottom: 16 }}>
                 <span style={{
                   display: "block",
