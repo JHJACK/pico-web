@@ -13,7 +13,7 @@ import { isKrMarketOpen, isUSMarketOpen } from "@/app/lib/marketStatus";
 import dynamic from "next/dynamic";
 import RankingTab from "@/app/components/RankingTab";
 import LearnTab from "@/app/components/LearnTab";
-const StockGlobe = dynamic(() => import("@/app/components/StockGlobe"), { ssr: false });
+import GlobeCanvas from "@/app/components/GlobeCanvas";
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
@@ -1181,7 +1181,7 @@ export default function Home() {
         >
           {/* 지구본 — 모바일: 전체 / 데스크탑: 오른쪽 65% */}
           <div className="absolute top-0 bottom-0 right-0 left-0 md:left-[35%]" style={{ zIndex: 1 }}>
-            <StockGlobe />
+            <GlobeCanvas />
           </div>
 
           {/* 데스크탑 좌측 그라디언트 */}
