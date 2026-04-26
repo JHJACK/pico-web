@@ -10,7 +10,7 @@ import { BackIcon } from "@/app/components/BackIcon";
 export default function DnaPage() {
   const router = useRouter();
   const { user, userRow, loading } = useAuth();
-  const [showAllTypes, setShowAllTypes] = useState(false);
+  const [showAllTypes, setShowAllTypes] = useState(true);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {

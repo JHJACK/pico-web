@@ -12,6 +12,7 @@ import { INVESTOR_TYPES } from "@/app/lib/quizTypes";
 import { isKrMarketOpen, isUSMarketOpen } from "@/app/lib/marketStatus";
 import RankingTab from "@/app/components/RankingTab";
 import LearnTab from "@/app/components/LearnTab";
+import StockGlobe from "@/app/components/StockGlobe";
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
@@ -34,30 +35,6 @@ const TODAY_DATE = new Date().toISOString().slice(0, 10);
 const BATTLE_KEY = `pico_selection_${TODAY_DATE}`;
 
 
-const TERMS = [
-  { word: "PER",    reading: "퍼 / Price-to-Earnings Ratio",  desc: "주가가 이익의 몇 배인지 보는 지표. PER 50이면 지금 이익의 50년치를 주고 사는 것.",      example: "치킨집이 1년에 100만원 버는데 가게 값이 5,000만원이면 PER 50" },
-  { word: "PBR",    reading: "피비알 / Price-to-Book Ratio",   desc: "주가가 순자산의 몇 배인지. PBR 1 미만이면 장부상 가치보다 싸게 팔리는 중.",             example: "집값이 실제 건물 가치보다 낮다? 그게 PBR 1 이하" },
-  { word: "시가총액", reading: "시총 / Market Cap",             desc: "주가 × 발행 주식 수. 회사 전체를 지금 당장 사려면 얼마인지.",                            example: "삼성전자 시총 300조 = 지금 삼성을 통째로 사려면 300조" },
-  { word: "분할매수", reading: "물타기의 계획된 버전",           desc: "한 번에 다 사지 않고 여러 번 나눠 사는 전략. 가격 변동 리스크를 분산해.",               example: "100만원을 4번에 나눠 살 때마다 25만원씩 — 이게 분할매수" },
-  { word: "손절",   reading: "손실 + 절단",                    desc: "손실이 나는 상태에서 더 큰 손실을 막기 위해 파는 것. 아프지만 때론 최선.",                example: "−10%에 손절선 잡고, 거기 닿으면 미련 없이 파는 것" },
-];
-
-const TODAY_DISPLAY = new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
-
-const PICO_EYE_CARDS = [
-  {
-    ticker: "TSLA", name: "테슬라", logo: "https://logo.clearbit.com/tesla.com", color: "#FACA3E",
-    insight: "변동성을 기회로 보는 호랑이형의 타이밍. 최근 3개월 -18% 하락했지만 에너지 사업 매출이 전년 대비 +67% 성장 중. 떨어진 지금이 호랑이의 구간일 수 있어.",
-  },
-  {
-    ticker: "NVDA", name: "엔비디아", logo: "https://logo.clearbit.com/nvidia.com", color: "#7eb8f7",
-    insight: "호랑이형이 좋아하는 폭발적 성장 패턴. AI 칩 수요가 공급을 앞지르는 중. 현재 PER 65배로 비싸긴 해. 그걸 알고도 베팅하는 게 호랑이지.",
-  },
-  {
-    ticker: "ABNB", name: "에어비앤비", logo: "https://logo.clearbit.com/airbnb.com", color: "#7ed4a0",
-    insight: "여름 여행 성수기 앞두고 예약 수요 전년 대비 +28% 증가. 숙박·여가 섹터 대표주로 단기 모멘텀이 호랑이형과 잘 맞아.",
-  },
-];
 
 // DM Mono 숫자 스타일 헬퍼 (주가·등락률·퍼센트·타이머·포인트 등 모든 숫자)
 const NUM: CSSProperties = {
@@ -613,7 +590,6 @@ export default function Home() {
   const [battleDone, setBattleDone] = useState(false);
   const [quizType,   setQuizType]   = useState<string | null>(null);
   const [popupType,  setPopupType]  = useState<string | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // 오늘의 선택 상태 (UP | DOWN)
   const [battleVote, setBattleVote] = useState<"UP"|"DOWN"|null>(null);
@@ -696,8 +672,6 @@ export default function Home() {
   const [dashTop3,     setDashTop3]     = useState<DashRankRow[]>([]);
   const [dashMyRank,   setDashMyRank]   = useState<{ rank_position: number; return_rate: number } | null>(null);
   const [dashLoading,  setDashLoading]  = useState(false);
-
-  const [termIdx, setTermIdx] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -802,26 +776,6 @@ export default function Home() {
     });
   }, [newsCat, mounted]);
 
-  // 카드 슬라이더 마우스 드래그 스크롤
-  useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    let isDown = false, startX = 0, scrollLeft = 0;
-    const onDown  = (e: MouseEvent) => { isDown = true; el.style.cursor = "grabbing"; startX = e.pageX - el.offsetLeft; scrollLeft = el.scrollLeft; };
-    const onLeave = () => { isDown = false; el.style.cursor = "grab"; };
-    const onUp    = () => { isDown = false; el.style.cursor = "grab"; };
-    const onMove  = (e: MouseEvent) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - el.offsetLeft; el.scrollLeft = scrollLeft - (x - startX) * 1.5; };
-    el.addEventListener("mousedown", onDown);
-    el.addEventListener("mouseleave", onLeave);
-    el.addEventListener("mouseup", onUp);
-    el.addEventListener("mousemove", onMove);
-    return () => {
-      el.removeEventListener("mousedown", onDown);
-      el.removeEventListener("mouseleave", onLeave);
-      el.removeEventListener("mouseup", onUp);
-      el.removeEventListener("mousemove", onMove);
-    };
-  }, [mounted]);
 
   // DB에 investor_type이 있으면 퀴즈 완료로 처리
   useEffect(() => {
@@ -1024,7 +978,6 @@ export default function Home() {
   }, []);
 
   const animalInfo = quizType ? ANIMAL_NAMES[quizType] : null;
-  const term = TERMS[termIdx];
 
   const s = (ticker: string) => stocks[ticker];
   const krwOf    = (t: string) => s(t)?.formattedKRW    ?? "—";
@@ -1215,49 +1168,65 @@ export default function Home() {
       </div>
 
       {/* ══════════ 히어로 (이벤트 탭 전용) ══════════ */}
-      {mainTab === "event" && <section className="relative overflow-hidden border-b" style={{ minHeight: 460, borderColor: "rgba(255,255,255,0.06)", background: "radial-gradient(ellipse 70% 55% at 50% -5%, rgba(250,202,62,0.07) 0%, transparent 65%)" }}>
-        <div className="mx-auto px-5 lg:px-10 h-full flex items-center" style={{ maxWidth: 1280 }}>
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full gap-10 py-14 lg:py-0" style={{ minHeight: 460 }}>
-            <div className="flex-1">
-              <div style={{ fontSize: 11, letterSpacing: "0.16em", color: "#5c5448", textTransform: "uppercase", fontWeight: 500, marginBottom: 18 }}>
-                투자 입문 서비스 — PICO v0.1
-              </div>
-              <h1 style={{ lineHeight: 1.15, marginBottom: 20, fontWeight: 500 }}>
-                <span style={{ display: "block", fontSize: "clamp(44px, 6.5vw, 76px)", color: "#e8e0d0" }}>PICO와 함께,</span>
-                <span style={{ display: "block", fontSize: "clamp(44px, 6.5vw, 76px)", color: "#FACA3E" }}>한 걸음씩</span>
-              </h1>
-              <p style={{ fontSize: 16, color: "#a09688", lineHeight: 1.8, maxWidth: 400, marginBottom: 28, fontWeight: 300 }}>
-                주식 초보도 OK. PICO가 방향을 잡아줄게.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <button onClick={() => router.push("/quiz")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
-                  투자 DNA 찾기 →
-                </button>
-                <button onClick={() => setModal("vs_battle")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "transparent", color: "#e8e0d0", fontSize: 14, fontWeight: 500, border: "0.5px solid rgba(255,255,255,0.14)" }}>
-                  오늘의 선택 참여
-                </button>
-              </div>
-            </div>
+      {mainTab === "event" && (
+        <section className="relative overflow-hidden border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "radial-gradient(ellipse 90% 70% at 65% 50%, rgba(250,202,62,0.055) 0%, transparent 65%)" }}>
+          {/* 글로우 오버레이 */}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 40% 60% at 70% 50%, rgba(250,202,62,0.04) 0%, transparent 70%)", zIndex: 0 }} />
 
-            {/* 통계 카드 */}
-            <div className="grid grid-cols-3 lg:flex lg:flex-col gap-3 w-full lg:w-auto">
-              {[
-                { num: "2,841", unit: "명",  sub: "오늘 선택 참여",       cls: "float-1", accent: "#FACA3E" },
-                { num: "8",     unit: "가지", sub: "투자자 DNA 유형",      cls: "float-2", accent: "#7eb8f7" },
-                { num: "매일",  unit: "",     sub: "AI 인사이트 업데이트", cls: "float-3", accent: "#7ed4a0" },
-              ].map((stat) => (
-                <div key={stat.num} className={`${stat.cls} rounded-2xl px-3 py-3 lg:px-5 lg:py-4 border`}
-                  style={{ background: "rgba(20,20,20,0.88)", borderColor: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
-                  <div style={{ ...NUM, fontSize: "clamp(16px, 4vw, 26px)", color: stat.accent, marginBottom: 4 }}>
-                    {stat.num}<span style={{ fontSize: "clamp(10px, 2.5vw, 14px)" }}>{stat.unit}</span>
-                  </div>
-                  <div style={{ fontSize: "clamp(9px, 2vw, 12px)", color: "#5c5448", fontWeight: 300 }}>{stat.sub}</div>
+          <div className="relative mx-auto px-5 lg:px-10" style={{ maxWidth: 1280, zIndex: 1 }}>
+            <div className="flex flex-col lg:flex-row items-center" style={{ minHeight: 580 }}>
+
+              {/* 텍스트 영역 */}
+              <div style={{ flex: "0 0 auto", width: "100%", maxWidth: 420, paddingTop: 56, paddingBottom: 40, zIndex: 2 }}>
+                <div style={{ fontSize: 11, letterSpacing: "0.18em", color: "#5c5448", textTransform: "uppercase", fontWeight: 500, marginBottom: 20 }}>
+                  글로벌 투자 플랫폼 — PICO
                 </div>
-              ))}
+                <h1 style={{ lineHeight: 1.10, marginBottom: 18, fontWeight: 500 }}>
+                  <span style={{ display: "block", fontSize: "clamp(40px, 5.8vw, 72px)", color: "#e8e0d0" }}>세계가</span>
+                  <span style={{ display: "block", fontSize: "clamp(40px, 5.8vw, 72px)", color: "#FACA3E" }}>연결된다.</span>
+                </h1>
+                <p style={{ fontSize: 15, color: "#a09688", lineHeight: 1.85, maxWidth: 360, marginBottom: 30, fontWeight: 300 }}>
+                  서울에서 실리콘밸리까지. 글로벌 시장의 흐름을 PICO와 함께 읽어요.
+                </p>
+                <div className="flex flex-wrap gap-3 mb-10">
+                  <button onClick={() => router.push("/quiz")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 500 }}>
+                    투자 DNA 찾기
+                  </button>
+                  <button onClick={() => router.push("/mypage/battles")} className="pico-btn px-6 py-3 rounded-xl" style={{ background: "transparent", color: "#e8e0d0", fontSize: 14, fontWeight: 500, border: "0.5px solid rgba(255,255,255,0.14)" }}>
+                    오늘의 선택
+                  </button>
+                </div>
+                {/* 스탯 */}
+                <div className="flex gap-8">
+                  {[
+                    { val: "25+", sub: "글로벌 기업" },
+                    { val: "6",   sub: "대륙" },
+                    { val: "8",   sub: "투자자 유형" },
+                  ].map((s) => (
+                    <div key={s.sub}>
+                      <div style={{ ...NUM, fontSize: 22, color: "#FACA3E", fontWeight: 400, marginBottom: 3 }}>{s.val}</div>
+                      <div style={{ fontSize: 11, color: "#5c5448", fontWeight: 300 }}>{s.sub}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 글로브 영역 */}
+              <div className="flex-1 relative" style={{ minWidth: 0, height: 580 }}>
+                {/* 모바일: 글로브 아래 배치 */}
+                <div className="absolute inset-0 hidden lg:block">
+                  <StockGlobe height={580} />
+                </div>
+                {/* 모바일 전용 */}
+                <div className="lg:hidden w-full" style={{ height: 340, marginTop: 8 }}>
+                  <StockGlobe height={340} />
+                </div>
+              </div>
+
             </div>
           </div>
-        </div>
-      </section>}
+        </section>
+      )}
 
       {/* ══════════ 메인 콘텐츠 ══════════ */}
       <main className="mx-auto px-5 lg:px-10 pb-24" style={{ maxWidth: 1280 }}>
@@ -1266,269 +1235,8 @@ export default function Home() {
         {mainTab === "event" && (
           <div key="event" className={tabAnim}>
 
-            {/* ── 오늘의 선택 + DNA 그리드 ── */}
-            <div className="pb-10 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              <div className="mb-5 mt-6">
-                <p style={{ fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>오늘의 선택</p>
-                <p style={{ fontSize: "clamp(12px, 3vw, 14px)", color: "#a09688", fontWeight: 300 }}>하루 1번 예측 → 익일 결과 · 정답 시 100 포인트</p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-                {/* 오늘의 선택 카드 (2/3) */}
-                <div className="lg:col-span-2 rounded-2xl p-4 sm:p-6 border" style={{ background: "#141414", borderColor: "rgba(250,202,62,0.18)" }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <SectionLabel text={`오늘의 선택 — ${todayStock.category}`} />
-                    {battleDone && (
-                      <span style={{ fontSize: 11, fontWeight: 500, padding: "3px 9px", borderRadius: 4, background: "rgba(126,212,160,0.12)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.25)" }}>
-                        참여완료
-                      </span>
-                    )}
-                  </div>
-
-                  {/* 종목 헤더 */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <TickerLogo src={`https://logo.clearbit.com/${todayStock.ticker.toLowerCase()}.com`} ticker={todayStock.ticker} size={36} />
-                    <div>
-                      <div style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0", letterSpacing: "-0.01em" }}>{todayStock.name}</div>
-                      <div style={{ ...NUM, fontSize: 12, color: "#5c5448" }}>{todayStock.ticker}</div>
-                    </div>
-                    {!battleDone && (
-                      <div className="flex items-center gap-2 ml-auto">
-                        <span style={{ fontSize: 12, color: "#5c5448", fontWeight: 300 }}>마감까지</span>
-                        <span style={{ ...NUM, fontSize: 13, color: "#FACA3E" }}>{countdown}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 현재가 */}
-                  <div className="mb-5">
-                    {stocksLoading
-                      ? <Skeleton w={120} h={16} />
-                      : <div className="flex items-baseline gap-2">
-                          <PriceDisplay ticker={todayStock.ticker} krwSize={16} usdSize={12} />
-                          <span style={{ ...NUM, fontSize: 13, color: upOf(todayStock.ticker) ? "#7ed4a0" : "#f07878" }}>
-                            {upOf(todayStock.ticker) ? "▲" : "▼"} {changeOf(todayStock.ticker)}
-                          </span>
-                        </div>
-                    }
-                  </div>
-
-                  {/* UP / DOWN 카드 */}
-                  <div className="flex items-stretch gap-4 mb-5">
-                    {/* 오른다 */}
-                    <div className="relative flex-1">
-                      <GoldParticles show={showParticlesA} />
-                      <button onClick={() => handleVote("UP")} disabled={battleDone}
-                        className={`w-full rounded-xl p-5 border text-center pico-btn ${justVoted === "UP" ? "gold-glow" : ""}`}
-                        style={{
-                          background: battleVote === "UP" ? "rgba(126,212,160,0.12)" : "#1c1c1c",
-                          borderColor: battleVote === "UP" ? "#7ed4a0" : "rgba(255,255,255,0.06)",
-                          cursor: battleDone ? "default" : "pointer",
-                          opacity: battleDone && battleVote !== "UP" ? 0.4 : 1,
-                          transform: battleDone && battleVote !== "UP" ? "scale(0.96)" : "scale(1)",
-                          transition: "opacity 0.4s ease, transform 0.4s ease, border-color 0.2s, background 0.2s",
-                        }}>
-                        <div style={{ fontSize: 28, marginBottom: 6 }}>📈</div>
-                        <div style={{ fontSize: 17, fontWeight: 500, color: battleVote === "UP" ? "#7ed4a0" : "#e8e0d0", marginBottom: 4 }}>오른다</div>
-                        {showBarAnim && (
-                          <div style={{ ...NUM, fontSize: 13, color: "#7ed4a0", fontWeight: 500 }}>
-                            <CountUp target={pctUp} duration={1200} />%가 선택
-                          </div>
-                        )}
-                        {!showBarAnim && (
-                          <div style={{ fontSize: 11, color: "#5c5448", fontWeight: 300 }}>탭해서 선택</div>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* DOWN */}
-                    <div className="relative flex-1">
-                      <GoldParticles show={showParticlesB} />
-                      <button onClick={() => handleVote("DOWN")} disabled={battleDone}
-                        className={`w-full rounded-xl p-5 border text-center pico-btn ${justVoted === "DOWN" ? "gold-glow" : ""}`}
-                        style={{
-                          background: battleVote === "DOWN" ? "rgba(240,120,120,0.12)" : "#1c1c1c",
-                          borderColor: battleVote === "DOWN" ? "#f07878" : "rgba(255,255,255,0.06)",
-                          cursor: battleDone ? "default" : "pointer",
-                          opacity: battleDone && battleVote !== "DOWN" ? 0.4 : 1,
-                          transform: battleDone && battleVote !== "DOWN" ? "scale(0.96)" : "scale(1)",
-                          transition: "opacity 0.4s ease, transform 0.4s ease, border-color 0.2s, background 0.2s",
-                        }}>
-                        <div style={{ fontSize: 28, marginBottom: 6 }}>📉</div>
-                        <div style={{ fontSize: 17, fontWeight: 500, color: battleVote === "DOWN" ? "#f07878" : "#e8e0d0", marginBottom: 4 }}>내린다</div>
-                        {showBarAnim && (
-                          <div style={{ ...NUM, fontSize: 13, color: "#f07878", fontWeight: 500 }}>
-                            <CountUp target={pctDown} duration={1200} />%가 선택
-                          </div>
-                        )}
-                        {!showBarAnim && (
-                          <div style={{ fontSize: 11, color: "#5c5448", fontWeight: 300 }}>탭해서 선택</div>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 투표 바 — 선택 후 표시 */}
-                  {showBarAnim ? (
-                    <div className="fade-in-up">
-                      <div className="rounded-full overflow-hidden mb-2" style={{ height: 3, background: "#242424" }}>
-                        <div className="h-full rounded-full" style={{ width: `${pctUp}%`, background: "#7ed4a0", transition: "width 1.2s cubic-bezier(.4,0,.2,1)" }} />
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span style={{ ...NUM, fontSize: 12, color: "#7ed4a0" }}>📈 오른다 {pctUp}%</span>
-                        <span style={{ ...NUM, fontSize: 11, color: "#5c5448" }}>총 {totalVotes.toLocaleString()}명</span>
-                        <span style={{ ...NUM, fontSize: 12, color: "#f07878" }}>내린다 📉 {pctDown}%</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center" style={{ fontSize: 13, color: "#5c5448", fontWeight: 300 }}>선택하면 현황이 공개돼</div>
-                  )}
-
-                  {showResultMsg && (
-                    <div className="fade-in-up mt-4 rounded-xl px-4 py-3 text-center" style={{ background: "rgba(250,202,62,0.05)", border: "0.5px solid rgba(250,202,62,0.15)" }}>
-                      <span style={{ fontSize: 14, fontWeight: 500, color: "#e8e0d0" }}>내일 오전 결과 공개! 🎯</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* DNA 카드 (1/3) — 로그인 사용자만 표시 */}
-                {user && (
-                  <div className="rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(126,184,247,0.18)" }}>
-                    <div className="flex items-center justify-between mb-4">
-                      <SectionLabel text="투자 DNA" />
-                      {quizDone && <span style={{ fontSize: 11, fontWeight: 500, padding: "3px 8px", borderRadius: 4, background: "rgba(126,212,160,0.12)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.25)" }}>완료</span>}
-                    </div>
-                    <p style={{ fontSize: 22, fontWeight: 500, color: "#e8e0d0", marginBottom: 14, lineHeight: 1.2 }}>내 투자 성향은?</p>
-                    {quizDone && animalInfo ? (
-                      <>
-                        <div className="rounded-xl px-4 py-4 mb-4" style={{ background: "rgba(250,202,62,0.06)", border: "0.5px solid rgba(250,202,62,0.2)" }}>
-                          <div style={{ fontSize: 36, marginBottom: 6 }}>{animalInfo.emoji}</div>
-                          <div style={{ fontSize: 11, color: "#5c5448", marginBottom: 2 }}>{animalInfo.modifier}</div>
-                          <div style={{ fontSize: 20, fontWeight: 500, color: "#FACA3E" }}>{animalInfo.name}</div>
-                          <div style={{ fontSize: 13, color: "#a09688", marginTop: 2, fontWeight: 300 }}>내 투자 유형</div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => router.push("/mypage/dna")} className="pico-btn flex-1 rounded-xl py-2.5" style={{ background: "rgba(250,202,62,0.08)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.25)", fontSize: 13, fontWeight: 500 }}>상세 리포트</button>
-                          <button onClick={() => router.push("/quiz")} className="pico-btn px-4 rounded-xl py-2.5" style={{ background: "transparent", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 13 }}>다시하기</button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.75, marginBottom: 16, fontWeight: 300 }}>18문항으로 4가지 축을 측정해 8가지 유형 중 나를 찾아봐.</p>
-                        <button onClick={() => router.push("/quiz")} className="pico-btn w-full rounded-xl py-3" style={{ background: "rgba(126,184,247,0.1)", color: "#7eb8f7", border: "0.5px solid rgba(126,184,247,0.3)", fontSize: 14, fontWeight: 500 }}>
-                          🧬 DNA 확인하러 가기
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── 8가지 투자 DNA 유형 슬라이더 ── */}
-            <div className="pt-10 pb-10 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              <div className="flex items-end justify-between mb-5">
-                <div>
-                  <p style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>8가지 투자 DNA 유형</p>
-                  <p style={{ fontSize: 13, color: "#a09688", fontWeight: 300 }}>4가지 성향 축으로 분류한 투자자 아키타입</p>
-                </div>
-                <button onClick={() => router.push("/quiz")} className="pico-btn px-4 py-2 rounded-lg flex-shrink-0"
-                  style={{ background: "rgba(250,202,62,0.1)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.25)", fontSize: 12, fontWeight: 500 }}>
-                  내 유형 찾기 →
-                </button>
-              </div>
-              {/* 4축 설명 컴팩트 */}
-              <div className="flex flex-wrap gap-2 mb-5">
-                {[
-                  { ax: "R", label: "변동성 회복력", sub: "손실 내성·추가매수 의향", color: "#f07878" },
-                  { ax: "I", label: "정보 필터링",   sub: "분석 깊이·결정 속도",   color: "#7eb8f7" },
-                  { ax: "T", label: "이용 호흡",     sub: "단기 vs 장기 보유",     color: "#7ed4a0" },
-                  { ax: "Y", label: "수익 성향",     sub: "성장주 vs 배당·안정주", color: "#FACA3E" },
-                ].map((a) => (
-                  <div key={a.ax} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: `${a.color}0f`, border: `0.5px solid ${a.color}28` }}>
-                    <span style={{ fontFamily: "var(--font-inter)", fontSize: 11, fontWeight: 500, color: a.color }}>{a.ax}</span>
-                    <span style={{ fontSize: 11, color: "#a09688" }}>{a.label}</span>
-                    <span style={{ fontSize: 10, color: "#5c5448", display: "none" }}>{a.sub}</span>
-                  </div>
-                ))}
-              </div>
-              {/* 카드 슬라이더 */}
-              <div ref={scrollContainerRef} className="scroll-x flex gap-3 pb-2" style={{ scrollSnapType: "x mandatory", cursor: "grab", userSelect: "none" }}>
-                {Object.entries(ANIMAL_NAMES).map(([key, info]) => {
-                  const typeColors: Record<string, string> = {
-                    tiger: "#f07878", wolf: "#c4b0fc", eagle: "#7eb8f7", fox: "#f5a742",
-                    butterfly: "#FACA3E", hedgehog: "#7ed4a0", elephant: "#7eb8f7", turtle: "#7ed4a0",
-                  };
-                  const color = typeColors[key] ?? "#FACA3E";
-                  const isMe = quizType === key;
-                  return (
-                    <div key={key} className="snap-start flex-shrink-0 rounded-2xl p-4 border cursor-pointer pico-card"
-                      style={{ width: 160, background: isMe ? `${color}0c` : "#141414", borderColor: isMe ? `${color}50` : "rgba(255,255,255,0.08)" }}
-                      onClick={() => setPopupType(key)}>
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>{info.emoji}</div>
-                      <div style={{ fontFamily: "'Instrument Sans','Noto Sans KR',sans-serif", fontSize: 12, fontWeight: 400, color: isMe ? color : "#5c5448", marginBottom: 2 }}>{info.modifier}</div>
-                      <div style={{ fontFamily: "'Instrument Sans','Noto Sans KR',sans-serif", fontSize: 17, fontWeight: 500, color: isMe ? color : "#e8e0d0", marginBottom: 6, lineHeight: 1.2 }}>{info.name}</div>
-                      {isMe && (
-                        <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 4, background: `${color}20`, color, border: `0.5px solid ${color}40`, fontWeight: 500 }}>내 유형</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ── 용어 + PICO Play 예고 (2열) ── */}
-            <div className="pt-10 pb-10 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 오늘의 용어 */}
-                <div className="rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.06)" }}>
-                  <div className="flex items-start justify-between mb-1">
-                    <div>
-                      <p style={{ fontSize: 26, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>오늘 하나만, 가볍게</p>
-                      <SectionLabel text={`오늘의 용어 📖 · ${TODAY_DISPLAY}`} />
-                    </div>
-                    <div className="flex gap-1 flex-shrink-0 ml-2 mt-1">
-                      <button onClick={() => setTermIdx((i) => (i - 1 + TERMS.length) % TERMS.length)} className="pico-btn w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "#1c1c1c", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 15 }}>‹</button>
-                      <button onClick={() => setTermIdx((i) => (i + 1) % TERMS.length)} className="pico-btn w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "#1c1c1c", color: "#5c5448", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 15 }}>›</button>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 34, fontWeight: 500, color: "#FACA3E", margin: "14px 0 4px" }}>{term.word}</div>
-                  <div style={{ fontSize: 12, color: "#5c5448", marginBottom: 12, fontWeight: 300 }}>{term.reading}</div>
-                  <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.75, marginBottom: 12, fontWeight: 300 }}>{term.desc}</p>
-                  <div className="rounded-xl px-4 py-3 mb-4" style={{ background: "rgba(250,202,62,0.06)", border: "0.5px solid rgba(250,202,62,0.15)" }}>
-                    <div style={{ fontSize: 11, color: "#FACA3E", fontWeight: 500, letterSpacing: "0.06em", marginBottom: 4 }}>예시</div>
-                    <p style={{ fontSize: 13, color: "#e8e0d0", lineHeight: 1.65, fontWeight: 300 }}>{term.example}</p>
-                  </div>
-                  <button onClick={() => switchTab("play")} className="pico-btn" style={{ fontSize: 13, color: "#FACA3E", fontWeight: 500 }}>
-                    PICO Play에서 바로 써봐 →
-                  </button>
-                  <div className="flex gap-1 mt-4">
-                    {TERMS.map((_, i) => (
-                      <div key={i} onClick={() => setTermIdx(i)} className="pico-btn rounded-full" style={{ width: i === termIdx ? 16 : 5, height: 5, background: i === termIdx ? "#FACA3E" : "rgba(255,255,255,0.12)", transition: "all 0.2s" }} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* PICO Play 예고 */}
-                <div className="pico-card rounded-2xl p-6 border" style={{ background: "#141414", borderColor: "rgba(126,212,160,0.15)" }} onClick={() => switchTab("play")}>
-                  <SectionLabel text="Coming Soon" />
-                  <p style={{ fontSize: 26, fontWeight: 500, color: "#e8e0d0", marginBottom: 10 }}>🎮 PICO Play</p>
-                  <p style={{ fontSize: 14, color: "#a09688", lineHeight: 1.75, marginBottom: 18, fontWeight: 300 }}>가상 10만원으로 리스크 없이 진짜처럼 투자 연습. 매일 AI 인사이트 + 소수점 매수 지원.</p>
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {["가상 자금", "소수점 투자", "AI 인사이트", "법적 문제 없음"].map((t) => (
-                      <span key={t} style={{ fontSize: 10, fontWeight: 500, padding: "3px 8px", borderRadius: 4, background: "rgba(126,212,160,0.08)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.2)" }}>{t}</span>
-                    ))}
-                  </div>
-                  <button onClick={(e) => { e.stopPropagation(); switchTab("play"); }} className="pico-btn px-5 py-2.5 rounded-xl" style={{ background: "rgba(126,212,160,0.1)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.25)", fontSize: 13, fontWeight: 500 }}>
-                    미리보기 →
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* ── 뉴스 ── */}
-            <div className="pt-10 pb-6">
+            {/* ── 시장 뉴스 ── */}
+            <div className="pt-8 pb-6">
               <div className="mb-5">
                 <p style={{ fontSize: 28, fontWeight: 500, color: "#e8e0d0", marginBottom: 4 }}>시장 뉴스</p>
                 <p style={{ fontSize: 14, color: "#a09688", fontWeight: 300 }}>AI 번역 · 핵심 요약 · 감성 분석</p>
