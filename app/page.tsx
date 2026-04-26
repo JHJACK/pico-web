@@ -1170,31 +1170,37 @@ export default function Home() {
       {/* ══════════ 히어로 (이벤트 탭 전용) ══════════ */}
       {mainTab === "event" && (
         <section
-          className="relative overflow-hidden border-b"
+          className="overflow-hidden border-b"
           style={{
             borderColor: "rgba(255,255,255,0.06)",
             background: "#0d0d0d",
-            minHeight: "calc(100vh - 57px)",
+            height: "calc(100vh - 57px)",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
-          {/* 골드 라디얼 글로우 — 오른쪽 */}
-          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 80% at 72% 48%, rgba(250,202,62,0.055) 0%, transparent 60%)", zIndex: 0 }} />
-
-          {/* ── 데스크톱: 2열 레이아웃 ── */}
-          <div className="hidden lg:flex absolute inset-0" style={{ zIndex: 1 }}>
+          {/* ── 데스크톱: flex row ── */}
+          <div className="hidden lg:flex" style={{ flex: 1, minHeight: 0 }}>
             {/* 텍스트 열 */}
-            <div style={{ width: "38%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 0 0 clamp(32px, 5vw, 80px)", zIndex: 2 }}>
-              <h1 style={{ lineHeight: 1.12, marginBottom: 20 }}>
+            <div style={{
+              flexShrink: 0,
+              width: "clamp(260px, 28%, 360px)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              padding: "0 0 0 clamp(28px, 4vw, 60px)",
+            }}>
+              <h1 style={{ lineHeight: 1.14, marginBottom: 18 }}>
                 <span style={{
                   display: "block",
                   fontFamily: "var(--font-mona12), monospace",
                   fontWeight: 400,
-                  fontSize: "clamp(38px, 4.6vw, 68px)",
+                  fontSize: "clamp(26px, 2.8vw, 44px)",
                   color: "#e8e0d0",
                   textDecoration: "line-through",
-                  textDecorationColor: "rgba(232,224,208,0.7)",
-                  textDecorationThickness: "3px",
-                  textUnderlineOffset: "6px",
+                  textDecorationColor: "rgba(232,224,208,0.65)",
+                  textDecorationThickness: "2px",
+                  textUnderlineOffset: "5px",
                   letterSpacing: "-0.01em",
                 }}>
                   금융은 어렵다
@@ -1203,49 +1209,49 @@ export default function Home() {
                   display: "block",
                   fontFamily: "var(--font-mona12), monospace",
                   fontWeight: 700,
-                  fontSize: "clamp(38px, 4.6vw, 68px)",
+                  fontSize: "clamp(26px, 2.8vw, 44px)",
                   color: "#FACA3E",
                   letterSpacing: "-0.01em",
-                  marginTop: 6,
+                  marginTop: 5,
                 }}>
                   아니다. 재밌다
                 </span>
               </h1>
               <div style={{
+                display: "flex",
+                gap: 12,
+                flexWrap: "wrap",
                 fontFamily: "var(--font-mona12-emoji), var(--font-mona12), sans-serif",
-                fontSize: "clamp(22px, 2.6vw, 36px)",
-                letterSpacing: "0.08em",
-                color: "#FACA3E",
+                fontSize: "clamp(20px, 2vw, 30px)",
                 lineHeight: 1,
                 userSelect: "none",
               }}>
-                📈 💡 🤖 ⚡
+                {["📈","😊","💡","😄","🤖","😍","⚡","😜"].map((e) => (
+                  <span key={e}>{e}</span>
+                ))}
               </div>
             </div>
 
-            {/* 글로브 열 — 나머지 전체 */}
-            <div style={{ flex: 1, position: "relative", minWidth: 0 }}>
-              <div style={{ position: "absolute", inset: 0 }}>
-                <StockGlobe />
-              </div>
+            {/* 글로브 열 */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <StockGlobe />
             </div>
           </div>
 
-          {/* ── 모바일: 세로 스택 ── */}
-          <div className="lg:hidden flex flex-col" style={{ minHeight: "calc(100vh - 57px)", zIndex: 1, position: "relative" }}>
-            {/* 텍스트 */}
-            <div style={{ padding: "52px 24px 24px" }}>
-              <h1 style={{ lineHeight: 1.15, marginBottom: 16 }}>
+          {/* ── 모바일: flex column ── */}
+          <div className="lg:hidden flex flex-col" style={{ flex: 1, minHeight: 0 }}>
+            <div style={{ padding: "44px 24px 20px", flexShrink: 0 }}>
+              <h1 style={{ lineHeight: 1.16, marginBottom: 14 }}>
                 <span style={{
                   display: "block",
                   fontFamily: "var(--font-mona12), monospace",
                   fontWeight: 400,
-                  fontSize: "clamp(32px, 9vw, 52px)",
+                  fontSize: "clamp(28px, 8vw, 44px)",
                   color: "#e8e0d0",
                   textDecoration: "line-through",
-                  textDecorationColor: "rgba(232,224,208,0.7)",
-                  textDecorationThickness: "2.5px",
-                  textUnderlineOffset: "5px",
+                  textDecorationColor: "rgba(232,224,208,0.65)",
+                  textDecorationThickness: "2px",
+                  textUnderlineOffset: "4px",
                 }}>
                   금융은 어렵다
                 </span>
@@ -1253,7 +1259,7 @@ export default function Home() {
                   display: "block",
                   fontFamily: "var(--font-mona12), monospace",
                   fontWeight: 700,
-                  fontSize: "clamp(32px, 9vw, 52px)",
+                  fontSize: "clamp(28px, 8vw, 44px)",
                   color: "#FACA3E",
                   marginTop: 4,
                 }}>
@@ -1261,18 +1267,20 @@ export default function Home() {
                 </span>
               </h1>
               <div style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
                 fontFamily: "var(--font-mona12-emoji), var(--font-mona12), sans-serif",
-                fontSize: 28,
-                letterSpacing: "0.08em",
-                color: "#FACA3E",
+                fontSize: 24,
                 lineHeight: 1,
                 userSelect: "none",
               }}>
-                📈 💡 🤖 ⚡
+                {["📈","😊","💡","😄","🤖","😍","⚡","😜"].map((e) => (
+                  <span key={e}>{e}</span>
+                ))}
               </div>
             </div>
-            {/* 글로브 */}
-            <div style={{ flex: 1, minHeight: 340 }}>
+            <div style={{ flex: 1, minHeight: 0 }}>
               <StockGlobe />
             </div>
           </div>
