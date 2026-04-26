@@ -2,66 +2,85 @@
 import { useEffect, useRef } from "react";
 
 const POINTS = [
-  { lat: 37.5665, lng: 126.978,  size: 0.62, color: "#FACA3E" },
-  { lat: 37.3688, lng: -122.036, size: 0.46, color: "#F5C030" },
-  { lat: 37.3317, lng: -122.031, size: 0.46, color: "#F5C030" },
-  { lat: 30.2281, lng: -97.749,  size: 0.38, color: "#F5C030" },
-  { lat: 47.6423, lng: -122.139, size: 0.42, color: "#F5C030" },
-  { lat: 47.6204, lng: -122.349, size: 0.38, color: "#F5C030" },
-  { lat: 37.4847, lng: -122.148, size: 0.38, color: "#F5C030" },
-  { lat: 40.7128, lng: -74.006,  size: 0.48, color: "#F5C030" },
-  { lat: 41.2565, lng: -95.934,  size: 0.30, color: "#E8B828" },
-  { lat: 35.6762, lng: 139.650,  size: 0.44, color: "#E8C860" },
-  { lat: 35.0828, lng: 137.156,  size: 0.32, color: "#E8C860" },
-  { lat: 24.7794, lng: 120.996,  size: 0.44, color: "#E8C060" },
-  { lat: 30.2741, lng: 120.155,  size: 0.36, color: "#D4B050" },
-  { lat: 22.5431, lng: 114.058,  size: 0.36, color: "#D4B050" },
-  { lat: 31.2304, lng: 121.474,  size: 0.38, color: "#D4B050" },
-  { lat: 1.3521,  lng: 103.820,  size: 0.34, color: "#E0C458" },
-  { lat: 19.076,  lng: 72.878,   size: 0.30, color: "#CCA840" },
-  { lat: 51.5074, lng: -0.128,   size: 0.44, color: "#C8A840" },
-  { lat: 48.8566, lng: 2.352,    size: 0.34, color: "#C8A840" },
-  { lat: 52.520,  lng: 13.405,   size: 0.30, color: "#C8A840" },
-  { lat: 51.4416, lng: 5.470,    size: 0.36, color: "#C8A840" },
-  { lat: -33.869, lng: 151.209,  size: 0.30, color: "#BEA040" },
-  { lat: -23.550, lng: -46.633,  size: 0.28, color: "#BEA040" },
-  { lat: 55.751,  lng: 37.618,   size: 0.26, color: "#B89830" },
-  { lat: -26.204, lng: 28.047,   size: 0.24, color: "#B09030" },
+  { lat: 37.5665, lng: 126.978,  size: 1.0,  color: "#FACA3E" }, // Seoul — PICO hub
+  { lat: 37.3688, lng: -122.036, size: 0.62, color: "#F5C030" }, // Cupertino (Apple)
+  { lat: 37.3317, lng: -122.031, size: 0.60, color: "#F5C030" }, // Mountain View (Google)
+  { lat: 37.4847, lng: -122.148, size: 0.50, color: "#F5C030" }, // Palo Alto (Tesla/Meta)
+  { lat: 47.6423, lng: -122.139, size: 0.62, color: "#F5C030" }, // Bellevue (Microsoft)
+  { lat: 47.6204, lng: -122.349, size: 0.55, color: "#F5C030" }, // Seattle (Amazon)
+  { lat: 30.2281, lng: -97.749,  size: 0.44, color: "#ECC030" }, // Austin (Tesla)
+  { lat: 40.7128, lng: -74.006,  size: 0.62, color: "#F0BC2C" }, // New York (Wall St)
+  { lat: 41.2565, lng: -95.934,  size: 0.36, color: "#E8B828" }, // Omaha (Berkshire)
+  { lat: 35.6762, lng: 139.650,  size: 0.56, color: "#E8C860" }, // Tokyo (Sony, Toyota)
+  { lat: 35.0828, lng: 137.156,  size: 0.40, color: "#E0C060" }, // Nagoya (Toyota HQ)
+  { lat: 24.7794, lng: 120.996,  size: 0.58, color: "#E8C060" }, // Hsinchu (TSMC)
+  { lat: 30.2741, lng: 120.155,  size: 0.44, color: "#D4B050" }, // Hangzhou (Alibaba)
+  { lat: 22.5431, lng: 114.058,  size: 0.48, color: "#D4B050" }, // Shenzhen (Tencent)
+  { lat: 31.2304, lng: 121.474,  size: 0.50, color: "#D4B050" }, // Shanghai
+  { lat: 39.9042, lng: 116.407,  size: 0.42, color: "#D4B050" }, // Beijing (Baidu, ByteDance)
+  { lat: 1.3521,  lng: 103.820,  size: 0.46, color: "#E0C458" }, // Singapore (Sea Limited)
+  { lat: 19.076,  lng: 72.878,   size: 0.38, color: "#CCA840" }, // Mumbai (Reliance)
+  { lat: 51.5074, lng: -0.128,   size: 0.56, color: "#C8A840" }, // London (Shell, BP)
+  { lat: 48.8566, lng: 2.352,    size: 0.44, color: "#C8A840" }, // Paris (LVMH, Total)
+  { lat: 52.520,  lng: 13.405,   size: 0.38, color: "#C8A840" }, // Berlin (SAP)
+  { lat: 51.4416, lng: 5.470,    size: 0.48, color: "#C8A840" }, // Eindhoven (ASML)
+  { lat: -33.869, lng: 151.209,  size: 0.36, color: "#BEA040" }, // Sydney
+  { lat: -23.550, lng: -46.633,  size: 0.32, color: "#BEA040" }, // São Paulo
+  { lat: 55.751,  lng: 37.618,   size: 0.30, color: "#B89830" }, // Moscow (Gazprom)
+  { lat: -26.204, lng: 28.047,   size: 0.26, color: "#B09030" }, // Johannesburg
 ];
 
 const SL = 37.5665, SG = 126.978;
 
 const ARCS = [
-  { startLat: SL, startLng: SG, endLat: 37.3688, endLng: -122.036, ck: "g1", alt: 0.38 },
-  { startLat: SL, startLng: SG, endLat: 40.7128, endLng: -74.006,  ck: "g1", alt: 0.42 },
+  // Seoul → US West (brightest primary)
+  { startLat: SL, startLng: SG, endLat: 37.3688, endLng: -122.036, ck: "g1", alt: 0.42 },
+  // Seoul → US East
+  { startLat: SL, startLng: SG, endLat: 40.7128, endLng: -74.006,  ck: "g1", alt: 0.46 },
+  // Seoul → Tokyo
   { startLat: SL, startLng: SG, endLat: 35.6762, endLng: 139.650,  ck: "g2", alt: 0.18 },
+  // Seoul → TSMC
   { startLat: SL, startLng: SG, endLat: 24.7794, endLng: 120.996,  ck: "g2", alt: 0.20 },
+  // Seoul → Shanghai
   { startLat: SL, startLng: SG, endLat: 31.2304, endLng: 121.474,  ck: "g2", alt: 0.18 },
-  { startLat: SL, startLng: SG, endLat: 1.3521,  endLng: 103.820,  ck: "g3", alt: 0.24 },
-  { startLat: SL, startLng: SG, endLat: 51.5074, endLng: -0.128,   ck: "g3", alt: 0.46 },
-  { startLat: SL, startLng: SG, endLat: -33.869, endLng: 151.209,  ck: "g3", alt: 0.32 },
+  // Seoul → Singapore
+  { startLat: SL, startLng: SG, endLat: 1.3521,  endLng: 103.820,  ck: "g3", alt: 0.27 },
+  // Seoul → London
+  { startLat: SL, startLng: SG, endLat: 51.5074, endLng: -0.128,   ck: "g3", alt: 0.50 },
+  // Seoul → Sydney
+  { startLat: SL, startLng: SG, endLat: -33.869, endLng: 151.209,  ck: "g3", alt: 0.35 },
+  // US West → US East
+  { startLat: 37.3688, startLng: -122.036, endLat: 40.7128, endLng: -74.006,  ck: "a1", alt: 0.22 },
   { startLat: 37.3688, startLng: -122.036, endLat: 47.6423, endLng: -122.139, ck: "a1", alt: 0.14 },
   { startLat: 37.3688, startLng: -122.036, endLat: 30.2281, endLng: -97.749,  ck: "a1", alt: 0.20 },
-  { startLat: 40.7128, startLng: -74.006,  endLat: 51.5074, endLng: -0.128,   ck: "a1", alt: 0.36 },
+  // NY → London
+  { startLat: 40.7128, startLng: -74.006,  endLat: 51.5074, endLng: -0.128,   ck: "a1", alt: 0.38 },
+  // NY → São Paulo
+  { startLat: 40.7128, startLng: -74.006,  endLat: -23.550, endLng: -46.633,  ck: "a2", alt: 0.36 },
+  // Europe internal
   { startLat: 51.5074, startLng: -0.128,   endLat: 48.8566, endLng: 2.352,    ck: "a2", alt: 0.10 },
   { startLat: 51.5074, startLng: -0.128,   endLat: 51.4416, endLng: 5.470,    ck: "a2", alt: 0.10 },
-  { startLat: 35.6762, startLng: 139.650,  endLat: 1.3521,  endLng: 103.820,  ck: "a1", alt: 0.26 },
-  { startLat: 35.6762, startLng: 139.650,  endLat: 24.7794, endLng: 120.996,  ck: "a2", alt: 0.16 },
-  { startLat: 31.2304, startLng: 121.474,  endLat: 22.5431, endLng: 114.058,  ck: "a2", alt: 0.14 },
-  { startLat: 1.3521,  startLng: 103.820,  endLat: -33.869, endLng: 151.209,  ck: "a2", alt: 0.22 },
-  { startLat: 1.3521,  startLng: 103.820,  endLat: 19.076,  endLng: 72.878,   ck: "a2", alt: 0.18 },
-  { startLat: 40.7128, startLng: -74.006,  endLat: -23.550, endLng: -46.633,  ck: "a2", alt: 0.34 },
   { startLat: 51.5074, startLng: -0.128,   endLat: 55.751,  endLng: 37.618,   ck: "a2", alt: 0.14 },
-  { startLat: 51.5074, startLng: -0.128,   endLat: -26.204, endLng: 28.047,   ck: "a3", alt: 0.40 },
+  { startLat: 51.5074, startLng: -0.128,   endLat: -26.204, endLng: 28.047,   ck: "a3", alt: 0.42 },
+  // Asia internal
+  { startLat: 35.6762, startLng: 139.650,  endLat: 24.7794, endLng: 120.996,  ck: "a2", alt: 0.16 },
+  { startLat: 35.6762, startLng: 139.650,  endLat: 1.3521,  endLng: 103.820,  ck: "a2", alt: 0.27 },
+  { startLat: 31.2304, startLng: 121.474,  endLat: 22.5431, endLng: 114.058,  ck: "a2", alt: 0.14 },
+  { startLat: 31.2304, startLng: 121.474,  endLat: 39.9042, endLng: 116.407,  ck: "a2", alt: 0.12 },
+  // Singapore → region
+  { startLat: 1.3521,  startLng: 103.820,  endLat: -33.869, endLng: 151.209,  ck: "a2", alt: 0.24 },
+  { startLat: 1.3521,  startLng: 103.820,  endLat: 19.076,  endLng: 72.878,   ck: "a2", alt: 0.18 },
+  // India → London
+  { startLat: 19.076,  startLng: 72.878,   endLat: 51.5074, endLng: -0.128,   ck: "a3", alt: 0.40 },
 ];
 
 const ARC_COLORS: Record<string, [string, string]> = {
-  g1: ["rgba(250,202,62,0.95)", "rgba(250,202,62,0.08)"],
-  g2: ["rgba(250,202,62,0.70)", "rgba(250,202,62,0.04)"],
-  g3: ["rgba(250,190,50,0.50)", "rgba(250,190,50,0.02)"],
-  a1: ["rgba(240,175,60,0.60)", "rgba(240,175,60,0.04)"],
-  a2: ["rgba(235,165,50,0.40)", "rgba(235,165,50,0.02)"],
-  a3: ["rgba(225,155,40,0.30)", "rgba(225,155,40,0.01)"],
+  g1: ["rgba(250,202,62,1.00)", "rgba(250,202,62,0.0)"],
+  g2: ["rgba(250,198,58,0.88)", "rgba(250,198,58,0.0)"],
+  g3: ["rgba(245,188,50,0.68)", "rgba(245,188,50,0.0)"],
+  a1: ["rgba(238,178,55,0.72)", "rgba(238,178,55,0.0)"],
+  a2: ["rgba(225,165,50,0.52)", "rgba(225,165,50,0.0)"],
+  a3: ["rgba(212,152,42,0.36)", "rgba(212,152,42,0.0)"],
 };
 
 export default function StockGlobe() {
@@ -90,15 +109,15 @@ export default function StockGlobe() {
         .backgroundColor("rgba(0,0,0,0)")
         .globeImageUrl("/earth-night.jpg")
         .bumpImageUrl("/earth-topology.png")
-        .atmosphereColor("rgba(250,202,62,0.50)")
-        .atmosphereAltitude(0.16)
+        .atmosphereColor("rgba(250,202,62,0.82)")
+        .atmosphereAltitude(0.22)
         .pointsData(POINTS)
         .pointLat("lat")
         .pointLng("lng")
         .pointColor("color")
-        .pointAltitude(0.014)
+        .pointAltitude(0.018)
         .pointRadius("size")
-        .pointResolution(24)
+        .pointResolution(32)
         .arcsData(ARCS)
         .arcStartLat("startLat")
         .arcStartLng("startLng")
@@ -106,20 +125,20 @@ export default function StockGlobe() {
         .arcEndLng("endLng")
         .arcColor((d: any) => ARC_COLORS[d.ck] ?? ARC_COLORS.a3)
         .arcAltitude((d: any) => d.alt)
-        .arcDashLength(0.38)
-        .arcDashGap(0.62)
+        .arcDashLength(0.50)
+        .arcDashGap(0.50)
         .arcDashAnimateTime((d: any) =>
-          d.ck === "g1" ? 2200 : d.ck === "g2" ? 2600 : d.ck === "g3" ? 3000 : d.ck === "a1" ? 3200 : 3800
+          d.ck === "g1" ? 1600 : d.ck === "g2" ? 2000 : d.ck === "g3" ? 2500 : d.ck === "a1" ? 2800 : 3400
         )
         .arcStroke((d: any) =>
-          d.ck === "g1" ? 0.60 : d.ck === "g2" ? 0.48 : d.ck === "g3" ? 0.40 : d.ck === "a1" ? 0.34 : 0.26
+          d.ck === "g1" ? 1.5 : d.ck === "g2" ? 1.1 : d.ck === "g3" ? 0.85 : d.ck === "a1" ? 0.70 : 0.52
         );
 
-      globe.pointOfView({ lat: 28, lng: 118, altitude: 2.1 }, 0);
+      globe.pointOfView({ lat: 26, lng: 116, altitude: 1.78 }, 0);
 
       const ctrl = globe.controls();
       ctrl.autoRotate = true;
-      ctrl.autoRotateSpeed = 0.42;
+      ctrl.autoRotateSpeed = 0.38;
       ctrl.enableZoom = false;
       ctrl.enablePan = false;
       ctrl.enableRotate = false;
@@ -128,7 +147,13 @@ export default function StockGlobe() {
     rafId = requestAnimationFrame(() => doInit());
 
     const ro = new ResizeObserver(() => {
-      if (!globe) doInit();
+      if (!globe) {
+        doInit();
+      } else {
+        const w = el.offsetWidth;
+        const h = el.offsetHeight;
+        if (w && h) { globe.width(w); globe.height(h); }
+      }
     });
     ro.observe(el);
 
@@ -141,5 +166,17 @@ export default function StockGlobe() {
     };
   }, []);
 
-  return <div ref={mountRef} style={{ width: "100%", height: "100%", display: "block" }} />;
+  return (
+    <div style={{ width: "100%", height: "100%", display: "block", position: "relative" }}>
+      <div
+        ref={mountRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "block",
+          filter: "brightness(1.18) contrast(1.06) saturate(1.1)",
+        }}
+      />
+    </div>
+  );
 }
