@@ -139,6 +139,12 @@ export default function DnaPage() {
 
   const dnaType = userRow.investor_type ? INVESTOR_TYPES[userRow.investor_type as TypeKey] : null;
 
+  // 퀴즈 미완료 → 퀴즈 시작 페이지로 이동
+  if (!dnaType) {
+    router.replace("/quiz");
+    return null;
+  }
+
   const axisPositions = dnaType ? {
     R: dnaType.axisR === "HIGH" ? 78 : 22,
     I: dnaType.axisI === "HIGH" ? 78 : 22,
@@ -231,8 +237,7 @@ export default function DnaPage() {
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "clamp(16px,4vw,24px)", paddingBottom: 80 }}>
 
-        {dnaType ? (
-          <>
+        <>
             {/* ── 타입 헤더 카드 ── */}
             <div style={{
               background: `linear-gradient(135deg, ${dnaType.color}12 0%, #141414 60%)`,
@@ -573,26 +578,7 @@ export default function DnaPage() {
                 })}
               </div>
             )}
-          </>
-        ) : (
-          /* ── 미완료 상태 ── */
-          <div style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "clamp(40px,8vw,64px) 24px", textAlign: "center" }}>
-            <p style={{ fontSize: 52, marginBottom: 20 }}>🧬</p>
-            <p style={{ fontFamily: "var(--font-paperlogy)", fontWeight: 800, fontSize: "clamp(22px,5vw,28px)", color: "#e8e0d0", marginBottom: 10 }}>
-              아직 투자 DNA를 모르고 있어요
-            </p>
-            <p style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 8, lineHeight: 1.7 }}>
-              18문항으로 나만의 투자 유형을 찾아보세요.
-            </p>
-            <p style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 32, lineHeight: 1.7 }}>
-              행동경제학 기반 · 4가지 독립 축 · 약 3분
-            </p>
-            <Link href="/quiz"
-              style={{ display: "inline-block", background: "#FACA3E", color: "#0d0d0d", fontFamily: "var(--font-paperlogy)", fontSize: 16, fontWeight: 700, padding: "16px 40px", borderRadius: 16, textDecoration: "none" }}>
-              투자 DNA 테스트 시작하기
-            </Link>
-          </div>
-        )}
+        </>
       </div>
     </main>
   );
