@@ -176,7 +176,7 @@ export default function DnaPage() {
               🔬 4가지 측정 축 설명
             </div>
             <p style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 20, lineHeight: 1.6 }}>
-              PICO 투자 DNA 테스트는 행동경제학 기반으로 아래 ==4가지 독립 축==을 측정해요.
+              {renderText("PICO 투자 DNA 테스트는 행동경제학 기반으로 아래 ==4가지 독립 축==을 측정해요.")}
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_KR, DM_Serif_Display, Instrument_Sans, Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/app/lib/authContext";
@@ -57,6 +57,11 @@ const mona12Emoji = localFont({
   variable: "--font-mona12-emoji",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: "PICO — 투자, 흐름을 읽어",
