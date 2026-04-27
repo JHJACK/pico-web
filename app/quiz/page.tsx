@@ -55,6 +55,7 @@ export default function QuizPage() {
 
   const [step,      setStep]     = useState(0);
   const [scores,    setScores]   = useState<AxisScores>({ R: 0, I: 0, T: 0, Y: 0 });
+  const [perQuestionAnswer, setPerQuestionAnswer] = useState<Record<number, number>>({});
   const [animating, setAnimating] = useState(false);
   const [result,    setResult]   = useState<TypeKey | null>(null);
   const [resultScores, setResultScores] = useState<AxisScores | null>(null);
@@ -75,10 +76,11 @@ export default function QuizPage() {
     const raw = sessionStorage.getItem(SS_KEY);
     if (raw) {
       try {
-        const saved = JSON.parse(raw) as { scores: AxisScores; step: number };
+        const saved = JSON.parse(raw) as { scores: AxisScores; step: number; answers?: Record<number, number> };
         if (saved.step > 0 && saved.step <= TOTAL) {
           setScores(saved.scores);
           setStep(saved.step);
+          if (saved.answers) setPerQuestionAnswer(saved.answers);
         }
       } catch { /* ignore */ }
     }
@@ -124,9 +126,11 @@ export default function QuizPage() {
   function handleAnswer(score: number) {
     if (animating || !currentQ) return;
     const newScores = { ...scores, [currentQ.axis]: scores[currentQ.axis] + score };
+    const newAnswers = { ...perQuestionAnswer, [step]: score };
     setAnimating(true);
     setTimeout(() => {
       setScores(newScores);
+      setPerQuestionAnswer(newAnswers);
       const nextStep = step + 1;
       if (step === TOTAL) {
         const typeKey = calcInvestorType(newScores);
@@ -152,10 +156,33 @@ export default function QuizPage() {
         }, 1600);
       } else {
         setStep(nextStep);
-        sessionStorage.setItem(SS_KEY, JSON.stringify({ scores: newScores, step: nextStep }));
+        sessionStorage.setItem(SS_KEY, JSON.stringify({ scores: newScores, step: nextStep, answers: newAnswers }));
       }
       setAnimating(false);
     }, 200);
+  }
+
+  function handleBack() {
+    if (step <= 1) {
+      reset();
+      return;
+    }
+    const prevStep = step - 1;
+    const prevQ = QUESTIONS[prevStep - 1];
+    const prevScore = perQuestionAnswer[prevStep];
+
+    let newScores = { ...scores };
+    const newAnswers = { ...perQuestionAnswer };
+
+    if (prevScore !== undefined) {
+      newScores = { ...scores, [prevQ.axis]: Math.max(0, scores[prevQ.axis] - prevScore) };
+      delete newAnswers[prevStep];
+    }
+
+    setScores(newScores);
+    setPerQuestionAnswer(newAnswers);
+    setStep(prevStep);
+    sessionStorage.setItem(SS_KEY, JSON.stringify({ scores: newScores, step: prevStep, answers: newAnswers }));
   }
 
   async function handleAuth() {
@@ -176,6 +203,7 @@ export default function QuizPage() {
 
   function reset() {
     setStep(0); setScores({ R: 0, I: 0, T: 0, Y: 0 });
+    setPerQuestionAnswer({});
     setResult(null); setResultScores(null); setShowFull(false);
     setAnimating(false); setQuizBonus(0); setAuthMode(null);
     sessionStorage.removeItem(SS_KEY);
@@ -445,14 +473,23 @@ export default function QuizPage() {
           <div>
             {/* 진행 바 */}
             <div style={{ marginBottom: 28 }}>
-              <div className="rounded-full overflow-hidden" style={{ height: 3, background: "#242424", marginBottom: 10 }}>
-                <div className="h-full rounded-full" style={{
-                  width: `${progress}%`,
-                  background: currentAxisColor,
-                  transition: "width 0.4s cubic-bezier(.4,0,.2,1)",
-                }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <button
+                  onClick={handleBack}
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", opacity: 0.7 }}
+                >
+                  <BackIcon size={18} />
+                </button>
+                <div style={{ flex: 1, height: 3, borderRadius: 99, background: "#242424", overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%", borderRadius: 99,
+                    width: `${progress}%`,
+                    background: currentAxisColor,
+                    transition: "width 0.4s cubic-bezier(.4,0,.2,1)",
+                  }} />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between" style={{ paddingLeft: 28 }}>
                 <span style={{ fontFamily: "var(--font-mona12)", fontSize: 12, color: "#c8bfb0" }}>{step} / {TOTAL}</span>
                 <span style={{
                   fontFamily: "var(--font-mona12)", fontSize: 12, fontWeight: 700,

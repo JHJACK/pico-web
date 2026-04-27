@@ -7,10 +7,67 @@ import { useAuth } from "@/app/lib/authContext";
 import { INVESTOR_TYPES, TYPE_KEYS, type TypeKey } from "@/app/lib/quizTypes";
 import { BackIcon } from "@/app/components/BackIcon";
 
+// ── 축 메타 ──────────────────────────────────────────────────────────────────
+const AXIS_META = {
+  R: { color: "#f07878", leftLabel: "안정 우선", rightLabel: "도전 선호", name: "변동성 회복력" },
+  T: { color: "#7ed4a0", leftLabel: "단기 지향", rightLabel: "장기 지향", name: "운용 호흡" },
+  Y: { color: "#FACA3E", leftLabel: "안정 배당", rightLabel: "공격 성장", name: "수익 편향" },
+} as const;
+
+// ── Mona12 콜아웃 컴포넌트 ───────────────────────────────────────────────────
+function Callout({ icon, label, color = "#FACA3E" }: { icon: string; label: string; color?: string }) {
+  return (
+    <div style={{
+      display: "inline-flex", alignItems: "center", gap: 8,
+      fontFamily: "var(--font-mona12)", fontSize: 15, fontWeight: 700,
+      color,
+      background: `${color}0f`,
+      border: `0.5px solid ${color}30`,
+      borderRadius: 10, padding: "8px 14px",
+      marginBottom: 20,
+    }}>
+      {icon} {label}
+    </div>
+  );
+}
+
+// ── 섹션 헤더 ────────────────────────────────────────────────────────────────
+function SectionHeader({ icon, label, color = "#c8bfb0" }: { icon: string; label: string; color?: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+      <span style={{ fontSize: 18 }}>{icon}</span>
+      <span style={{ fontFamily: "var(--font-paperlogy)", fontWeight: 700, fontSize: 16, color }}>{label}</span>
+    </div>
+  );
+}
+
+// ── 스펙트럼 게이지 바 ────────────────────────────────────────────────────────
+function SpectrumBar({ value, color }: { value: number; color: string }) {
+  return (
+    <div style={{ position: "relative", height: 6, borderRadius: 99, background: "rgba(255,255,255,0.07)", overflow: "visible" }}>
+      <div style={{
+        height: "100%", borderRadius: 99,
+        width: `${value}%`,
+        background: `linear-gradient(90deg, ${color}40, ${color})`,
+        transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)",
+      }} />
+      <div style={{
+        position: "absolute", top: "50%",
+        left: `${value}%`, transform: "translate(-50%, -50%)",
+        width: 14, height: 14, borderRadius: "50%",
+        background: color,
+        boxShadow: `0 0 8px ${color}80`,
+        border: "2px solid #0d0d0d",
+        transition: "left 0.8s cubic-bezier(0.4,0,0.2,1)",
+      }} />
+    </div>
+  );
+}
+
 export default function DnaPage() {
   const router = useRouter();
   const { user, userRow, loading } = useAuth();
-  const [showAllTypes, setShowAllTypes] = useState(true);
+  const [showAllTypes, setShowAllTypes] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -21,12 +78,12 @@ export default function DnaPage() {
     const url = typeof window !== "undefined" ? `${window.location.origin}/quiz` : "";
     const dnaType = userRow?.investor_type ? INVESTOR_TYPES[userRow.investor_type as TypeKey] : null;
     const text = dnaType
-      ? `나는 ${dnaType.modifier} ${dnaType.emoji}${dnaType.name}!\n\n당신의 투자 DNA는? PICO에서 확인해봐 →\n${url}`
-      : `투자 DNA 테스트 — PICO에서 내 유형을 찾아봐 →\n${url}`;
+      ? `나는 ${dnaType.modifier} ${dnaType.emoji}${dnaType.name}!\n\n당신의 투자 DNA는? PICO에서 확인해보세요 →\n${url}`
+      : `투자 DNA 테스트 — PICO에서 내 유형을 찾아보세요 →\n${url}`;
     if (typeof navigator !== "undefined" && navigator.share) {
       navigator.share({ title: "PICO 투자 DNA 테스트", text, url }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(`${text}`).then(() => {
+      navigator.clipboard.writeText(text).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       });
@@ -38,6 +95,13 @@ export default function DnaPage() {
 
   const dnaType = userRow.investor_type ? INVESTOR_TYPES[userRow.investor_type as TypeKey] : null;
 
+  // 축 값 → 스펙트럼 포지션 (HIGH/LONG/GROWTH = 78%, LOW/SHORT/STABLE = 22%)
+  const axisPositions = dnaType ? {
+    R: dnaType.axisR === "HIGH" ? 78 : 22,
+    T: dnaType.axisT === "LONG" ? 78 : 22,
+    Y: dnaType.axisY === "GROWTH" ? 78 : 22,
+  } : null;
+
   return (
     <main className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
       <nav className="sticky top-0 z-30 border-b flex items-center px-5"
@@ -45,130 +109,358 @@ export default function DnaPage() {
         <button onClick={() => router.back()} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
           <BackIcon />
         </button>
-        <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
+        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 15, fontWeight: 700, color: "#FACA3E", marginLeft: 16, letterSpacing: "0.06em" }}>PICO</span>
         <button onClick={share} className="pico-btn ml-auto px-4 py-2 rounded-xl"
-          style={{ background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.25)", color: "#FACA3E", fontSize: 13, fontWeight: 500 }}>
-          {copied ? "복사됨 ✓" : "🔗 공유하기"}
+          style={{ background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.25)", color: "#FACA3E", fontSize: 14, fontWeight: 600 }}>
+          {copied ? "✓ 복사됨" : "🔗 공유"}
         </button>
       </nav>
 
-      <div className="page-container mx-auto py-8 px-4 sm:px-6" style={{ maxWidth: 700 }}>
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: "clamp(16px,4vw,24px)", paddingBottom: 80 }}>
 
         {dnaType ? (
           <>
-            {/* ── 타입 헤더 ── */}
-            <div className="rounded-2xl px-5 py-6 border mb-5 flex items-center justify-between flex-wrap gap-4"
-              style={{ background: `${dnaType.color}0d`, borderColor: `${dnaType.color}35` }}>
-              <div className="flex items-center gap-4">
-                <span style={{ fontSize: "clamp(44px, 8vw, 60px)", lineHeight: 1 }}>{dnaType.emoji}</span>
-                <div>
-                  <p style={{ fontSize: 13, letterSpacing: "0.08em", color: dnaType.color, fontWeight: 600, marginBottom: 4, textTransform: "uppercase" }}>
+            {/* ── 타입 헤더 카드 ── */}
+            <div style={{
+              background: `linear-gradient(135deg, ${dnaType.color}12 0%, #141414 60%)`,
+              border: `0.5px solid ${dnaType.color}40`,
+              borderRadius: 24, padding: "clamp(20px,4vw,32px)",
+              marginBottom: 16,
+              position: "relative", overflow: "hidden",
+            }}>
+              {/* 배경 이모지 워터마크 */}
+              <div style={{
+                position: "absolute", right: -10, top: -10,
+                fontSize: "clamp(80px,20vw,120px)", opacity: 0.07,
+                lineHeight: 1, pointerEvents: "none", userSelect: "none",
+              }}>
+                {dnaType.emoji}
+              </div>
+
+              <div style={{ position: "relative" }}>
+                <div style={{ marginBottom: 16 }}>
+                  <span style={{
+                    fontFamily: "var(--font-mona12)", fontSize: 12, fontWeight: 700,
+                    color: dnaType.color, letterSpacing: "0.14em", textTransform: "uppercase",
+                    background: `${dnaType.color}15`,
+                    border: `0.5px solid ${dnaType.color}35`,
+                    borderRadius: 6, padding: "4px 10px",
+                  }}>
                     {dnaType.modifier}
-                  </p>
-                  <p style={{ fontSize: "clamp(24px, 5vw, 36px)", fontWeight: 700, color: "#e8e0d0", lineHeight: 1.05, marginBottom: 6 }}>
-                    {dnaType.name}
-                  </p>
-                  <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.6, maxWidth: 420 }}>
-                    {dnaType.tagline}
-                  </p>
+                  </span>
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "clamp(52px,12vw,72px)", lineHeight: 1 }}>{dnaType.emoji}</span>
+                  <div>
+                    <p style={{
+                      fontFamily: "var(--font-paperlogy)", fontWeight: 800,
+                      fontSize: "clamp(32px,8vw,48px)", color: "#e8e0d0",
+                      lineHeight: 1, marginBottom: 6,
+                    }}>
+                      {dnaType.name}
+                    </p>
+                    <p style={{ fontSize: "clamp(14px,3vw,16px)", color: "#c8bfb0", lineHeight: 1.6, maxWidth: 360 }}>
+                      {dnaType.tagline}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3축 뱃지 */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {[
+                    { label: `R · ${dnaType.axisR === "HIGH" ? "도전형" : "안정형"}`, color: "#f07878" },
+                    { label: `T · ${dnaType.axisT === "LONG" ? "장기형" : "단기형"}`, color: "#7ed4a0" },
+                    { label: `Y · ${dnaType.axisY === "GROWTH" ? "성장형" : "배당형"}`, color: "#FACA3E" },
+                  ].map(({ label, color }) => (
+                    <span key={label} style={{
+                      fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
+                      padding: "5px 12px", borderRadius: 8,
+                      background: `${color}15`, color,
+                      border: `0.5px solid ${color}35`,
+                    }}>
+                      {label}
+                    </span>
+                  ))}
                 </div>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                <span style={{ fontSize: 14, padding: "5px 14px", borderRadius: 6, background: "rgba(240,120,120,0.12)", color: "#f07878", border: "0.5px solid rgba(240,120,120,0.3)", fontFamily: "var(--font-inter)" }}>
-                  R: {dnaType.axisR}
-                </span>
-                <span style={{ fontSize: 14, padding: "5px 14px", borderRadius: 6, background: "rgba(126,212,160,0.12)", color: "#7ed4a0", border: "0.5px solid rgba(126,212,160,0.3)", fontFamily: "var(--font-inter)" }}>
-                  T: {dnaType.axisT}
-                </span>
-                <span style={{ fontSize: 14, padding: "5px 14px", borderRadius: 6, background: "rgba(250,202,62,0.12)", color: "#FACA3E", border: "0.5px solid rgba(250,202,62,0.3)", fontFamily: "var(--font-inter)" }}>
-                  Y: {dnaType.axisY}
-                </span>
+            </div>
+
+            {/* ── 투자 성향 요약 ── */}
+            <div style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 18, padding: "20px", marginBottom: 16 }}>
+              <SectionHeader icon="🧬" label="투자 성향 분석" color="#e8e0d0" />
+              <p style={{ fontSize: "clamp(14px,3vw,16px)", color: "#c8bfb0", lineHeight: 1.85 }}>{dnaType.desc}</p>
+            </div>
+
+            {/* ── A: 4축 스펙트럼 게이지 ── */}
+            <div style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 18, padding: "20px", marginBottom: 16 }}>
+              <Callout icon="📊" label="성향 스펙트럼" color="#c8bfb0" />
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                {(["R", "T", "Y"] as const).map((ax) => {
+                  const meta = AXIS_META[ax];
+                  const pos = axisPositions?.[ax] ?? 50;
+                  return (
+                    <div key={ax}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                        <span style={{ fontSize: 14, color: "#c8bfb0" }}>{meta.leftLabel}</span>
+                        <span style={{
+                          fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
+                          color: meta.color, background: `${meta.color}15`,
+                          border: `0.5px solid ${meta.color}30`,
+                          borderRadius: 6, padding: "3px 9px",
+                        }}>
+                          {ax} · {meta.name}
+                        </span>
+                        <span style={{ fontSize: 14, color: "#c8bfb0" }}>{meta.rightLabel}</span>
+                      </div>
+                      <SpectrumBar value={pos} color={meta.color} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* ── 성향 ── */}
-            <div className="rounded-2xl px-5 py-4 border mb-4" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-              <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#c8bfb0", textTransform: "uppercase", marginBottom: 10, fontWeight: 400 }}>투자 성향</p>
-              <p style={{ fontSize: 15, color: "#c8c0b0", lineHeight: 1.8 }}>{dnaType.desc}</p>
-            </div>
+            {/* ── B: 강점 & 심리 함정 ── */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12, marginBottom: 16 }}>
+              {/* 강점 */}
+              <div style={{ background: "rgba(126,212,160,0.05)", border: "0.5px solid rgba(126,212,160,0.2)", borderRadius: 18, padding: "20px" }}>
+                <Callout icon="✨" label="강점" color="#7ed4a0" />
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {dnaType.strengths.map((s, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <div style={{
+                        width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                        background: "rgba(126,212,160,0.15)", border: "0.5px solid rgba(126,212,160,0.3)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700, color: "#7ed4a0",
+                      }}>
+                        {i + 1}
+                      </div>
+                      <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.7, margin: 0 }}>{s}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            {/* ── 자산배분 + 추천종목 2열 ── */}
-            <div className="grid gap-4 mb-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-              {/* 자산 배분 */}
-              <div className="rounded-2xl px-5 py-4 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#c8bfb0", textTransform: "uppercase", marginBottom: 14, fontWeight: 400 }}>적정 자산 배분</p>
-                <div className="flex flex-col gap-4">
-                  {dnaType.allocation.map((item, i) => (
+              {/* 심리 함정 */}
+              <div style={{ background: "rgba(240,120,120,0.05)", border: "0.5px solid rgba(240,120,120,0.2)", borderRadius: 18, padding: "20px" }}>
+                <Callout icon="⚠️" label="심리 함정" color="#f07878" />
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {dnaType.traps.map((t, i) => (
                     <div key={i}>
-                      <p style={{ fontSize: 15, fontWeight: 600, color: "#e8e0d0", marginBottom: 3 }}>{item.label}</p>
-                      <p style={{ fontFamily: "var(--font-inter)", fontSize: 17, fontWeight: 300, color: dnaType.color, letterSpacing: "-0.02em" }}>{item.pct}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 추천 종목 */}
-              <div className="rounded-2xl px-5 py-4 border" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-                <p style={{ fontSize: 12, letterSpacing: "0.12em", color: "#c8bfb0", textTransform: "uppercase", marginBottom: 14, fontWeight: 400 }}>추천 종목 스타일</p>
-                <div className="flex flex-col gap-3">
-                  {dnaType.recommended.map((r, i) => (
-                    <div key={i} className="pb-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-                      <p style={{ fontSize: 12, color: dnaType.color, fontWeight: 700, marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" }}>{r.label}</p>
-                      <p style={{ fontSize: 14, color: "#c8c0b0", lineHeight: 1.6 }}>{r.value}</p>
+                      <div style={{
+                        fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
+                        color: "#f07878", marginBottom: 6,
+                        background: "rgba(240,120,120,0.1)", borderRadius: 6,
+                        padding: "4px 10px", display: "inline-block",
+                      }}>
+                        {t.name}
+                      </div>
+                      <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.7, margin: 0 }}>{t.desc}</p>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* ── 위험 경고 ── */}
-            <div className="flex flex-col gap-3 mb-5">
-              {dnaType.guards.map((g, i) => (
-                <div key={i} className="rounded-2xl px-5 py-4 border"
-                  style={{ background: "rgba(240,120,120,0.06)", borderColor: "rgba(240,120,120,0.22)" }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: "#f07878", marginBottom: 6 }}>
-                    🚨 위험 신호 — {g.title}
+            {/* ── C: 닮은 투자 전략가 ── */}
+            <div style={{
+              background: "#141414",
+              border: `0.5px solid ${dnaType.color}25`,
+              borderRadius: 18, padding: "20px", marginBottom: 16,
+            }}>
+              <Callout icon="🤝" label="닮은 투자 전략가" color={dnaType.color} />
+              <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: 16, flexShrink: 0,
+                  background: `${dnaType.color}12`, border: `0.5px solid ${dnaType.color}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26,
+                }}>
+                  👤
+                </div>
+                <div>
+                  <p style={{ fontFamily: "var(--font-paperlogy)", fontWeight: 700, fontSize: "clamp(18px,4vw,22px)", color: "#e8e0d0", marginBottom: 4 }}>
+                    {dnaType.famousInvestor.name}
                   </p>
-                  <p style={{ fontSize: 13, color: "#c8c0b0", lineHeight: 1.75 }}>{g.desc}</p>
+                  <div style={{
+                    fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
+                    color: dnaType.color, marginBottom: 10,
+                    display: "inline-block",
+                    background: `${dnaType.color}12`,
+                    border: `0.5px solid ${dnaType.color}30`,
+                    borderRadius: 6, padding: "3px 10px",
+                  }}>
+                    {dnaType.famousInvestor.role}
+                  </div>
+                  <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.75, margin: 0 }}>
+                    {dnaType.famousInvestor.overlap}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── D: 시장 상황별 패턴 ── */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 18, padding: "20px" }}>
+                <Callout icon="📈" label="시장 상황별 내 패턴" color="#e8e0d0" />
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    { icon: "🚀", label: "상승장", text: dnaType.marketPatterns.bull, color: "#7ed4a0" },
+                    { icon: "📉", label: "하락장", text: dnaType.marketPatterns.bear, color: "#f07878" },
+                    { icon: "↔️", label: "횡보장", text: dnaType.marketPatterns.side, color: "#7eb8f7" },
+                  ].map(({ icon, label, text, color }) => (
+                    <div key={label} style={{
+                      background: `${color}06`,
+                      border: `0.5px solid ${color}25`,
+                      borderRadius: 14, padding: "14px 16px",
+                      display: "flex", gap: 12, alignItems: "flex-start",
+                    }}>
+                      <span style={{ fontSize: 20, flexShrink: 0 }}>{icon}</span>
+                      <div>
+                        <div style={{
+                          fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
+                          color, display: "inline-block",
+                          marginBottom: 6,
+                        }}>
+                          {label}
+                        </div>
+                        <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.75, margin: 0 }}>{text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── E: 성장 미션 ── */}
+            <div style={{
+              background: "rgba(250,202,62,0.04)",
+              border: "0.5px solid rgba(250,202,62,0.2)",
+              borderRadius: 18, padding: "20px", marginBottom: 16,
+            }}>
+              <Callout icon="🎯" label="성장 미션" color="#FACA3E" />
+              <p style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 16, lineHeight: 1.7 }}>
+                이 유형의 약점을 보완하기 위한 행동 과제예요. 하나씩 실천해보세요.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {dnaType.growthMissions.map((mission, i) => (
+                  <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <div style={{
+                      width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                      background: "rgba(250,202,62,0.12)",
+                      border: "0.5px solid rgba(250,202,62,0.3)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
+                      color: "#FACA3E",
+                    }}>
+                      {i + 1}
+                    </div>
+                    <p style={{ fontSize: 14, color: "#e8e0d0", lineHeight: 1.7, margin: 0, paddingTop: 4 }}>{mission}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── 자산 배분 + 추천 종목 ── */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12, marginBottom: 16 }}>
+              <div style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 18, padding: "20px" }}>
+                <SectionHeader icon="🏦" label="적정 자산 배분" />
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {dnaType.allocation.map((item) => (
+                    <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 12, borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: "#e8e0d0" }}>{item.label}</span>
+                      <span style={{ fontFamily: "var(--font-mona12)", fontSize: 16, fontWeight: 700, color: dnaType.color }}>{item.pct}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 18, padding: "20px" }}>
+                <SectionHeader icon="📋" label="추천 종목 스타일" />
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {dnaType.recommended.map((r) => (
+                    <div key={r.label} style={{ paddingBottom: 12, borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{
+                        fontFamily: "var(--font-mona12)", fontSize: 12, fontWeight: 700,
+                        color: dnaType.color, marginBottom: 5,
+                        textTransform: "uppercase", letterSpacing: "0.06em",
+                      }}>
+                        {r.label}
+                      </div>
+                      <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.6, margin: 0 }}>{r.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── 위험 신호 ── */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+              {dnaType.guards.map((g) => (
+                <div key={g.title} style={{
+                  background: "rgba(240,120,120,0.05)",
+                  border: "0.5px solid rgba(240,120,120,0.22)",
+                  borderRadius: 16, padding: "16px 18px",
+                }}>
+                  <p style={{ fontFamily: "var(--font-paperlogy)", fontSize: 15, fontWeight: 700, color: "#f07878", marginBottom: 6 }}>
+                    🚨 {g.title}
+                  </p>
+                  <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.75 }}>{g.desc}</p>
                 </div>
               ))}
             </div>
 
-            {/* ── 공유 + 다시 하기 ── */}
-            <div className="flex gap-3 mb-8">
-              <button onClick={share} className="pico-btn flex-1 py-4 rounded-2xl"
-                style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 16, fontWeight: 600, border: "none" }}>
-                {copied ? "링크 복사됨 ✓" : "🔗 공유하기 (카카오톡)"}
+            {/* ── 공유 + 다시하기 ── */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+              <button onClick={share} className="pico-btn"
+                style={{ flex: 1, padding: "16px 0", borderRadius: 16, background: "#FACA3E", color: "#0d0d0d", fontSize: 16, fontWeight: 700, border: "none", fontFamily: "var(--font-paperlogy)" }}>
+                {copied ? "링크 복사됨 ✓" : "🔗 결과 공유하기"}
               </button>
-              <Link href="/quiz" className="pico-btn px-6 py-4 rounded-2xl flex items-center"
-                style={{ background: "transparent", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 15, textDecoration: "none", whiteSpace: "nowrap" }}>
+              <Link href="/quiz" className="pico-btn"
+                style={{ padding: "16px 20px", borderRadius: 16, background: "transparent", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.12)", fontSize: 15, textDecoration: "none", whiteSpace: "nowrap", display: "flex", alignItems: "center", fontWeight: 500 }}>
                 다시 테스트
               </Link>
             </div>
 
-            {/* ── 모든 유형 ── */}
-            <button onClick={() => setShowAllTypes((v) => !v)} className="pico-btn w-full rounded-2xl py-4 mb-5"
-              style={{ background: "transparent", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 15 }}>
-              {showAllTypes ? "접기" : "모든 투자 유형 보기 (8가지)"}
+            {/* ── 모든 유형 보기 ── */}
+            <button onClick={() => setShowAllTypes((v) => !v)} className="pico-btn w-full"
+              style={{ padding: "14px 0", borderRadius: 16, background: "transparent", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.1)", fontSize: 15, marginBottom: 16 }}>
+              {showAllTypes ? "접기" : "모든 투자자 유형 보기 (8가지)"}
             </button>
 
             {showAllTypes && (
-              <div className="grid gap-4 mb-8" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12, marginBottom: 32 }}>
                 {TYPE_KEYS.map((key) => {
                   const t = INVESTOR_TYPES[key];
                   const isMe = key === userRow.investor_type;
                   return (
-                    <div key={key} className="rounded-2xl p-5 border flex items-start gap-4"
-                      style={{ background: isMe ? `${t.color}10` : "#141414", borderColor: isMe ? `${t.color}45` : "rgba(255,255,255,0.06)" }}>
-                      <span style={{ fontSize: 40, flexShrink: 0, lineHeight: 1 }}>{t.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <p style={{ fontSize: 12, color: t.color, marginBottom: 3, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>{t.modifier}</p>
-                        <p style={{ fontSize: 20, fontWeight: 700, color: "#e8e0d0", marginBottom: 4 }}>{t.name}</p>
-                        <p style={{ fontSize: 13, color: "#c8bfb0", lineHeight: 1.5 }}>{t.tagline}</p>
-                      </div>
+                    <div key={key} style={{
+                      background: isMe ? `${t.color}0d` : "#141414",
+                      border: `0.5px solid ${isMe ? t.color + "45" : "rgba(255,255,255,0.06)"}`,
+                      borderRadius: 18, padding: "18px",
+                      display: "flex", alignItems: "flex-start", gap: 14,
+                      position: "relative",
+                    }}>
                       {isMe && (
-                        <span style={{ fontSize: 11, color: t.color, background: `${t.color}18`, padding: "3px 8px", borderRadius: 5, flexShrink: 0, fontWeight: 600 }}>나</span>
+                        <div style={{
+                          position: "absolute", top: 12, right: 12,
+                          fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700,
+                          color: t.color, background: `${t.color}18`,
+                          padding: "3px 8px", borderRadius: 5,
+                        }}>
+                          나
+                        </div>
                       )}
+                      <span style={{ fontSize: 38, flexShrink: 0, lineHeight: 1 }}>{t.emoji}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700,
+                          color: t.color, marginBottom: 4, letterSpacing: "0.08em", textTransform: "uppercase",
+                        }}>
+                          {t.modifier}
+                        </div>
+                        <p style={{ fontFamily: "var(--font-paperlogy)", fontWeight: 700, fontSize: 18, color: "#e8e0d0", marginBottom: 5 }}>{t.name}</p>
+                        <p style={{ fontSize: 14, color: "#c8bfb0", lineHeight: 1.5 }}>{t.tagline}</p>
+                      </div>
                     </div>
                   );
                 })}
@@ -177,13 +469,20 @@ export default function DnaPage() {
           </>
         ) : (
           /* ── 미완료 상태 ── */
-          <div className="rounded-2xl p-12 border text-center" style={{ background: "#141414", borderColor: "rgba(255,255,255,0.08)" }}>
-            <p style={{ fontSize: 48, marginBottom: 20 }}>🧬</p>
-            <p style={{ fontSize: 22, fontWeight: 600, color: "#c8bfb0", marginBottom: 8 }}>아직 투자 DNA를 몰라</p>
-            <p style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 28 }}>18개 질문으로 나만의 투자 유형을 찾아봐</p>
+          <div style={{ background: "#141414", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "clamp(40px,8vw,64px) 24px", textAlign: "center" }}>
+            <p style={{ fontSize: 52, marginBottom: 20 }}>🧬</p>
+            <p style={{ fontFamily: "var(--font-paperlogy)", fontWeight: 800, fontSize: "clamp(22px,5vw,28px)", color: "#e8e0d0", marginBottom: 10 }}>
+              아직 투자 DNA를 모르고 있어요
+            </p>
+            <p style={{ fontSize: 15, color: "#c8bfb0", marginBottom: 8, lineHeight: 1.7 }}>
+              18문항으로 나만의 투자 유형을 찾아보세요.
+            </p>
+            <p style={{ fontSize: 14, color: "#c8bfb0", marginBottom: 32, lineHeight: 1.7 }}>
+              행동경제학 기반 · 4가지 독립 축 · 약 3분
+            </p>
             <Link href="/quiz"
-              style={{ display: "inline-block", background: "#FACA3E", color: "#0d0d0d", fontSize: 16, fontWeight: 600, padding: "14px 32px", borderRadius: 14, textDecoration: "none" }}>
-              투자 DNA 테스트 시작
+              style={{ display: "inline-block", background: "#FACA3E", color: "#0d0d0d", fontFamily: "var(--font-paperlogy)", fontSize: 16, fontWeight: 700, padding: "16px 40px", borderRadius: 16, textDecoration: "none" }}>
+              투자 DNA 테스트 시작하기
             </Link>
           </div>
         )}
