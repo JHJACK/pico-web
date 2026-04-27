@@ -29,6 +29,7 @@ export type InvestorType = {
   tagline: string;
   desc: string;
   axisR: "HIGH" | "LOW";
+  axisI: "HIGH" | "LOW";
   axisT: "SHORT" | "LONG";
   axisY: "GROWTH" | "STABLE";
   color: string;
@@ -52,7 +53,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🐯", modifier: "공격적 개척자", name: "호랑이",
     tagline: "변동성이 곧 기회 — 고위험·고수익을 즐겨요",
     desc: "하락장을 두려워하지 않아요. 남들이 팔 때 오히려 담고, 확신이 생기면 집중 투자해요. 빠른 결단력이 강점이지만 충동적 손실 리스크도 있어요.",
-    axisR: "HIGH", axisT: "SHORT", axisY: "GROWTH", color: "#f07878",
+    axisR: "HIGH", axisI: "LOW", axisT: "SHORT", axisY: "GROWTH", color: "#f07878",
     stocks: ["테슬라", "엔비디아", "반도체 ETF", "성장주"],
     allocation: [
       { label: "주식", pct: "70~80%" },
@@ -98,7 +99,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🐺", modifier: "역발상의 철학자", name: "늑대",
     tagline: "공포 극점에서 기다리는 역발상 사냥꾼",
     desc: "군중이 패닉할 때 홀로 냉정하게 분석해요. 저PER·낙폭 과대 종목을 찾아 저점 매수하는 걸 즐겨요. 대신 너무 일찍 들어가 오래 기다리는 경우도 있어요.",
-    axisR: "HIGH", axisT: "SHORT", axisY: "STABLE", color: "#c4b0fc",
+    axisR: "HIGH", axisI: "HIGH", axisT: "SHORT", axisY: "STABLE", color: "#c4b0fc",
     stocks: ["저PER 가치주", "낙폭 과대주", "리오프닝주"],
     allocation: [
       { label: "주식", pct: "60~70%" },
@@ -144,7 +145,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🦅", modifier: "집중 돌파의", name: "독수리",
     tagline: "타이밍을 기다렸다 결정적 순간에 집중 투자해요",
     desc: "멀리서 지켜보다가 결정적 순간에 빠르게 진입·집중 매수해요. 공격적이지만 장기 안목도 있어요. 섹터 ETF와 모멘텀 성장주가 잘 맞아요.",
-    axisR: "HIGH", axisT: "LONG", axisY: "GROWTH", color: "#7eb8f7",
+    axisR: "HIGH", axisI: "HIGH", axisT: "LONG", axisY: "GROWTH", color: "#7eb8f7",
     stocks: ["섹터 ETF", "모멘텀 성장주", "테마 집중주"],
     allocation: [
       { label: "주식", pct: "65~75%" },
@@ -190,7 +191,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🦊", modifier: "정보의 연금술사", name: "여우",
     tagline: "뉴스·트렌드를 가장 먼저 읽는 정보 전략가",
     desc: "뉴스와 트렌드를 빠르게 처리해 선제적으로 포지션을 잡아요. 정보 처리 속도가 강점이에요. 단, 소셜 의존이 높을수록 빈번한 매매로 수익이 갉아먹힐 수 있어요.",
-    axisR: "HIGH", axisT: "LONG", axisY: "STABLE", color: "#f5a742",
+    axisR: "HIGH", axisI: "LOW", axisT: "LONG", axisY: "STABLE", color: "#f5a742",
     stocks: ["트렌드 테마주", "AI·바이오", "핫이슈 종목"],
     allocation: [
       { label: "주식", pct: "55~65%" },
@@ -236,7 +237,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🦋", modifier: "예술가적 직관가", name: "나비",
     tagline: "세상의 변화를 감각으로 읽는 미래 투자자",
     desc: "직접 경험하거나 느낀 트렌드에 투자해요. 친환경·AI·미래 산업 등 세상을 바꿀 테마에 공감하고 들어가는 스타일이에요. 데이터 검증이 약점이에요.",
-    axisR: "LOW", axisT: "SHORT", axisY: "GROWTH", color: "#FACA3E",
+    axisR: "LOW", axisI: "LOW", axisT: "SHORT", axisY: "GROWTH", color: "#FACA3E",
     stocks: ["친환경 ETF", "AI 인프라", "전기차", "미래 테마"],
     allocation: [
       { label: "테마·성장주", pct: "40~50%" },
@@ -282,7 +283,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🦔", modifier: "방어의 전략가", name: "고슴도치",
     tagline: "분산으로 시장 변동을 부드럽게 흡수하는 수비 마스터",
     desc: "절대 한 곳에 몰지 않아요. ETF 포트폴리오로 리스크를 낮추는 게 최우선이에요. 꾸준히 쌓이는 걸 좋아하고 급등·급락 종목은 멀리해요.",
-    axisR: "LOW", axisT: "SHORT", axisY: "STABLE", color: "#7ed4a0",
+    axisR: "LOW", axisI: "LOW", axisT: "SHORT", axisY: "STABLE", color: "#7ed4a0",
     stocks: ["S&P500 ETF", "채권 혼합", "리츠", "금 ETF"],
     allocation: [
       { label: "주식·ETF", pct: "50~60%" },
@@ -328,7 +329,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🐘", modifier: "복리의 설계자", name: "코끼리",
     tagline: "느리지만 흔들리지 않는 장기 복리 설계자",
     desc: "한번 들어가면 오래 가져가요. 단기 변동에 흔들리지 않고 복리 효과를 극대화하는 게 목표예요. 나스닥·S&P500 ETF 정기 적립이 잘 맞아요.",
-    axisR: "LOW", axisT: "LONG", axisY: "GROWTH", color: "#7eb8f7",
+    axisR: "LOW", axisI: "HIGH", axisT: "LONG", axisY: "GROWTH", color: "#7eb8f7",
     stocks: ["나스닥100 ETF", "S&P500 ETF", "애플", "마이크로소프트"],
     allocation: [
       { label: "주식·성장 ETF", pct: "60~70%" },
@@ -374,7 +375,7 @@ export const INVESTOR_TYPES: Record<TypeKey, InvestorType> = {
     emoji: "🐢", modifier: "안전 제일 수호자", name: "거북이",
     tagline: "원금 보존이 최우선, 배당 복리로 천천히 쌓아가는 스타일",
     desc: "느리지만 가장 오래 살아남는 투자자예요. 배당주·채권으로 꾸준한 현금 흐름을 만들고, 원금 손실을 가장 두려워해요. 복리의 힘을 믿어요.",
-    axisR: "LOW", axisT: "LONG", axisY: "STABLE", color: "#7ed4a0",
+    axisR: "LOW", axisI: "HIGH", axisT: "LONG", axisY: "STABLE", color: "#7ed4a0",
     stocks: ["배당 ETF", "KT&G", "리츠", "국채·회사채"],
     allocation: [
       { label: "배당주·연금주", pct: "40~50%" },
