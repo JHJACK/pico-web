@@ -8,59 +8,77 @@ function easeInOut(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-// [lat, lng, dotSize, r, g, b, tier]  tier: 1=hub, 2=major, 3=regional
-const CITIES: [number, number, number, number, number, number, number][] = [
-  [37.57,  126.98, 6.0, 250, 202,  62, 1], // 0  Seoul
-  [37.37, -122.04, 4.2, 245, 190,  48, 1], // 1  Silicon Valley
-  [47.64, -122.14, 4.0, 240, 185,  40, 2], // 2  Bellevue
-  [40.71,  -74.01, 4.2, 240, 190,  44, 1], // 3  New York
-  [35.68,  139.65, 4.0, 232, 200,  96, 1], // 4  Tokyo
-  [24.78,  121.00, 4.0, 232, 192,  96, 2], // 5  Hsinchu
-  [51.51,   -0.13, 4.0, 200, 168,  64, 1], // 6  London
-  [ 1.35,  103.82, 3.8, 224, 196,  88, 1], // 7  Singapore
-  [31.23,  121.47, 3.8, 212, 176,  80, 1], // 8  Shanghai
-  [41.88,  -87.63, 3.2, 230, 178,  52, 2], // 9  Chicago
-  [34.05, -118.24, 3.2, 230, 178,  52, 2], // 10 Los Angeles
-  [29.76,  -95.37, 3.0, 220, 172,  48, 2], // 11 Houston
-  [25.77,  -80.19, 2.8, 215, 168,  46, 3], // 12 Miami
-  [43.65,  -79.38, 3.0, 215, 168,  46, 2], // 13 Toronto
-  [19.43,  -99.13, 2.8, 210, 165,  45, 3], // 14 Mexico City
-  [48.86,    2.35, 3.2, 195, 162,  60, 2], // 15 Paris
-  [50.11,    8.68, 3.0, 195, 160,  58, 2], // 16 Frankfurt
-  [52.37,    4.90, 3.0, 195, 160,  58, 2], // 17 Amsterdam
-  [47.38,    8.54, 2.8, 190, 158,  56, 3], // 18 Zurich
-  [40.42,   -3.70, 2.8, 190, 158,  56, 3], // 19 Madrid
-  [59.33,   18.07, 2.6, 185, 155,  54, 3], // 20 Stockholm
-  [52.52,   13.40, 2.8, 190, 158,  56, 3], // 21 Berlin
-  [55.75,   37.62, 3.0, 185, 150,  52, 2], // 22 Moscow
-  [41.01,   28.97, 3.0, 195, 162,  58, 2], // 23 Istanbul
-  [25.20,   55.27, 3.2, 210, 172,  56, 2], // 24 Dubai
-  [30.04,   31.24, 2.8, 195, 158,  52, 3], // 25 Cairo
-  [ 6.45,    3.40, 2.6, 185, 150,  48, 3], // 26 Lagos
-  [-26.20,  28.05, 2.6, 185, 150,  48, 3], // 27 Johannesburg
-  [ -1.29,  36.82, 2.4, 180, 148,  46, 3], // 28 Nairobi
-  [28.61,   77.21, 3.0, 200, 165,  55, 2], // 29 New Delhi
-  [19.08,   72.88, 3.0, 200, 165,  55, 2], // 30 Mumbai
-  [22.54,  114.06, 3.4, 210, 172,  76, 2], // 31 Shenzhen
-  [39.90,  116.40, 3.4, 210, 172,  76, 2], // 32 Beijing
-  [34.69,  135.50, 3.2, 225, 188,  85, 2], // 33 Osaka
-  [25.03,  121.56, 3.4, 225, 188,  85, 2], // 34 Taipei
-  [13.75,  100.52, 3.0, 210, 175,  78, 2], // 35 Bangkok
-  [ 3.14,  101.69, 3.0, 210, 175,  78, 2], // 36 KL
-  [-6.21,  106.85, 3.0, 205, 170,  75, 2], // 37 Jakarta
-  [14.60,  121.00, 2.8, 205, 170,  75, 3], // 38 Manila
-  [-33.87, 151.21, 3.0, 188, 155,  60, 2], // 39 Sydney
-  [-37.81, 144.96, 2.6, 185, 152,  58, 3], // 40 Melbourne
-  [-34.61, -58.38, 2.6, 185, 152,  58, 3], // 41 Buenos Aires
-  [-23.55, -46.63, 3.0, 188, 155,  58, 2], // 42 São Paulo
-  [ 4.71,  -74.07, 2.6, 182, 148,  52, 3], // 43 Bogotá
+// [lat, lng, dotSize, r, g, b, tier, name]
+const CITIES: [number, number, number, number, number, number, number, string][] = [
+  // Tier 1 hubs
+  [37.57,  126.98, 6.0, 250, 202,  62, 1, "Seoul"],
+  [37.37, -122.04, 4.2, 245, 190,  48, 1, "Silicon Valley"],
+  [47.64, -122.14, 3.8, 240, 185,  40, 2, "Bellevue"],
+  [40.71,  -74.01, 4.2, 240, 190,  44, 1, "New York"],
+  [35.68,  139.65, 4.0, 232, 200,  96, 1, "Tokyo"],
+  [24.78,  121.00, 3.8, 232, 192,  96, 2, "Hsinchu"],
+  [51.51,   -0.13, 4.0, 200, 168,  64, 1, "London"],
+  [ 1.35,  103.82, 3.8, 224, 196,  88, 1, "Singapore"],
+  [31.23,  121.47, 3.8, 212, 176,  80, 1, "Shanghai"],
+  // Tier 2
+  [41.88,  -87.63, 3.2, 230, 178,  52, 2, "Chicago"],
+  [34.05, -118.24, 3.2, 230, 178,  52, 2, "Los Angeles"],
+  [29.76,  -95.37, 3.0, 220, 172,  48, 2, "Houston"],
+  [25.77,  -80.19, 2.8, 215, 168,  46, 3, "Miami"],
+  [43.65,  -79.38, 3.0, 215, 168,  46, 2, "Toronto"],
+  [19.43,  -99.13, 2.8, 210, 165,  45, 3, "Mexico City"],
+  [48.86,    2.35, 3.2, 195, 162,  60, 2, "Paris"],
+  [50.11,    8.68, 3.0, 195, 160,  58, 2, "Frankfurt"],
+  [52.37,    4.90, 3.0, 195, 160,  58, 2, "Amsterdam"],
+  [47.38,    8.54, 2.8, 190, 158,  56, 3, "Zurich"],
+  [40.42,   -3.70, 2.8, 190, 158,  56, 3, "Madrid"],
+  [59.33,   18.07, 2.6, 185, 155,  54, 3, "Stockholm"],
+  [52.52,   13.40, 2.8, 190, 158,  56, 3, "Berlin"],
+  [55.75,   37.62, 3.0, 185, 150,  52, 2, "Moscow"],
+  [41.01,   28.97, 3.0, 195, 162,  58, 2, "Istanbul"],
+  [25.20,   55.27, 3.2, 210, 172,  56, 2, "Dubai"],
+  [30.04,   31.24, 2.8, 195, 158,  52, 3, "Cairo"],
+  [ 6.45,    3.40, 2.6, 185, 150,  48, 3, "Lagos"],
+  [-26.20,  28.05, 2.6, 185, 150,  48, 3, "Johannesburg"],
+  [ -1.29,  36.82, 2.4, 180, 148,  46, 3, "Nairobi"],
+  [28.61,   77.21, 3.0, 200, 165,  55, 2, "New Delhi"],
+  [19.08,   72.88, 3.0, 200, 165,  55, 2, "Mumbai"],
+  [22.54,  114.06, 3.4, 210, 172,  76, 2, "Shenzhen"],
+  [39.90,  116.40, 3.4, 210, 172,  76, 2, "Beijing"],
+  [34.69,  135.50, 3.2, 225, 188,  85, 2, "Osaka"],
+  [25.03,  121.56, 3.4, 225, 188,  85, 2, "Taipei"],
+  [13.75,  100.52, 3.0, 210, 175,  78, 2, "Bangkok"],
+  [ 3.14,  101.69, 3.0, 210, 175,  78, 2, "Kuala Lumpur"],
+  [-6.21,  106.85, 3.0, 205, 170,  75, 2, "Jakarta"],
+  [14.60,  121.00, 2.8, 205, 170,  75, 3, "Manila"],
+  [-33.87, 151.21, 3.0, 188, 155,  60, 2, "Sydney"],
+  [-37.81, 144.96, 2.6, 185, 152,  58, 3, "Melbourne"],
+  [-34.61, -58.38, 2.6, 185, 152,  58, 3, "Buenos Aires"],
+  [-23.55, -46.63, 3.0, 188, 155,  58, 2, "São Paulo"],
+  [ 4.71,  -74.07, 2.6, 182, 148,  52, 3, "Bogotá"],
+  // Additional Tier 3 hubs
+  [49.25, -123.12, 2.6, 210, 165,  46, 3, "Vancouver"],
+  [47.61, -122.33, 2.8, 215, 170,  48, 3, "Seattle"],
+  [33.75,  -84.39, 2.8, 215, 168,  46, 3, "Atlanta"],
+  [42.36,  -71.06, 2.8, 215, 168,  46, 3, "Boston"],
+  [38.91,  -77.04, 2.8, 218, 170,  48, 3, "Washington DC"],
+  [-33.46, -70.65, 2.6, 185, 152,  58, 3, "Santiago"],
+  [-12.05, -77.04, 2.4, 182, 148,  52, 3, "Lima"],
+  [32.09,   34.79, 2.8, 195, 162,  58, 3, "Tel Aviv"],
+  [24.69,   46.72, 2.8, 205, 170,  55, 3, "Riyadh"],
+  [35.70,   51.42, 2.6, 190, 158,  52, 3, "Tehran"],
+  [33.59,   -7.62, 2.4, 185, 152,  50, 3, "Casablanca"],
+  [10.82,  106.63, 2.8, 205, 170,  75, 3, "Ho Chi Minh"],
+  [21.03,  105.85, 2.6, 200, 165,  72, 3, "Hanoi"],
+  [23.72,   90.41, 2.6, 195, 162,  55, 3, "Dhaka"],
+  [24.86,   67.01, 2.6, 195, 162,  52, 3, "Karachi"],
 ];
 
 const TIER1_HUBS = [0, 1, 3, 4, 6, 7, 8];
 
 // [cityA, cityB, arcAlt, baseSpeed, isPrimary]
 const ARCS: [number, number, number, number, boolean][] = [
-  // Seoul primary arcs
+  // Seoul primary
   [0,  1, 0.35, 0.0028, true ],
   [0,  3, 0.40, 0.0024, true ],
   [0,  4, 0.15, 0.0038, true ],
@@ -79,6 +97,11 @@ const ARCS: [number, number, number, number, boolean][] = [
   [ 3, 12, 0.08, 0.0055, false],
   [ 9, 13, 0.08, 0.0050, false],
   [ 1, 11, 0.12, 0.0042, false],
+  [ 3, 47, 0.06, 0.0062, false],
+  [ 3, 48, 0.05, 0.0068, false],
+  [ 3, 46, 0.10, 0.0056, false],
+  [ 1, 45, 0.06, 0.0068, false],
+  [ 1, 44, 0.08, 0.0062, false],
   // Americas
   [ 3,  6, 0.32, 0.0028, false],
   [ 3, 40, 0.36, 0.0026, false],
@@ -86,6 +109,8 @@ const ARCS: [number, number, number, number, boolean][] = [
   [ 3, 42, 0.32, 0.0028, false],
   [10, 41, 0.28, 0.0032, false],
   [13, 43, 0.14, 0.0042, false],
+  [ 3, 49, 0.32, 0.0026, false],
+  [10, 50, 0.24, 0.0030, false],
   // Europe internal
   [ 6, 16, 0.08, 0.0062, false],
   [ 6, 17, 0.08, 0.0058, false],
@@ -94,11 +119,16 @@ const ARCS: [number, number, number, number, boolean][] = [
   [ 6, 23, 0.18, 0.0042, false],
   [16, 17, 0.06, 0.0070, false],
   [15, 16, 0.06, 0.0074, false],
+  [21, 16, 0.06, 0.0070, false],
   // Europe-ME-Asia
   [ 6, 24, 0.28, 0.0034, false],
   [23, 24, 0.14, 0.0046, false],
   [24,  7, 0.24, 0.0034, false],
   [ 6, 22, 0.14, 0.0046, false],
+  [24, 51, 0.12, 0.0050, false],
+  [24, 52, 0.10, 0.0054, false],
+  [24, 53, 0.14, 0.0048, false],
+  [ 6, 54, 0.22, 0.0038, false],
   // Asia internal
   [ 4,  7, 0.24, 0.0034, false],
   [ 4, 33, 0.08, 0.0058, false],
@@ -113,12 +143,18 @@ const ARCS: [number, number, number, number, boolean][] = [
   [ 5,  4, 0.10, 0.0054, false],
   [ 5,  8, 0.18, 0.0042, false],
   [30, 31, 0.06, 0.0070, false],
+  [29, 58, 0.12, 0.0050, false],
+  [ 7, 55, 0.12, 0.0050, false],
+  [ 7, 56, 0.16, 0.0044, false],
+  [29, 57, 0.12, 0.0050, false],
   // Africa & Oceania
   [ 6, 25, 0.36, 0.0028, false],
   [24, 25, 0.26, 0.0034, false],
   [24, 29, 0.22, 0.0038, false],
   [ 7, 39, 0.22, 0.0034, false],
   [ 7, 40, 0.28, 0.0030, false],
+  [25, 26, 0.18, 0.0040, false],
+  [25, 27, 0.24, 0.0034, false],
 ];
 
 const LAND: [number, number][][] = [
@@ -157,6 +193,12 @@ const LAND: [number, number][][] = [
   [[-14,126],[-12,131],[-14,136],[-12,141],[-16,145],[-20,148],
    [-28,153],[-34,151],[-38,146],[-38,141],[-35,135],
    [-34,123],[-34,116],[-26,113],[-17,122],[-14,126]],
+  // Greenland (simplified)
+  [[83,-30],[76,-18],[72,-22],[68,-28],[64,-40],[60,-44],
+   [62,-50],[68,-54],[72,-58],[76,-70],[80,-68],[83,-30]],
+  // Japan (simplified)
+  [[31,131],[33,131],[35,136],[37,136],[40,140],[42,142],[44,144],
+   [43,141],[40,140],[37,137],[35,135],[34,132],[31,131]],
 ];
 
 type V3 = { x: number; y: number; z: number };
@@ -259,12 +301,7 @@ export default function GlobeCanvas() {
     function chainReact(cityIdx: number) {
       for (let j = 0; j < ARCS.length; j++) {
         if (ARCS[j][0] === cityIdx && !states[j].active) {
-          states[j] = {
-            phase: 0,
-            delay: 0,
-            active: true,
-            speed: ARCS[j][3] * (0.9 + Math.random() * 0.55),
-          };
+          states[j] = { phase: 0, delay: 0, active: true, speed: ARCS[j][3] * (0.9 + Math.random() * 0.55) };
         }
       }
     }
@@ -273,12 +310,7 @@ export default function GlobeCanvas() {
       const hub = TIER1_HUBS[Math.floor(Math.random() * TIER1_HUBS.length)];
       for (let j = 0; j < ARCS.length; j++) {
         if (ARCS[j][0] === hub) {
-          states[j] = {
-            phase: 0,
-            delay: Math.floor(Math.random() * 15),
-            active: false,
-            speed: ARCS[j][3] * (1.3 + Math.random() * 0.6),
-          };
+          states[j] = { phase: 0, delay: Math.floor(Math.random() * 15), active: false, speed: ARCS[j][3] * (1.3 + Math.random() * 0.6) };
         }
       }
     }
@@ -291,10 +323,11 @@ export default function GlobeCanvas() {
       tick++;
       const cx = W / 2, cy = H / 2;
       const r  = Math.min(W, H) * 0.40;
+      const labelSize = Math.max(8, Math.round(r * 0.048));
 
       ctx!.clearRect(0, 0, W, H);
 
-      // Dust particles
+      // Dust
       for (const d of dust) {
         d.x = (d.x + d.vx + W) % W;
         d.y = (d.y + d.vy + H) % H;
@@ -312,9 +345,7 @@ export default function GlobeCanvas() {
       outerAtm.addColorStop(0.4, "rgba(200,140,20,0.03)");
       outerAtm.addColorStop(1,   "rgba(0,0,0,0)");
       ctx!.fillStyle = outerAtm;
-      ctx!.beginPath();
-      ctx!.arc(cx, cy, r * 1.88, 0, 2 * PI);
-      ctx!.fill();
+      ctx!.beginPath(); ctx!.arc(cx, cy, r * 1.88, 0, 2 * PI); ctx!.fill();
 
       // Inner atmosphere
       const atm = ctx!.createRadialGradient(cx, cy, r * 0.82, cx, cy, r * 1.42);
@@ -323,9 +354,7 @@ export default function GlobeCanvas() {
       atm.addColorStop(0.65, "rgba(240,165,40,0.05)");
       atm.addColorStop(1,    "rgba(0,0,0,0)");
       ctx!.fillStyle = atm;
-      ctx!.beginPath();
-      ctx!.arc(cx, cy, r * 1.42, 0, 2 * PI);
-      ctx!.fill();
+      ctx!.beginPath(); ctx!.arc(cx, cy, r * 1.42, 0, 2 * PI); ctx!.fill();
 
       // Globe base
       const bg = ctx!.createRadialGradient(cx - r*0.28, cy - r*0.22, 0, cx, cy, r);
@@ -333,9 +362,7 @@ export default function GlobeCanvas() {
       bg.addColorStop(0.45, "#0f0d03");
       bg.addColorStop(1,    "#030201");
       ctx!.fillStyle = bg;
-      ctx!.beginPath();
-      ctx!.arc(cx, cy, r, 0, 2 * PI);
-      ctx!.fill();
+      ctx!.beginPath(); ctx!.arc(cx, cy, r, 0, 2 * PI); ctx!.fill();
 
       // Clip to globe
       ctx!.save();
@@ -344,7 +371,7 @@ export default function GlobeCanvas() {
       ctx!.clip();
 
       // Grid lines
-      ctx!.strokeStyle = "rgba(250,202,62,0.07)";
+      ctx!.strokeStyle = "rgba(250,202,62,0.06)";
       ctx!.lineWidth = 0.5;
       for (let lat = -75; lat <= 75; lat += 15) {
         const la = lat * D2R;
@@ -373,9 +400,25 @@ export default function GlobeCanvas() {
         ctx!.stroke();
       }
 
-      // Continent outlines
-      ctx!.strokeStyle = "rgba(250,202,62,0.22)";
-      ctx!.lineWidth   = 0.9;
+      // Continent fills (subtle)
+      for (const poly of LAND_3D) {
+        ctx!.beginPath();
+        let open = false;
+        for (const raw of poly) {
+          const p = ry(raw, rot);
+          if (p.z < 0) { open = false; continue; }
+          const sx = cx + r * p.x, sy = cy - r * p.y;
+          if (!open) { ctx!.moveTo(sx, sy); open = true; } else ctx!.lineTo(sx, sy);
+        }
+        if (open) {
+          ctx!.fillStyle = "rgba(255,210,60,0.055)";
+          ctx!.fill();
+        }
+      }
+
+      // Continent outlines — bright and clear
+      ctx!.strokeStyle = "rgba(255,210,65,0.52)";
+      ctx!.lineWidth   = 1.5;
       for (const poly of LAND_3D) {
         ctx!.beginPath();
         let open = false;
@@ -426,7 +469,7 @@ export default function GlobeCanvas() {
         }
         ctx!.stroke();
 
-        // Ease-in-out comet position
+        // Ease comet
         const eased  = easeInOut(Math.min(st.phase, 1));
         const hi_i   = Math.min(N, Math.floor(eased * N));
         const tailLen = isT1 ? 28 : isPrimary ? 22 : 15;
@@ -465,7 +508,7 @@ export default function GlobeCanvas() {
           ctx!.restore();
         }
 
-        // Advance phase
+        // Advance
         st.phase += st.speed;
         if (st.phase >= 1) {
           chainReact(bi);
@@ -483,30 +526,26 @@ export default function GlobeCanvas() {
       ctx!.lineWidth   = 1.5;
       ctx!.stroke();
 
-      // City dots
-      CITIES.forEach(([lat, lng, sz, cr, cg, cb, tier], i) => {
+      // City dots + labels
+      CITIES.forEach(([lat, lng, sz, cr, cg, cb, tier, name], i) => {
         const p = ry(to3D(lat, lng), rot);
-        if (p.z < 0) return;
+        if (p.z < 0.02) return;
         const depth = 0.4 + 0.6 * p.z;
         let sx = cx + r * p.x, sy = cy - r * p.y;
         const s = sz * depth;
 
-        // Glitch effect for Tier 1
+        // Glitch for Tier 1
         if (tier === 1) {
           const g = glitchMap.get(i);
           if (g && g.frames > 0) {
             sx += g.ox; sy += g.oy;
             g.frames--;
           } else if (Math.random() < 0.003) {
-            glitchMap.set(i, {
-              ox: (Math.random() - 0.5) * 5,
-              oy: (Math.random() - 0.5) * 5,
-              frames: Math.floor(Math.random() * 3) + 1,
-            });
+            glitchMap.set(i, { ox: (Math.random()-0.5)*5, oy: (Math.random()-0.5)*5, frames: Math.floor(Math.random()*3)+1 });
           }
         }
 
-        // Pulse rings for all Tier 1 cities
+        // Pulse rings for Tier 1
         if (tier === 1) {
           const spd = i === 0 ? 0.010 : 0.0075;
           const maxExpand = i === 0 ? 5.2 : 4.2;
@@ -530,12 +569,28 @@ export default function GlobeCanvas() {
         ctx!.globalAlpha = Math.min(1, 0.5 + 0.5 * depth);
         ctx!.fillStyle   = `rgb(${cr},${cg},${cb})`;
         ctx!.beginPath(); ctx!.arc(sx, sy, s, 0, 2 * PI); ctx!.fill();
-
         ctx!.shadowBlur  = blur * 1.6;
         ctx!.fillStyle   = "rgba(255,250,220,0.92)";
         ctx!.globalAlpha = 0.78 * depth;
         ctx!.beginPath(); ctx!.arc(sx, sy, s * 0.36, 0, 2 * PI); ctx!.fill();
         ctx!.restore();
+
+        // City label — Tier 1 always, Tier 2 if clear enough, Tier 3 skip
+        if (tier <= 2 && p.z > 0.12) {
+          const fontSize = tier === 1
+            ? Math.max(9, Math.round(labelSize * 1.05))
+            : Math.max(8, Math.round(labelSize * 0.88));
+          ctx!.save();
+          ctx!.font = `${fontSize}px system-ui, -apple-system, sans-serif`;
+          ctx!.globalAlpha = Math.min(0.95, depth * (tier === 1 ? 1.1 : 0.88));
+          // Subtle text shadow for readability
+          ctx!.shadowColor = "rgba(0,0,0,0.85)";
+          ctx!.shadowBlur  = 4;
+          ctx!.fillStyle   = tier === 1 ? "rgba(255,224,90,0.96)" : "rgba(210,190,130,0.82)";
+          const ox = s + 4;
+          ctx!.fillText(name, sx + ox, sy + fontSize * 0.36);
+          ctx!.restore();
+        }
       });
 
       rot += 0.0028;
