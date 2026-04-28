@@ -95,21 +95,17 @@ function timeAgo(iso: string): string {
   return `${Math.floor(diff / 60)}시간 전`;
 }
 
-// ── 3D 티어 배지 (소형) ───────────────────────────────────────
+// ── 티어 이모지 (원형 컨테이너 없이 이모지 직출력) ──────────────
 function TierBadge({ tier, size = 28 }: { tier: Tier; size?: number }) {
-  const cfg = TIER_CFG[tier];
   const icons: Record<Tier, string> = { diamond: "💎", platinum: "🏅", gold: "🥇", silver: "🥈", bronze: "🥉" };
   return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%", flexShrink: 0,
-      background: cfg.gradient,
-      boxShadow: `0 2px 6px ${cfg.glow}, inset 0 1px 2px rgba(255,255,255,0.55), inset 0 -1px 3px rgba(0,0,0,0.2)`,
-      border: `1px solid ${cfg.color}55`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.44, fontFamily: "var(--font-mona12-emoji)",
+    <span style={{
+      fontFamily: "var(--font-mona12-emoji)",
+      fontSize: Math.round(size * 0.82),
+      lineHeight: 1, display: "inline-block", flexShrink: 0,
     }}>
       {icons[tier]}
-    </div>
+    </span>
   );
 }
 
@@ -199,9 +195,16 @@ export default function RankingPage() {
                 : "전체 기간 누적 수익률 순위"}
             </p>
             {period === "weekly" && weekRange && (
-              <p style={{ fontFamily: "var(--font-mona12)", fontSize: 12, fontWeight: 400, color: C.text2, opacity: 0.65, margin: 0 }}>
+              <span style={{
+                display: "inline-block",
+                fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
+                color: C.gold,
+                background: "rgba(250,202,62,0.12)",
+                border: "0.5px solid rgba(250,202,62,0.25)",
+                borderRadius: 7, padding: "3px 10px",
+              }}>
                 {weekRange}
-              </p>
+              </span>
             )}
           </div>
 
