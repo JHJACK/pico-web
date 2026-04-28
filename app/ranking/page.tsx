@@ -147,12 +147,20 @@ export default function RankingPage() {
     ? Math.round(((totalUsers - myRank.rank_position) / totalUsers) * 100)
     : null;
 
-  const weekLabel = weekStart
-    ? `${weekStart.slice(0, 4)}년 ${parseInt(weekStart.slice(5, 7))}월 ${parseInt(weekStart.slice(8, 10))}일 주`
-    : "";
+  // 주간 날짜 범위 (월요일 ~ 일요일)
+  const weekRange = (() => {
+    if (!weekStart) return "";
+    const KO_DAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+    const mon = new Date(weekStart + "T00:00:00");
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${KO_DAYS[d.getDay()]}`;
+    return `${fmt(mon)} ~ ${sun.getMonth() + 1}월 ${sun.getDate()}일 ${KO_DAYS[sun.getDay()]}`;
+  })();
 
-  const top3    = rankings.slice(0, 3);
-  const rest50  = rankings.slice(3, 50);
+  const top3   = rankings.slice(0, 3);
+  const rest50 = rankings.slice(3, 50);
 
   return (
     <AuthGuard>
@@ -185,11 +193,16 @@ export default function RankingPage() {
             <h1 style={{ fontFamily: "var(--font-paperlogy)", fontSize: 26, fontWeight: 700, color: C.text, margin: "0 0 5px", letterSpacing: "-0.02em" }}>
               {period === "weekly" ? "주간 랭킹" : "전체 랭킹"}
             </h1>
-            <p style={{ fontSize: 14, fontWeight: 300, color: C.text2, margin: 0 }}>
+            <p style={{ fontSize: 14, fontWeight: 300, color: C.text2, margin: "0 0 6px" }}>
               {period === "weekly"
                 ? "이번 주 수익률로 결정되는 진짜 실력 대결"
                 : "전체 기간 누적 수익률 순위"}
             </p>
+            {period === "weekly" && weekRange && (
+              <p style={{ fontFamily: "var(--font-mona12)", fontSize: 12, fontWeight: 400, color: C.text2, opacity: 0.65, margin: 0 }}>
+                {weekRange}
+              </p>
+            )}
           </div>
 
           {/* 주간 / TOTAL 토글 */}
@@ -334,13 +347,12 @@ export default function RankingPage() {
               );
             })()}
 
-            {/* ── TOP 3 왕좌 ── */}
+            {/* ── TOP 3 왕좌 (3명 이상일 때) ── */}
             {top3.length >= 3 && (
               <div style={{ marginBottom: 28 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingLeft: 2 }}>
                   <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 17 }}>🏆</span>
                   <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: C.text2 }}>TOP 3</span>
-                  {weekLabel && <span style={{ fontFamily: "var(--font-mona12)", fontSize: 12, color: C.text2, opacity: 0.6 }}>{weekLabel}</span>}
                 </div>
                 <div style={{
                   background: C.card, borderRadius: 20,
@@ -349,7 +361,6 @@ export default function RankingPage() {
                   overflow: "hidden",
                   boxShadow: "0 0 40px rgba(250,202,62,0.06)",
                 }}>
-                  {/* 왕좌 배치: 2위 - 1위 - 3위 */}
                   <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 6 }}>
                     <ThroneSeat rank={top3[1]} position={2} isMe={top3[1].user_id === user?.id} />
                     <ThroneSeat rank={top3[0]} position={1} isMe={top3[0].user_id === user?.id} />
@@ -359,25 +370,30 @@ export default function RankingPage() {
               </div>
             )}
 
-            {/* ── 4위 ~ 50위 ── */}
-            {rest50.length > 0 && (
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 2 }}>
-                  <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 17 }}>📋</span>
-                  <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: C.text2 }}>4위 이하</span>
+            {/* ── 전체 리스트 (3명 미만이면 1위~도 여기서, 이상이면 4위~50위) ── */}
+            {(top3.length < 3 ? rankings.slice(0, 50) : rest50).length > 0 && (() => {
+              const listRows = top3.length < 3 ? rankings.slice(0, 50) : rest50;
+              const label    = top3.length < 3 ? "수익률 순위" : "4위 이하";
+              const emoji    = top3.length < 3 ? "📊" : "📋";
+              return (
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 2 }}>
+                    <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 17 }}>{emoji}</span>
+                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: C.text2 }}>{label}</span>
+                  </div>
+                  <div style={{ background: C.card, borderRadius: 18, border: `0.5px solid ${C.border}`, overflow: "hidden" }}>
+                    {listRows.map((row, idx) => (
+                      <div key={row.user_id}>
+                        <RankRow row={row} isMe={row.user_id === user?.id} />
+                        {idx < listRows.length - 1 && (
+                          <div style={{ height: "0.5px", background: "rgba(255,255,255,0.04)", marginInline: 16 }} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ background: C.card, borderRadius: 18, border: `0.5px solid ${C.border}`, overflow: "hidden" }}>
-                  {rest50.map((row, idx) => (
-                    <div key={row.user_id}>
-                      <RankRow row={row} isMe={row.user_id === user?.id} />
-                      {idx < rest50.length - 1 && (
-                        <div style={{ height: "0.5px", background: "rgba(255,255,255,0.04)", marginInline: 16 }} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             <p style={{
               textAlign: "center", fontSize: 12, color: C.text2, marginTop: 16,
