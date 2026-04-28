@@ -124,6 +124,19 @@ export default function AttendancePage() {
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 52px" }}>
 
+        {/* ── 페이지 타이틀 ── */}
+        <div style={{ marginBottom: 22 }}>
+          <p style={{ fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: "#FACA3E", marginBottom: 6, letterSpacing: "0.06em" }}>
+            ATTENDANCE
+          </p>
+          <h1 style={{ fontFamily: "var(--font-paperlogy)", fontSize: 26, fontWeight: 700, color: "#e8e0d0", margin: "0 0 5px", letterSpacing: "-0.02em" }}>
+            출석 캘린더
+          </h1>
+          <p style={{ fontSize: 14, fontWeight: 300, color: "#c8bfb0", margin: 0 }}>
+            매일 출석하고 연속 출석 보너스를 받아보세요
+          </p>
+        </div>
+
         {/* ── 스트릭 요약 카드 ── */}
         <div
           style={{
