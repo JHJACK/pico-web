@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, type CSSProperties } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import AuthGuard from "@/app/components/AuthGuard";
 import { BackIcon } from "@/app/components/BackIcon";
@@ -49,15 +48,15 @@ function getTier(r: number): Tier {
   return "bronze";
 }
 
-const TIER_CFG: Record<Tier, { label: string; color: string; glow: string; gradient: string; icon: string }> = {
-  diamond:  { label: "다이아",   color: "#a8d8f0", glow: "rgba(168,216,240,0.5)", gradient: "linear-gradient(135deg,#a8d8f0 0%,#6bb8e8 40%,#c8ecff 70%,#a8d8f0 100%)", icon: "💎" },
-  platinum: { label: "플래티넘", color: "#b8f0d8", glow: "rgba(184,240,216,0.5)", gradient: "linear-gradient(135deg,#b8f0d8 0%,#6be8b4 40%,#c8fff0 70%,#b8f0d8 100%)", icon: "🏅" },
-  gold:     { label: "골드",     color: "#FACA3E", glow: "rgba(250,202,62,0.5)",  gradient: "linear-gradient(135deg,#ffe566 0%,#FACA3E 40%,#fff0a0 70%,#e8b820 100%)",  icon: "🥇" },
-  silver:   { label: "실버",     color: "#c8c8c8", glow: "rgba(200,200,200,0.4)", gradient: "linear-gradient(135deg,#e0e0e0 0%,#b0b0b0 40%,#f0f0f0 70%,#c8c8c8 100%)", icon: "🥈" },
-  bronze:   { label: "브론즈",   color: "#d4956a", glow: "rgba(212,149,106,0.4)", gradient: "linear-gradient(135deg,#e8b090 0%,#c07848 40%,#f0c898 70%,#b86830 100%)", icon: "🥉" },
+const TIER_CFG: Record<Tier, { label: string; color: string; glow: string; gradient: string }> = {
+  diamond:  { label: "다이아",   color: "#a8d8f0", glow: "rgba(168,216,240,0.45)", gradient: "linear-gradient(135deg,#a8d8f0 0%,#6bb8e8 40%,#c8ecff 70%,#a8d8f0 100%)" },
+  platinum: { label: "플래티넘", color: "#b8f0d8", glow: "rgba(184,240,216,0.45)", gradient: "linear-gradient(135deg,#b8f0d8 0%,#6be8b4 40%,#c8fff0 70%,#b8f0d8 100%)" },
+  gold:     { label: "골드",     color: "#FACA3E", glow: "rgba(250,202,62,0.45)",  gradient: "linear-gradient(135deg,#ffe566 0%,#FACA3E 40%,#fff0a0 70%,#e8b820 100%)"  },
+  silver:   { label: "실버",     color: "#c8c8c8", glow: "rgba(200,200,200,0.35)", gradient: "linear-gradient(135deg,#e0e0e0 0%,#b0b0b0 40%,#f0f0f0 70%,#c8c8c8 100%)" },
+  bronze:   { label: "브론즈",   color: "#d4956a", glow: "rgba(212,149,106,0.35)", gradient: "linear-gradient(135deg,#e8b090 0%,#c07848 40%,#f0c898 70%,#b86830 100%)" },
 };
 
-// ── 수식어 메타 (23종 전체) ───────────────────────────────────
+// ── 수식어 메타 (23종) ────────────────────────────────────────
 const TITLE_META: Record<string, { emoji: string; label: string; color: string }> = {
   sniper:      { emoji: "🎯", label: "여의도 스나이퍼",  color: "#FACA3E" },
   frog:        { emoji: "🐸", label: "역발상의 천재",    color: "#7ed4a0" },
@@ -84,12 +83,11 @@ const TITLE_META: Record<string, { emoji: string; label: string; color: string }
   collector:   { emoji: "👑", label: "도감왕",             color: "#f0a020" },
 };
 
-const NUM: CSSProperties = { fontFamily: "var(--font-mona12), monospace", fontWeight: 700, letterSpacing: "-0.02em" };
+const MEDAL: Record<1 | 2 | 3, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 function formatRate(r: number) {
   return `${r >= 0 ? "+" : ""}${r.toFixed(2)}%`;
 }
-
 function timeAgo(iso: string): string {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (diff < 1)  return "방금 전";
@@ -97,25 +95,26 @@ function timeAgo(iso: string): string {
   return `${Math.floor(diff / 60)}시간 전`;
 }
 
-// ── 3D 티어 뱃지 ──────────────────────────────────────────────
-function TierBadge({ tier, size = 40 }: { tier: Tier; size?: number }) {
+// ── 3D 티어 배지 (소형) ───────────────────────────────────────
+function TierBadge({ tier, size = 28 }: { tier: Tier; size?: number }) {
   const cfg = TIER_CFG[tier];
+  const icons: Record<Tier, string> = { diamond: "💎", platinum: "🏅", gold: "🥇", silver: "🥈", bronze: "🥉" };
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%", flexShrink: 0,
       background: cfg.gradient,
-      boxShadow: `0 2px 8px ${cfg.glow}, inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.25)`,
-      border: `1px solid ${cfg.color}60`,
+      boxShadow: `0 2px 6px ${cfg.glow}, inset 0 1px 2px rgba(255,255,255,0.55), inset 0 -1px 3px rgba(0,0,0,0.2)`,
+      border: `1px solid ${cfg.color}55`,
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.45, fontFamily: "var(--font-mona12-emoji)",
+      fontSize: size * 0.44, fontFamily: "var(--font-mona12-emoji)",
     }}>
-      {cfg.icon}
+      {icons[tier]}
     </div>
   );
 }
 
 // ── 메인 ──────────────────────────────────────────────────────
-type RankTab = "return" | "battle" | "point";
+type Period = "weekly" | "total";
 
 export default function RankingPage() {
   const { user } = useAuth();
@@ -127,7 +126,7 @@ export default function RankingPage() {
   const [weekStart,   setWeekStart]   = useState("");
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [loading,     setLoading]     = useState(true);
-  const [activeTab,   setActiveTab]   = useState<RankTab>("return");
+  const [period,      setPeriod]      = useState<Period>("weekly");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -152,15 +151,16 @@ export default function RankingPage() {
     ? `${weekStart.slice(0, 4)}년 ${parseInt(weekStart.slice(5, 7))}월 ${parseInt(weekStart.slice(8, 10))}일 주`
     : "";
 
-  const RANK_TABS: { id: RankTab; label: string; emoji: string; comingSoon?: boolean }[] = [
-    { id: "return", label: "수익률 순위", emoji: "📊" },
-    { id: "battle", label: "배틀 순위",   emoji: "⚔️", comingSoon: true },
-    { id: "point",  label: "포인트 순위", emoji: "💰", comingSoon: true },
-  ];
+  const top3    = rankings.slice(0, 3);
+  const rest50  = rankings.slice(3, 50);
 
   return (
     <AuthGuard>
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
+      <style>{`
+        .rank-toggle-fs { font-size: 13px; }
+        @media (min-width: 768px) { .rank-toggle-fs { font-size: 15px; } }
+      `}</style>
 
       {/* 헤더 */}
       <nav style={{
@@ -176,333 +176,368 @@ export default function RankingPage() {
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 52px" }}>
 
-        {/* 페이지 타이틀 */}
-        <div style={{ marginBottom: 22 }}>
-          <p style={{ fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: C.gold, marginBottom: 6, letterSpacing: "0.06em" }}>
-            RANKING
-          </p>
-          <h1 style={{ fontFamily: "var(--font-paperlogy)", fontSize: 26, fontWeight: 700, color: C.text, margin: "0 0 5px", letterSpacing: "-0.02em" }}>
-            주간 랭킹
-          </h1>
-          <p style={{ fontSize: 14, fontWeight: 300, color: C.text2, margin: 0 }}>
-            이번 주 수익률로 결정되는 진짜 실력 대결
-          </p>
-        </div>
-
-        {/* 내 랭킹 카드 */}
-        {user && myRank && (
-          <div style={{
-            background: C.card, borderRadius: 20, padding: "18px 22px",
-            border: `0.5px solid rgba(250,202,62,0.2)`, marginBottom: 20,
-            display: "flex", alignItems: "center", gap: 16,
-          }}>
-            <TierBadge tier={getTier(myRank.return_rate)} size={52} />
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 400, color: C.text2, marginBottom: 5 }}>내 투자 성적</p>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ fontFamily: "var(--font-mona12)", fontSize: 30, fontWeight: 700, color: C.gold, letterSpacing: "-0.03em" }}>
-                  #{myRank.rank_position}
-                </span>
-                <span style={{
-                  fontFamily: "var(--font-mona12)", fontSize: 18, fontWeight: 700,
-                  color: myRank.return_rate >= 0 ? C.green : C.red,
-                }}>
-                  {formatRate(myRank.return_rate)}
-                </span>
-              </div>
-              <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", marginTop: 8, overflow: "hidden" }}>
-                <div style={{
-                  height: "100%",
-                  width: `${Math.max(5, Math.min(100, ((totalUsers - myRank.rank_position + 1) / Math.max(totalUsers, 1)) * 100))}%`,
-                  background: C.gold, borderRadius: 2, transition: "width 0.5s ease",
-                }} />
-              </div>
-              <p style={{ fontFamily: "var(--font-mona12)", fontSize: 12, color: C.text2, marginTop: 4 }}>
-                {myPercentile !== null ? `상위 ${100 - myPercentile}% · ` : ""}
-                {TIER_CFG[getTier(myRank.return_rate)].label} 티어 · {totalUsers}명 중 {myRank.rank_position}위
-              </p>
-            </div>
-            <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <p style={{ fontSize: 12, color: C.text2, marginBottom: 4 }}>거래</p>
-              <span style={{ fontFamily: "var(--font-mona12)", fontSize: 22, fontWeight: 700, color: C.text }}>
-                {myRank.trade_count}
-                <span style={{ fontSize: 13, fontWeight: 400, color: C.text2 }}>회</span>
-              </span>
-            </div>
+        {/* 페이지 타이틀 + 주간/TOTAL 토글 */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 22, gap: 12 }}>
+          <div>
+            <p style={{ fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: C.gold, marginBottom: 6, letterSpacing: "0.06em" }}>
+              RANKING
+            </p>
+            <h1 style={{ fontFamily: "var(--font-paperlogy)", fontSize: 26, fontWeight: 700, color: C.text, margin: "0 0 5px", letterSpacing: "-0.02em" }}>
+              {period === "weekly" ? "주간 랭킹" : "전체 랭킹"}
+            </h1>
+            <p style={{ fontSize: 14, fontWeight: 300, color: C.text2, margin: 0 }}>
+              {period === "weekly"
+                ? "이번 주 수익률로 결정되는 진짜 실력 대결"
+                : "전체 기간 누적 수익률 순위"}
+            </p>
           </div>
-        )}
 
-        {/* 라이벌 */}
-        {user && myRank && myRank.rank_position > 1 && (() => {
-          const above = rankings.find(r => r.rank_position === myRank.rank_position - 1);
-          const below = rankings.find(r => r.rank_position === myRank.rank_position + 1);
-          if (!above && !below) return null;
-          return (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 2 }}>
-                <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 18 }}>⚔️</span>
-                <span style={{ fontFamily: "var(--font-mona12)", fontSize: 15, fontWeight: 700, color: C.text2 }}>내 라이벌</span>
-              </div>
-              <div style={{ background: C.card, borderRadius: 18, border: `0.5px solid ${C.border}`, overflow: "hidden" }}>
-                {above && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
-                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: C.gold, fontWeight: 700, width: 20, flexShrink: 0 }}>▲</span>
-                    <TierBadge tier={getTier(above.return_rate)} size={28} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{above.nickname}</div>
-                      <div style={{ fontSize: 11, color: C.text2 }}>#{above.rank_position}</div>
-                    </div>
-                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: above.return_rate >= 0 ? C.green : C.red, flexShrink: 0 }}>
-                      {formatRate(above.return_rate)}
-                    </span>
-                  </div>
-                )}
-                {above && below && <div style={{ height: "0.5px", background: "rgba(255,255,255,0.05)", marginInline: 16 }} />}
-                {below && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
-                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: C.red, fontWeight: 700, width: 20, flexShrink: 0 }}>▼</span>
-                    <TierBadge tier={getTier(below.return_rate)} size={28} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{below.nickname}</div>
-                      <div style={{ fontSize: 11, color: C.text2 }}>#{below.rank_position}</div>
-                    </div>
-                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: below.return_rate >= 0 ? C.green : C.red, flexShrink: 0 }}>
-                      {formatRate(below.return_rate)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* 랭킹 탭 */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, overflowX: "auto", paddingBottom: 2 }}>
-          {RANK_TABS.map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
+          {/* 주간 / TOTAL 토글 */}
+          <div style={{
+            display: "flex", flexShrink: 0,
+            background: "rgba(255,255,255,0.05)",
+            border: `0.5px solid ${C.border}`,
+            borderRadius: 12, padding: 3, gap: 2,
+            alignSelf: "flex-start", marginTop: 4,
+          }}>
+            {(["weekly", "total"] as Period[]).map(p => (
               <button
-                key={tab.id}
-                onClick={() => !tab.comingSoon && setActiveTab(tab.id)}
+                key={p}
+                onClick={() => setPeriod(p)}
+                className="rank-toggle-fs"
                 style={{
-                  flexShrink: 0,
-                  padding: "7px 14px", borderRadius: 20,
-                  fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
-                  background: isActive ? C.gold : "rgba(255,255,255,0.05)",
-                  border: `0.5px solid ${isActive ? C.gold : C.border}`,
-                  color: isActive ? "#0d0d0d" : tab.comingSoon ? "rgba(200,191,176,0.4)" : C.text2,
-                  cursor: tab.comingSoon ? "default" : "pointer",
+                  fontFamily: "var(--font-mona12)", fontWeight: 700,
+                  padding: "6px 14px", borderRadius: 9,
+                  background: period === p ? C.gold : "transparent",
+                  color: period === p ? "#0d0d0d" : C.text2,
+                  border: "none", cursor: "pointer",
                   transition: "all 0.15s",
-                  display: "flex", alignItems: "center", gap: 5,
-                  opacity: tab.comingSoon ? 0.5 : 1,
+                  letterSpacing: p === "total" ? "0.04em" : "0",
                 }}
               >
-                <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 14 }}>{tab.emoji}</span>
-                {tab.label}
-                {tab.comingSoon && (
-                  <span style={{ fontSize: 10, background: "rgba(255,255,255,0.08)", borderRadius: 4, padding: "1px 5px" }}>
-                    준비 중
-                  </span>
-                )}
+                {p === "weekly" ? "주간" : "TOTAL"}
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
 
-        {/* 수익률 순위 콘텐츠 */}
-        {loading ? (
+        {/* TOTAL: 준비 중 */}
+        {period === "total" ? (
+          <div style={{
+            textAlign: "center", padding: "80px 0",
+            background: C.card, borderRadius: 20, border: `0.5px solid ${C.border}`,
+          }}>
+            <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 48, display: "block", marginBottom: 16 }}>🏆</span>
+            <div style={{ fontFamily: "var(--font-paperlogy)", fontSize: 18, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+              TOTAL 랭킹 준비 중
+            </div>
+            <div style={{ fontSize: 14, color: C.text2, lineHeight: 1.7 }}>
+              전체 기간 누적 수익률 순위가<br />곧 오픈될 예정이에요
+            </div>
+          </div>
+        ) : loading ? (
           <div style={{ textAlign: "center", padding: "60px 0", color: C.text2, fontSize: 15 }}>
             랭킹 불러오는 중...
           </div>
-        ) : activeTab === "return" ? (
+        ) : rankings.length === 0 ? (
+          <div style={{
+            textAlign: "center", padding: "80px 0",
+            background: C.card, borderRadius: 20, border: `0.5px solid ${C.border}`,
+          }}>
+            <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 48, display: "block", marginBottom: 16 }}>🎮</span>
+            <div style={{ fontFamily: "var(--font-paperlogy)", fontSize: 18, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+              이번 주 게임이 시작됐어요
+            </div>
+            <div style={{ fontSize: 14, color: C.text2, lineHeight: 1.7 }}>
+              종목에서 매수하면<br />수익률 순위에 자동으로 올라가요
+            </div>
+          </div>
+        ) : (
           <>
-            {rankings.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "60px 0" }}>
-                <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 44, display: "block", marginBottom: 16 }}>🎮</span>
-                <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 8 }}>이번 주 게임이 시작됐어요</div>
-                <div style={{ fontSize: 14, color: C.text2, lineHeight: 1.7 }}>
-                  종목에서 매수하면<br />수익률 순위에 자동으로 올라가요
+            {/* 내 랭킹 카드 */}
+            {user && myRank && (
+              <div style={{
+                background: C.card, borderRadius: 20, padding: "18px 22px",
+                border: `0.5px solid rgba(250,202,62,0.22)`, marginBottom: 24,
+                display: "flex", alignItems: "center", gap: 16,
+              }}>
+                <TierBadge tier={getTier(myRank.return_rate)} size={50} />
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 14, fontWeight: 400, color: C.text2, marginBottom: 5 }}>내 투자 성적</p>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 30, fontWeight: 700, color: C.gold, letterSpacing: "-0.03em" }}>
+                      #{myRank.rank_position}
+                    </span>
+                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 18, fontWeight: 700, color: myRank.return_rate >= 0 ? C.green : C.red }}>
+                      {formatRate(myRank.return_rate)}
+                    </span>
+                  </div>
+                  <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", marginTop: 8, overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%",
+                      width: `${Math.max(4, Math.min(100, ((totalUsers - myRank.rank_position + 1) / Math.max(totalUsers, 1)) * 100))}%`,
+                      background: C.gold, borderRadius: 2, transition: "width 0.5s ease",
+                    }} />
+                  </div>
+                  <p style={{ fontFamily: "var(--font-mona12)", fontSize: 12, color: C.text2, marginTop: 4 }}>
+                    {myPercentile !== null ? `상위 ${100 - myPercentile}% · ` : ""}
+                    {TIER_CFG[getTier(myRank.return_rate)].label} 티어 · {totalUsers}명 중 {myRank.rank_position}위
+                  </p>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <p style={{ fontSize: 12, color: C.text2, marginBottom: 4 }}>거래</p>
+                  <span style={{ fontFamily: "var(--font-mona12)", fontSize: 22, fontWeight: 700, color: C.text }}>
+                    {myRank.trade_count}
+                    <span style={{ fontSize: 13, fontWeight: 400, color: C.text2 }}>회</span>
+                  </span>
                 </div>
               </div>
-            ) : (
-              <>
-                {/* TOP 3 포디엄 */}
-                {rankings.length >= 3 && (
-                  <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 8, marginBottom: 28, padding: "0 8px" }}>
-                    <PodiumCard rank={rankings[1]} position={2} isMe={rankings[1].user_id === user?.id} />
-                    <PodiumCard rank={rankings[0]} position={1} isMe={rankings[0].user_id === user?.id} />
-                    <PodiumCard rank={rankings[2]} position={3} isMe={rankings[2].user_id === user?.id} />
-                  </div>
-                )}
+            )}
 
-                {/* 섹션 헤더 */}
-                {rankings.length > 3 && (
+            {/* 라이벌 */}
+            {user && myRank && myRank.rank_position > 1 && (() => {
+              const above = rankings.find(r => r.rank_position === myRank.rank_position - 1);
+              const below = rankings.find(r => r.rank_position === myRank.rank_position + 1);
+              if (!above && !below) return null;
+              return (
+                <div style={{ marginBottom: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 2 }}>
-                    <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 18 }}>📋</span>
-                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 15, fontWeight: 700, color: C.text2 }}>4위 이하</span>
+                    <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 17 }}>⚔️</span>
+                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: C.text2 }}>내 라이벌</span>
                   </div>
-                )}
+                  <div style={{ background: C.card, borderRadius: 18, border: `0.5px solid ${C.border}`, overflow: "hidden" }}>
+                    {above && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
+                        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 10, color: C.gold, fontWeight: 700, width: 16 }}>▲</span>
+                        <TierBadge tier={getTier(above.return_rate)} size={26} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{above.nickname}</div>
+                          <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: C.text2 }}>#{above.rank_position}</div>
+                        </div>
+                        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: above.return_rate >= 0 ? C.green : C.red }}>{formatRate(above.return_rate)}</span>
+                      </div>
+                    )}
+                    {above && below && <div style={{ height: "0.5px", background: "rgba(255,255,255,0.05)", marginInline: 16 }} />}
+                    {below && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
+                        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 10, color: C.red, fontWeight: 700, width: 16 }}>▼</span>
+                        <TierBadge tier={getTier(below.return_rate)} size={26} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{below.nickname}</div>
+                          <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: C.text2 }}>#{below.rank_position}</div>
+                        </div>
+                        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: below.return_rate >= 0 ? C.green : C.red }}>{formatRate(below.return_rate)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
-                {/* 4위~ 리스트 */}
+            {/* ── TOP 3 왕좌 ── */}
+            {top3.length >= 3 && (
+              <div style={{ marginBottom: 28 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingLeft: 2 }}>
+                  <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 17 }}>🏆</span>
+                  <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: C.text2 }}>TOP 3</span>
+                  {weekLabel && <span style={{ fontFamily: "var(--font-mona12)", fontSize: 12, color: C.text2, opacity: 0.6 }}>{weekLabel}</span>}
+                </div>
+                <div style={{
+                  background: C.card, borderRadius: 20,
+                  border: `0.5px solid rgba(250,202,62,0.15)`,
+                  padding: "28px 16px 0",
+                  overflow: "hidden",
+                  boxShadow: "0 0 40px rgba(250,202,62,0.06)",
+                }}>
+                  {/* 왕좌 배치: 2위 - 1위 - 3위 */}
+                  <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 6 }}>
+                    <ThroneSeat rank={top3[1]} position={2} isMe={top3[1].user_id === user?.id} />
+                    <ThroneSeat rank={top3[0]} position={1} isMe={top3[0].user_id === user?.id} />
+                    <ThroneSeat rank={top3[2]} position={3} isMe={top3[2].user_id === user?.id} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── 4위 ~ 50위 ── */}
+            {rest50.length > 0 && (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 2 }}>
+                  <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 17 }}>📋</span>
+                  <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: C.text2 }}>4위 이하</span>
+                </div>
                 <div style={{ background: C.card, borderRadius: 18, border: `0.5px solid ${C.border}`, overflow: "hidden" }}>
-                  {rankings.slice(3).map((row, idx) => (
+                  {rest50.map((row, idx) => (
                     <div key={row.user_id}>
-                      <RankListRow row={row} isMe={row.user_id === user?.id} />
-                      {idx < rankings.slice(3).length - 1 && (
-                        <div style={{ height: "0.5px", background: "rgba(255,255,255,0.05)", marginInline: 16 }} />
+                      <RankRow row={row} isMe={row.user_id === user?.id} />
+                      {idx < rest50.length - 1 && (
+                        <div style={{ height: "0.5px", background: "rgba(255,255,255,0.04)", marginInline: 16 }} />
                       )}
                     </div>
                   ))}
                 </div>
-
-                <p style={{
-                  textAlign: "center", fontSize: 13, color: C.text2, marginTop: 16,
-                  fontFamily: "var(--font-mona12)",
-                }}>
-                  총 {totalUsers}명 참여 · {lastUpdated ? `${timeAgo(lastUpdated)} 업데이트` : "2시간마다 업데이트"}
-                </p>
-              </>
+              </div>
             )}
-          </>
-        ) : (
-          <div style={{ textAlign: "center", padding: "60px 0" }}>
-            <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 44, display: "block", marginBottom: 16 }}>
-              {activeTab === "battle" ? "⚔️" : "💰"}
-            </span>
-            <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 8 }}>준비 중이에요</div>
-            <div style={{ fontSize: 14, color: C.text2 }}>
-              {activeTab === "battle" ? "배틀 정답률 순위가 곧 오픈돼요" : "포인트 적립 순위가 곧 오픈돼요"}
-            </div>
-          </div>
-        )}
 
+            <p style={{
+              textAlign: "center", fontSize: 12, color: C.text2, marginTop: 16,
+              fontFamily: "var(--font-mona12)",
+            }}>
+              총 {totalUsers}명 참여 · {lastUpdated ? `${timeAgo(lastUpdated)} 업데이트` : "2시간마다 업데이트"}
+            </p>
+          </>
+        )}
       </div>
     </div>
     </AuthGuard>
   );
 }
 
-// ── 포디엄 카드 (1~3위) ───────────────────────────────────────
-function PodiumCard({ rank, position, isMe }: { rank: RankRow; position: 1 | 2 | 3; isMe: boolean }) {
+// ── TOP 3 왕좌 카드 ──────────────────────────────────────────
+function ThroneSeat({ rank, position, isMe }: { rank: RankRow; position: 1 | 2 | 3; isMe: boolean }) {
   const tier    = getTier(rank.return_rate);
-  const podiumH = ({ 1: 110, 2: 80, 3: 64 } as const)[position];
+  const cfg     = TIER_CFG[tier];
   const isFirst = position === 1;
   const titleM  = rank.equipped_title ? TITLE_META[rank.equipped_title] : null;
 
-  return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      {isFirst && <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 20 }}>👑</span>}
+  const avatarSize = isFirst ? 68 : 52;
+  const podiumH    = isFirst ? 120 : position === 2 ? 88 : 72;
 
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
+
+      {/* 왕관 (1위만) */}
+      {isFirst && (
+        <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 26, lineHeight: 1, marginBottom: 2 }}>👑</span>
+      )}
+
+      {/* 아바타 */}
       <div style={{ position: "relative" }}>
         {rank.avatar_url ? (
           <img src={rank.avatar_url} alt={rank.nickname} style={{
-            width: isFirst ? 56 : 44, height: isFirst ? 56 : 44,
-            borderRadius: "50%", objectFit: "cover",
-            border: `2px solid ${TIER_CFG[tier].color}`,
-            boxShadow: isMe ? `0 0 0 2px ${TIER_CFG[tier].color}60` : "none",
+            width: avatarSize, height: avatarSize, borderRadius: "50%", objectFit: "cover",
+            border: `2.5px solid ${cfg.color}`,
+            boxShadow: `0 0 20px ${cfg.glow}`,
           }} />
         ) : (
           <div style={{
-            width: isFirst ? 56 : 44, height: isFirst ? 56 : 44,
-            borderRadius: "50%", background: "#242424",
-            border: `2px solid ${TIER_CFG[tier].color}`,
+            width: avatarSize, height: avatarSize, borderRadius: "50%",
+            background: "#1e1e1e", border: `2.5px solid ${cfg.color}`,
+            boxShadow: `0 0 20px ${cfg.glow}`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: isFirst ? 22 : 17, color: "#c8bfb0",
+            fontSize: isFirst ? 26 : 20, color: "#c8bfb0",
+            fontFamily: "var(--font-paperlogy)",
           }}>
             {rank.nickname[0]?.toUpperCase() ?? "?"}
           </div>
         )}
-        <div style={{ position: "absolute", bottom: -4, right: -4 }}>
-          <TierBadge tier={tier} size={20} />
+        {/* 메달 이모지 */}
+        <div style={{
+          position: "absolute", bottom: -6, right: -6,
+          fontFamily: "var(--font-mona12-emoji)", fontSize: isFirst ? 22 : 18, lineHeight: 1,
+        }}>
+          {MEDAL[position]}
         </div>
+        {/* 내 표시 */}
         {isMe && (
           <div style={{
             position: "absolute", top: -4, left: -4,
-            background: "#FACA3E", color: "#0d0d0d",
-            fontSize: 8, fontWeight: 700, borderRadius: 4,
-            padding: "1px 4px", fontFamily: "var(--font-mona12)",
+            background: C.gold, color: "#0d0d0d",
+            fontFamily: "var(--font-mona12)", fontSize: 8, fontWeight: 700,
+            borderRadius: 4, padding: "1px 4px",
           }}>나</div>
         )}
       </div>
 
+      {/* 닉네임 */}
       <div style={{
-        fontSize: isFirst ? 13 : 12, fontWeight: 500,
-        maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        textAlign: "center", color: "#e8e0d0",
+        fontFamily: "var(--font-paperlogy)", fontSize: isFirst ? 14 : 12, fontWeight: 600,
+        maxWidth: isFirst ? 88 : 72,
+        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        textAlign: "center", color: C.text,
       }}>
         {rank.nickname}
       </div>
 
+      {/* 수식어 */}
       {titleM && (
         <div style={{
-          fontSize: 10, textAlign: "center", maxWidth: 80,
+          fontFamily: "var(--font-mona12)", fontSize: 10, textAlign: "center",
+          maxWidth: isFirst ? 90 : 74,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           color: titleM.color,
-          fontFamily: "var(--font-mona12)",
         }}>
           <span style={{ fontFamily: "var(--font-mona12-emoji)" }}>{titleM.emoji}</span>
           {" "}{titleM.label}
         </div>
       )}
 
+      {/* 수익률 */}
       <div style={{
-        fontFamily: "var(--font-mona12)", fontSize: isFirst ? 15 : 13, fontWeight: 700,
-        color: rank.return_rate >= 0 ? "#7ed4a0" : "#f07070",
+        fontFamily: "var(--font-mona12)", fontSize: isFirst ? 16 : 14, fontWeight: 700,
+        color: rank.return_rate >= 0 ? C.green : C.red,
       }}>
         {formatRate(rank.return_rate)}
       </div>
 
+      {/* 포디엄 기단 */}
       <div style={{
-        width: "100%", height: podiumH, borderRadius: "8px 8px 0 0",
-        background: TIER_CFG[tier].gradient,
-        boxShadow: `0 -4px 20px ${TIER_CFG[tier].glow}`,
+        width: "100%", height: podiumH,
+        borderRadius: "10px 10px 0 0",
+        background: cfg.gradient,
+        boxShadow: `0 -6px 24px ${cfg.glow}`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "var(--font-mona12)", fontSize: isFirst ? 24 : 20, fontWeight: 700, color: "#0d0d0d",
+        fontFamily: "var(--font-mona12-emoji)", fontSize: isFirst ? 32 : 26, lineHeight: 1,
       }}>
-        {position}
+        {MEDAL[position]}
       </div>
     </div>
   );
 }
 
-// ── 리스트 행 (4위~) ──────────────────────────────────────────
-function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
-  const tier     = getTier(row.return_rate);
-  const cfg      = TIER_CFG[tier];
+// ── 4위~ 리스트 행 ────────────────────────────────────────────
+function RankRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
+  const tier    = getTier(row.return_rate);
+  const cfg     = TIER_CFG[tier];
   const isProfit = row.return_rate >= 0;
-  const titleM   = row.equipped_title ? TITLE_META[row.equipped_title] : null;
+  const titleM  = row.equipped_title ? TITLE_META[row.equipped_title] : null;
 
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 12,
-      padding: "14px 16px",
+      padding: "13px 16px",
       background: isMe ? "rgba(250,202,62,0.04)" : "transparent",
     }}>
+      {/* 순위 */}
       <div style={{
-        width: 28, textAlign: "center", flexShrink: 0,
-        fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: C.text2,
+        width: 30, textAlign: "center", flexShrink: 0,
+        fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: C.text2,
       }}>
         {row.rank_position}
       </div>
 
-      <TierBadge tier={tier} size={30} />
+      {/* 티어 배지 */}
+      <TierBadge tier={tier} size={28} />
 
+      {/* 아바타 */}
       {row.avatar_url ? (
         <img src={row.avatar_url} alt={row.nickname} style={{
           width: 34, height: 34, borderRadius: "50%", objectFit: "cover",
-          flexShrink: 0, border: `1.5px solid ${cfg.color}50`,
+          flexShrink: 0, border: `1.5px solid ${cfg.color}45`,
         }} />
       ) : (
         <div style={{
           width: 34, height: 34, borderRadius: "50%", background: "#1a1a1a",
-          border: `1.5px solid ${cfg.color}50`,
+          border: `1.5px solid ${cfg.color}45`,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 14, color: "#c8bfb0", flexShrink: 0,
+          fontSize: 13, color: "#c8bfb0", flexShrink: 0,
+          fontFamily: "var(--font-paperlogy)",
         }}>
           {row.nickname[0]?.toUpperCase() ?? "?"}
         </div>
       )}
 
+      {/* 닉네임 + 수식어 */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           <span style={{
@@ -516,12 +551,11 @@ function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
           {isMe && (
             <span style={{
               fontFamily: "var(--font-mona12)", fontSize: 9,
-              background: "#FACA3E", color: "#0d0d0d",
+              background: C.gold, color: "#0d0d0d",
               borderRadius: 4, padding: "1px 5px", fontWeight: 700, flexShrink: 0,
             }}>나</span>
           )}
         </div>
-
         {titleM ? (
           <div style={{
             fontFamily: "var(--font-mona12)", fontSize: 11, marginTop: 2,
@@ -531,28 +565,25 @@ function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
             <span>{titleM.label}</span>
           </div>
         ) : (
-          <div style={{
-            fontFamily: "var(--font-mona12)", fontSize: 11, color: cfg.color, marginTop: 2,
-          }}>
+          <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: cfg.color, marginTop: 2 }}>
             {cfg.label} · {row.trade_count}회 거래
           </div>
         )}
       </div>
 
-      <div style={{ flexShrink: 0 }}>
-        <div style={{
-          display: "inline-flex", alignItems: "center",
-          background: isProfit ? "rgba(126,212,160,0.1)" : "rgba(240,112,112,0.1)",
-          border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.25)" : "rgba(240,112,112,0.25)"}`,
-          borderRadius: 8, padding: "4px 10px",
+      {/* 수익률 */}
+      <div style={{
+        display: "inline-flex", alignItems: "center", flexShrink: 0,
+        background: isProfit ? "rgba(126,212,160,0.1)" : "rgba(240,112,112,0.1)",
+        border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.25)" : "rgba(240,112,112,0.25)"}`,
+        borderRadius: 8, padding: "4px 10px",
+      }}>
+        <span style={{
+          fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700,
+          color: isProfit ? C.green : C.red,
         }}>
-          <span style={{
-            fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700,
-            color: isProfit ? "#7ed4a0" : "#f07070",
-          }}>
-            {formatRate(row.return_rate)}
-          </span>
-        </div>
+          {formatRate(row.return_rate)}
+        </span>
       </div>
     </div>
   );
