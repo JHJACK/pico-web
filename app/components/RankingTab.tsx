@@ -37,11 +37,29 @@ const AWARD_CONFIG: Record<string, { emoji: string; title: string; subtitle: str
 };
 
 const TITLE_META: Record<string, { emoji: string; label: string; color: string }> = {
-  sniper:      { emoji: "🎯", label: "여의도 스나이퍼", color: "#FACA3E" },
-  frog:        { emoji: "🐸", label: "역발상의 천재",   color: "#7ed4a0" },
-  hodl:        { emoji: "🗿", label: "존버의 신",       color: "#a0b8f0" },
-  daytrader:   { emoji: "⚡️", label: "단타의 귀재",    color: "#f0c060" },
-  mentalsteel: { emoji: "🧊", label: "냉철한 멘탈",     color: "#b8e0f8" },
+  sniper:      { emoji: "🎯", label: "여의도 스나이퍼",  color: "#FACA3E" },
+  frog:        { emoji: "🐸", label: "역발상의 천재",    color: "#7ed4a0" },
+  hodl:        { emoji: "🗿", label: "존버의 신",        color: "#a0b8f0" },
+  daytrader:   { emoji: "⚡", label: "단타의 귀재",      color: "#f0c060" },
+  mentalsteel: { emoji: "🧊", label: "냉철한 멘탈",      color: "#b8e0f8" },
+  lucky:       { emoji: "🎲", label: "행운의 여신",      color: "#f0a0e0" },
+  spinner:     { emoji: "🔄", label: "회전왕",           color: "#80d8f0" },
+  dip:         { emoji: "📉", label: "바닥 사냥꾼",      color: "#f0a060" },
+  rocket:      { emoji: "🚀", label: "로켓 탑승자",      color: "#c0a0f8" },
+  whale:       { emoji: "🐋", label: "큰손",             color: "#4090e8" },
+  surfer:      { emoji: "🌊", label: "파도타기",          color: "#40c8d0" },
+  allin:       { emoji: "🎰", label: "올인",             color: "#f07060" },
+  jungle:      { emoji: "🦁", label: "정글의 왕",         color: "#f0c020" },
+  battlefirst: { emoji: "🏹", label: "첫 예측",          color: "#f09060" },
+  prophet:     { emoji: "🔮", label: "예언자",            color: "#c080f8" },
+  odds:        { emoji: "🧮", label: "확률의 지배자",     color: "#60d0a0" },
+  sprout:      { emoji: "🌱", label: "새싹",             color: "#80d060" },
+  flame:       { emoji: "🔥", label: "불꽃 의지",         color: "#f08040" },
+  diamond:     { emoji: "💎", label: "다이아 의지",       color: "#80e8f8" },
+  scholar:     { emoji: "📖", label: "용어 학자",         color: "#d0a060" },
+  yoidodao:    { emoji: "🏛️", label: "여의도 학자",       color: "#e0c080" },
+  pointrich:   { emoji: "💰", label: "포인트 부자",        color: "#f0d040" },
+  collector:   { emoji: "👑", label: "도감왕",             color: "#f0a020" },
 };
 
 const NUM: CSSProperties = { fontFamily: "var(--font-inter), monospace", fontWeight: 300, letterSpacing: "-0.02em" };
@@ -56,7 +74,7 @@ function timeAgo(iso: string): string {
 function TierBadge({ tier, size = 40 }: { tier: Tier; size?: number }) {
   const cfg = TIER_CONFIG[tier];
   return (
-    <div style={{ width: size, height: size, borderRadius: "50%", flexShrink: 0, background: cfg.gradient, boxShadow: `0 2px 8px ${cfg.glow}, inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.25)`, border: `1px solid ${cfg.color}60`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.45 }}>
+    <div style={{ width: size, height: size, borderRadius: "50%", flexShrink: 0, background: cfg.gradient, boxShadow: `0 2px 8px ${cfg.glow}, inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.25)`, border: `1px solid ${cfg.color}60`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.45, fontFamily: "var(--font-mona12-emoji)" }}>
       {cfg.icon}
     </div>
   );
@@ -81,12 +99,12 @@ function PodiumCard({ rank, position }: { rank: RankRow; position: 1 | 2 | 3 }) 
       </div>
       <div style={{ fontSize: isFirst ? 14 : 13, fontWeight: 500, maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center", color: "#e8e0d0" }}>{rank.nickname}</div>
       {rank.equipped_title && TITLE_META[rank.equipped_title] ? (
-        <div style={{ fontSize: 10, color: TITLE_META[rank.equipped_title].color, textAlign: "center", maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {TITLE_META[rank.equipped_title].emoji} {TITLE_META[rank.equipped_title].label}
+        <div style={{ fontSize: 10, color: TITLE_META[rank.equipped_title].color, textAlign: "center", maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-mona12)" }}>
+          <span style={{ fontFamily: "var(--font-mona12-emoji)" }}>{TITLE_META[rank.equipped_title].emoji}</span>
+          {" "}{TITLE_META[rank.equipped_title].label}
         </div>
       ) : null}
-      <div style={{ fontSize: isFirst ? 15 : 14, fontWeight: 700, color: rank.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-inter), monospace" }}>{formatRate(rank.return_rate)}</div>
-      {rank.total_invested > 0 && <div style={{ fontSize: 10, color: "#c8bfb0", marginTop: 1 }}>{rank.total_invested.toLocaleString("ko-KR")}P</div>}
+      <div style={{ fontSize: isFirst ? 15 : 14, fontWeight: 700, color: rank.return_rate >= 0 ? "#7ed4a0" : "#f07070", fontFamily: "var(--font-mona12), monospace" }}>{formatRate(rank.return_rate)}</div>
       <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: TIER_CONFIG[tier].gradient, boxShadow: `0 -4px 20px ${TIER_CONFIG[tier].glow}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 24 : 20, fontWeight: 700, color: "#0d0d0d" }}>{position}</div>
     </div>
   );
@@ -110,8 +128,9 @@ function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
           {isMe && <span style={{ fontSize: 10, background: "#FACA3E", color: "#0d0d0d", borderRadius: 4, padding: "1px 5px", fontWeight: 700, flexShrink: 0 }}>나</span>}
         </div>
         {row.equipped_title && TITLE_META[row.equipped_title] ? (
-          <div style={{ fontSize: 11, marginTop: 2, color: TITLE_META[row.equipped_title].color, display: "flex", alignItems: "center", gap: 3 }}>
-            <span>{TITLE_META[row.equipped_title].emoji}</span><span>{TITLE_META[row.equipped_title].label}</span>
+          <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, marginTop: 2, color: TITLE_META[row.equipped_title].color, display: "flex", alignItems: "center", gap: 3 }}>
+            <span style={{ fontFamily: "var(--font-mona12-emoji)" }}>{TITLE_META[row.equipped_title].emoji}</span>
+            <span>{TITLE_META[row.equipped_title].label}</span>
           </div>
         ) : (
           <div style={{ fontSize: 11, color: cfg.color, marginTop: 2 }}>{cfg.label} · {row.trade_count}회 거래</div>
@@ -119,9 +138,8 @@ function RankListRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: isProfit ? "rgba(126,212,160,0.1)" : "rgba(240,112,112,0.1)", border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.25)" : "rgba(240,112,112,0.25)"}`, borderRadius: 8, padding: "3px 10px" }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: rateColor, fontFamily: "var(--font-inter),monospace" }}>{formatRate(row.return_rate)}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: rateColor, fontFamily: "var(--font-mona12),monospace" }}>{formatRate(row.return_rate)}</span>
         </div>
-        <div style={{ fontSize: 11, color: "#c8bfb0", marginTop: 3 }}>{row.total_invested > 0 ? `${row.total_invested.toLocaleString("ko-KR")}P 투자` : ""}</div>
       </div>
     </div>
   );

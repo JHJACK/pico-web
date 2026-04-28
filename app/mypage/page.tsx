@@ -233,22 +233,47 @@ export default function MyPage() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p style={{ fontSize: FS.nickname, fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
-            {userRow.equipped_title && (
-              <p style={{ fontSize: 12, color: "#c8bfb0", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {({
-                  sniper:"🎯 여의도 스나이퍼", frog:"🐸 역발상의 천재", hodl:"🗿 존버의 신",
-                  daytrader:"⚡ 단타의 귀재", mentalsteel:"🧊 냉철한 멘탈",
-                  lucky:"🎲 행운의 여신", spinner:"🔄 회전왕", dip:"📉 바닥 사냥꾼",
-                  rocket:"🚀 로켓 탑승자", whale:"🐋 큰손", surfer:"🌊 파도타기",
-                  allin:"🎰 올인", jungle:"🦁 정글의 왕",
-                  battlefirst:"🏹 첫 예측", prophet:"🔮 예언자", odds:"🧮 확률의 지배자",
-                  sprout:"🌱 새싹", flame:"🔥 불꽃 의지", diamond:"💎 다이아 의지",
-                  scholar:"📖 용어 학자", yoidodao:"🏛️ 여의도 학자",
-                  pointrich:"💰 포인트 부자", collector:"👑 도감왕",
-                } as Record<string,string>)[userRow.equipped_title] ?? ""}
-              </p>
-            )}
+            {userRow.equipped_title && (() => {
+              const TITLE_META: Record<string, { emoji: string; label: string; color: string }> = {
+                sniper:      { emoji: "🎯", label: "여의도 스나이퍼",  color: "#FACA3E" },
+                frog:        { emoji: "🐸", label: "역발상의 천재",    color: "#7ed4a0" },
+                hodl:        { emoji: "🗿", label: "존버의 신",        color: "#a0b8f0" },
+                daytrader:   { emoji: "⚡", label: "단타의 귀재",      color: "#f0c060" },
+                mentalsteel: { emoji: "🧊", label: "냉철한 멘탈",      color: "#b8e0f8" },
+                lucky:       { emoji: "🎲", label: "행운의 여신",      color: "#f0a0e0" },
+                spinner:     { emoji: "🔄", label: "회전왕",           color: "#80d8f0" },
+                dip:         { emoji: "📉", label: "바닥 사냥꾼",      color: "#f0a060" },
+                rocket:      { emoji: "🚀", label: "로켓 탑승자",      color: "#c0a0f8" },
+                whale:       { emoji: "🐋", label: "큰손",             color: "#4090e8" },
+                surfer:      { emoji: "🌊", label: "파도타기",          color: "#40c8d0" },
+                allin:       { emoji: "🎰", label: "올인",             color: "#f07060" },
+                jungle:      { emoji: "🦁", label: "정글의 왕",         color: "#f0c020" },
+                battlefirst: { emoji: "🏹", label: "첫 예측",          color: "#f09060" },
+                prophet:     { emoji: "🔮", label: "예언자",            color: "#c080f8" },
+                odds:        { emoji: "🧮", label: "확률의 지배자",     color: "#60d0a0" },
+                sprout:      { emoji: "🌱", label: "새싹",             color: "#80d060" },
+                flame:       { emoji: "🔥", label: "불꽃 의지",         color: "#f08040" },
+                diamond:     { emoji: "💎", label: "다이아 의지",       color: "#80e8f8" },
+                scholar:     { emoji: "📖", label: "용어 학자",         color: "#d0a060" },
+                yoidodao:    { emoji: "🏛️", label: "여의도 학자",       color: "#e0c080" },
+                pointrich:   { emoji: "💰", label: "포인트 부자",        color: "#f0d040" },
+                collector:   { emoji: "👑", label: "도감왕",             color: "#f0a020" },
+              };
+              const m = TITLE_META[userRow.equipped_title];
+              if (!m) return null;
+              return (
+                <p style={{
+                  fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700,
+                  color: m.color, marginBottom: 4,
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  display: "flex", alignItems: "center", gap: 3,
+                }}>
+                  <span style={{ fontFamily: "var(--font-mona12-emoji)" }}>{m.emoji}</span>
+                  {m.label}
+                </p>
+              );
+            })()}
+            <p style={{ fontFamily: "var(--font-paperlogy)", fontSize: FS.nickname, fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
           </div>
           <button onClick={openEdit} className="pico-btn arrow-btn flex-shrink-0"
             style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>

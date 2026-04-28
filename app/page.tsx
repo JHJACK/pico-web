@@ -19,7 +19,7 @@ import GlobeCanvas from "@/app/components/GlobeCanvas";
 // 상수 & 데이터
 // ═══════════════════════════════════════════════
 type ModalType = "login" | "vs_battle" | null;
-type MainTab   = "event" | "play" | "ranking" | "learn";
+type MainTab   = "event" | "play" | "learn";
 
 const ANIMAL_NAMES: Record<string, { emoji: string; modifier: string; name: string }> = {
   tiger:     { emoji: "🐯", modifier: "공격적 개척자",   name: "호랑이"   },
@@ -1107,7 +1107,7 @@ export default function Home() {
           </Link>
 
           <div className="hidden sm:flex items-center gap-10">
-            {(["event","play","ranking","learn"] as MainTab[]).map((tab) => (
+            {(["event","play","learn"] as MainTab[]).map((tab) => (
               <button key={tab} onClick={() => switchTab(tab)} className="pico-btn relative py-2"
                 style={{
                   fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
@@ -1116,7 +1116,7 @@ export default function Home() {
                   color: mainTab === tab ? "#FACA3E" : "#e8e0d0",
                   background: "none", border: "none", cursor: "pointer", transition: "color 0.15s, font-size 0.1s",
                 }}>
-                {tab === "event" ? "홈" : tab === "play" ? "PICO Play" : tab === "ranking" ? "🏆 랭킹" : "📚 도감"}
+                {tab === "event" ? "홈" : tab === "play" ? "PICO Play" : "📚 도감"}
               </button>
             ))}
           </div>
@@ -1154,7 +1154,7 @@ export default function Home() {
 
       {/* 모바일 탭 */}
       <div className="sm:hidden flex border-b sticky z-20" style={{ top: 64, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(16px)", borderColor: "rgba(255,255,255,0.06)" }}>
-        {(["event","play","ranking","learn"] as MainTab[]).map((tab) => (
+        {(["event","play","learn"] as MainTab[]).map((tab) => (
           <button key={tab} onClick={() => switchTab(tab)} className="flex-1 py-3 relative pico-btn"
             style={{
               fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
@@ -1163,7 +1163,7 @@ export default function Home() {
               color: mainTab === tab ? "#FACA3E" : "#e8e0d0",
               background: "none", border: "none", cursor: "pointer",
             }}>
-            {tab === "event" ? "홈" : tab === "play" ? "PICO Play" : tab === "ranking" ? "🏆 랭킹" : "📚 도감"}
+            {tab === "event" ? "홈" : tab === "play" ? "PICO Play" : "📚 도감"}
           </button>
         ))}
       </div>
@@ -2236,13 +2236,6 @@ export default function Home() {
           </>
         );
       })()}
-
-      {/* ════ 랭킹 탭 ════ */}
-      {mainTab === "ranking" && (
-        <div style={tabNeedsAuth ? { filter: "blur(8px)", pointerEvents: "none", userSelect: "none" } : {}}>
-          <RankingTab />
-        </div>
-      )}
 
       {/* ════ 도감 탭 ════ */}
       {mainTab === "learn" && (
