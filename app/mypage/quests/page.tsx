@@ -180,7 +180,6 @@ export default function QuestsPage() {
         display: "flex", alignItems: "center", padding: "0 20px", gap: 14,
       }}>
         <Link href="/mypage" style={{ textDecoration: "none" }}><BackIcon /></Link>
-        <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: C.gold }}>퀘스트</span>
       </nav>
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 48px" }}>

@@ -120,17 +120,6 @@ export default function AttendancePage() {
         }}
       >
         <Link href="/mypage" style={{ textDecoration: "none" }}><BackIcon /></Link>
-        <span
-          style={{
-            fontFamily: "var(--font-mona12)",
-            fontSize: 16,
-            fontWeight: 700,
-            color: "#FACA3E",
-            marginLeft: 14,
-          }}
-        >
-          출석 캘린더
-        </span>
       </nav>
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 52px" }}>
