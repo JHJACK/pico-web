@@ -552,15 +552,26 @@ export async function buyStock(
   // 4) 포인트 내역 기록
   await insertPointHistory(uid, -investedPoints, `${ticker} 모의 매수`, db);
 
-  // 5) 첫 모의투자 퀘스트 보너스 (+200P, 1회)
+  // 5) 투자 횟수 단계별 퀘스트 (1회씩)
   const { count } = await db
     .from("mock_investments")
     .select("*", { count: "exact", head: true })
     .eq("user_id", uid);
-  const isFirstInvestment = (count ?? 0) === 1;
+  const investCount = count ?? 0;
+  const isFirstInvestment = investCount === 1;
+
   if (isFirstInvestment) {
     await db.rpc("increment_user_points", { uid, delta: 200 });
     await insertPointHistory(uid, 200, "첫 모의투자 퀘스트 완료", db);
+  } else if (investCount === 3) {
+    await db.rpc("increment_user_points", { uid, delta: 150 });
+    await insertPointHistory(uid, 150, "모의투자 3회 달성 퀘스트", db);
+  } else if (investCount === 10) {
+    await db.rpc("increment_user_points", { uid, delta: 300 });
+    await insertPointHistory(uid, 300, "모의투자 10회 달성 퀘스트", db);
+  } else if (investCount === 30) {
+    await db.rpc("increment_user_points", { uid, delta: 500 });
+    await insertPointHistory(uid, 500, "모의투자 30회 달성 퀘스트", db);
   }
 
   return { ok: true, investment: inv as MockInvestmentRow, isFirstInvestment };
@@ -614,12 +625,44 @@ export async function sellStock(
       : `${investment.ticker} 모의 매도 (${profitLoss}P 손실)`;
   await insertPointHistory(uid, finalPoints, reason, db);
 
-  // 5) 수익 달성 퀘스트 보너스 (+50P, 수익 발생 시마다)
+  // 5) 수익 달성 퀘스트 보너스 (단계별)
   let questBonus = 0;
   if (profitLoss > 0) {
-    questBonus = 50;
-    await db.rpc("increment_user_points", { uid, delta: 50 });
-    await insertPointHistory(uid, 50, "모의투자 수익 달성 퀘스트", db);
+    const profitRate = profitLoss / investment.invested_points;
+
+    // 첫 수익 매도 (1회)
+    const { count: fp } = await db
+      .from("point_history")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", uid)
+      .eq("reason", "첫 수익 매도 퀘스트");
+    if ((fp ?? 0) === 0) {
+      await db.rpc("increment_user_points", { uid, delta: 100 });
+      await insertPointHistory(uid, 100, "첫 수익 매도 퀘스트", db);
+      questBonus += 100;
+    }
+
+    // 수익률 단계별 (최고 티어만 지급)
+    if (profitRate >= 0.20) {
+      const { count: g20 } = await db
+        .from("point_history")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", uid)
+        .eq("reason", "수익률 20% 달성 퀘스트");
+      if ((g20 ?? 0) === 0) {
+        await db.rpc("increment_user_points", { uid, delta: 500 });
+        await insertPointHistory(uid, 500, "수익률 20% 달성 퀘스트", db);
+        questBonus += 500;
+      }
+    } else if (profitRate >= 0.10) {
+      await db.rpc("increment_user_points", { uid, delta: 200 });
+      await insertPointHistory(uid, 200, "수익률 10% 달성 퀘스트", db);
+      questBonus += 200;
+    } else if (profitRate >= 0.05) {
+      await db.rpc("increment_user_points", { uid, delta: 100 });
+      await insertPointHistory(uid, 100, "수익률 5% 달성 퀘스트", db);
+      questBonus += 100;
+    }
   }
 
   return { ok: true, finalPoints, profitLoss, questBonus };
@@ -735,5 +778,37 @@ export async function collectLearnCard(
 
   await addPoints(uid, points);
   await insertPointHistory(uid, points, `도감 수집: ${termName}`);
+
+  // 도감 수집 단계 퀘스트
+  const { count: totalCollected } = await supabase
+    .from("learn_collections")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", uid);
+  const tc = totalCollected ?? 0;
+  if (tc === 1) {
+    await addPoints(uid, 50);
+    await insertPointHistory(uid, 50, "첫 용어 수집 퀘스트");
+  } else if (tc === 10) {
+    await addPoints(uid, 150);
+    await insertPointHistory(uid, 150, "용어 10개 수집 퀘스트");
+  } else if (tc === 30) {
+    await addPoints(uid, 300);
+    await insertPointHistory(uid, 300, "용어 30개 수집 퀘스트");
+  }
+
   return { newly_collected: true };
+}
+
+// ── 퀘스트 1회 달성 보상 (중복 방지) ────────────────────────────────────────
+export async function awardOnceQuest(
+  uid: string,
+  reason: string,
+  points: number,
+  earnedSet: Set<string>
+): Promise<boolean> {
+  if (earnedSet.has(reason)) return false;
+  await addPoints(uid, points);
+  await insertPointHistory(uid, points, reason);
+  earnedSet.add(reason);
+  return true;
 }
