@@ -236,7 +236,17 @@ export default function MyPage() {
             <p style={{ fontSize: FS.nickname, fontWeight: 500, color: "#e8e0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRow.nickname}</p>
             {userRow.equipped_title && (
               <p style={{ fontSize: 12, color: "#c8bfb0", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {({ sniper:"🎯 여의도 스나이퍼", frog:"🐸 역발상의 천재", hodl:"🗿 존버의 신", daytrader:"⚡️ 단타의 귀재", mentalsteel:"🧊 냉철한 멘탈" } as Record<string,string>)[userRow.equipped_title] ?? ""}
+                {({
+                  sniper:"🎯 여의도 스나이퍼", frog:"🐸 역발상의 천재", hodl:"🗿 존버의 신",
+                  daytrader:"⚡ 단타의 귀재", mentalsteel:"🧊 냉철한 멘탈",
+                  lucky:"🎲 행운의 여신", spinner:"🔄 회전왕", dip:"📉 바닥 사냥꾼",
+                  rocket:"🚀 로켓 탑승자", whale:"🐋 큰손", surfer:"🌊 파도타기",
+                  allin:"🎰 올인", jungle:"🦁 정글의 왕",
+                  battlefirst:"🏹 첫 예측", prophet:"🔮 예언자", odds:"🧮 확률의 지배자",
+                  sprout:"🌱 새싹", flame:"🔥 불꽃 의지", diamond:"💎 다이아 의지",
+                  scholar:"📖 용어 학자", yoidodao:"🏛️ 여의도 학자",
+                  pointrich:"💰 포인트 부자", collector:"👑 도감왕",
+                } as Record<string,string>)[userRow.equipped_title] ?? ""}
               </p>
             )}
           </div>
@@ -327,7 +337,7 @@ export default function MyPage() {
             onClick={() => router.push("/mypage/badges")}
           >
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: FS.cardLabel, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>뱃지 도감</p>
+              <p style={{ fontSize: FS.cardLabel, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>뱃지</p>
               <p style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>🎖️ 컬렉션</p>
             </div>
             <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
