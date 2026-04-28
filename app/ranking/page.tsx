@@ -164,6 +164,18 @@ export default function RankingPage() {
       <style>{`
         .rank-toggle-fs { font-size: 13px; }
         @media (min-width: 768px) { .rank-toggle-fs { font-size: 15px; } }
+        .rank-row-item { padding: 13px 16px; }
+        .rank-row-pos { font-size: 13px; }
+        .rank-row-nick { font-size: 14px; }
+        .rank-row-subtitle { font-size: 11px; }
+        .rank-row-rate { font-size: 14px; }
+        @media (min-width: 768px) {
+          .rank-row-item { padding: 18px 22px; }
+          .rank-row-pos { font-size: 15px; }
+          .rank-row-nick { font-size: 16px; }
+          .rank-row-subtitle { font-size: 13px; }
+          .rank-row-rate { font-size: 16px; }
+        }
       `}</style>
 
       {/* 헤더 */}
@@ -281,7 +293,7 @@ export default function RankingPage() {
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 14, fontWeight: 400, color: C.text2, marginBottom: 5 }}>내 투자 성적</p>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 30, fontWeight: 700, color: C.gold, letterSpacing: "-0.03em" }}>
+                    <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 30, fontWeight: 700, color: C.gold, letterSpacing: "-0.03em" }}>
                       #{myRank.rank_position}
                     </span>
                     <span style={{ fontFamily: "var(--font-mona12)", fontSize: 18, fontWeight: 700, color: myRank.return_rate >= 0 ? C.green : C.red }}>
@@ -302,7 +314,7 @@ export default function RankingPage() {
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
                   <p style={{ fontSize: 12, color: C.text2, marginBottom: 4 }}>거래</p>
-                  <span style={{ fontFamily: "var(--font-mona12)", fontSize: 22, fontWeight: 700, color: C.text }}>
+                  <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 22, fontWeight: 700, color: C.text }}>
                     {myRank.trade_count}
                     <span style={{ fontSize: 13, fontWeight: 400, color: C.text2 }}>회</span>
                   </span>
@@ -516,21 +528,20 @@ function ThroneSeat({ rank, position, isMe }: { rank: RankRow; position: 1 | 2 |
 
 // ── 4위~ 리스트 행 ────────────────────────────────────────────
 function RankRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
-  const tier    = getTier(row.return_rate);
-  const cfg     = TIER_CFG[tier];
+  const tier     = getTier(row.return_rate);
+  const cfg      = TIER_CFG[tier];
   const isProfit = row.return_rate >= 0;
-  const titleM  = row.equipped_title ? TITLE_META[row.equipped_title] : null;
+  const titleM   = row.equipped_title ? TITLE_META[row.equipped_title] : null;
 
   return (
-    <div style={{
+    <div className="rank-row-item" style={{
       display: "flex", alignItems: "center", gap: 12,
-      padding: "13px 16px",
       background: isMe ? "rgba(250,202,62,0.04)" : "transparent",
     }}>
       {/* 순위 */}
-      <div style={{
+      <div className="rank-row-pos" style={{
         width: 30, textAlign: "center", flexShrink: 0,
-        fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: C.text2,
+        fontFamily: "var(--font-mona12)", fontWeight: 700, color: C.text2,
       }}>
         {row.rank_position}
       </div>
@@ -556,14 +567,31 @@ function RankRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
         </div>
       )}
 
-      {/* 닉네임 + 수식어 */}
+      {/* 수식어 (위) + 닉네임 + 나 배지 (아래) */}
       <div style={{ flex: 1, minWidth: 0 }}>
+        {/* 수식어 */}
+        {titleM ? (
+          <div className="rank-row-subtitle" style={{
+            fontFamily: "var(--font-mona12)", marginBottom: 2,
+            color: titleM.color, display: "flex", alignItems: "center", gap: 3,
+          }}>
+            <span style={{ fontFamily: "var(--font-mona12-emoji)" }}>{titleM.emoji}</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{titleM.label}</span>
+          </div>
+        ) : (
+          <div className="rank-row-subtitle" style={{
+            fontFamily: "var(--font-mona12)", color: cfg.color, marginBottom: 2,
+          }}>
+            {cfg.label} · {row.trade_count}회 거래
+          </div>
+        )}
+        {/* 닉네임 + 나 배지 */}
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{
-            fontFamily: "var(--font-paperlogy)", fontSize: 14,
+          <span className="rank-row-nick" style={{
+            fontFamily: "var(--font-paperlogy)",
             fontWeight: isMe ? 600 : 400,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            color: C.text,
+            color: C.text, flex: 1, minWidth: 0,
           }}>
             {row.nickname}
           </span>
@@ -575,19 +603,6 @@ function RankRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
             }}>나</span>
           )}
         </div>
-        {titleM ? (
-          <div style={{
-            fontFamily: "var(--font-mona12)", fontSize: 11, marginTop: 2,
-            color: titleM.color, display: "flex", alignItems: "center", gap: 3,
-          }}>
-            <span style={{ fontFamily: "var(--font-mona12-emoji)" }}>{titleM.emoji}</span>
-            <span>{titleM.label}</span>
-          </div>
-        ) : (
-          <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: cfg.color, marginTop: 2 }}>
-            {cfg.label} · {row.trade_count}회 거래
-          </div>
-        )}
       </div>
 
       {/* 수익률 */}
@@ -597,8 +612,8 @@ function RankRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
         border: `0.5px solid ${isProfit ? "rgba(126,212,160,0.25)" : "rgba(240,112,112,0.25)"}`,
         borderRadius: 8, padding: "4px 10px",
       }}>
-        <span style={{
-          fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700,
+        <span className="rank-row-rate" style={{
+          fontFamily: "var(--font-mona12)", fontWeight: 700,
           color: isProfit ? C.green : C.red,
         }}>
           {formatRate(row.return_rate)}
