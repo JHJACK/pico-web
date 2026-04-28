@@ -321,7 +321,7 @@ export default function AttendancePage() {
                       display: "block",
                     }}
                   >
-                    {attended ? "🌟" : ""}
+                    {attended ? "⭐" : ""}
                   </span>
                 </div>
               );

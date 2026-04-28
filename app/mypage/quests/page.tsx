@@ -85,7 +85,7 @@ const SECTIONS: {
     label: "데일리 퀘스트",
     emoji: "📅",
     quests: [
-      { id: "daily_attend", emoji: "🌟", title: "일일 출석 체크",    desc: "로그인하면 자동 출석",            points: 50,  type: "daily"      },
+      { id: "daily_attend", emoji: "⭐", title: "일일 출석 체크",    desc: "로그인하면 자동 출석",            points: 50,  type: "daily"      },
       { id: "daily_battle", emoji: "⚡", title: "오늘의 선택",       desc: "주가 상승/하락 예측하기",          points: 100, type: "daily", href: "/" },
       { id: "daily_news",   emoji: "📰", title: "뉴스 읽기",         desc: "경제 뉴스 읽기 (1일 최대 3회)",  points: 10,  pointSuffix: "×3", type: "daily", comingSoon: true },
     ],
@@ -368,6 +368,19 @@ export default function QuestsPage() {
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 52px" }}>
 
+        {/* ── 페이지 타이틀 ── */}
+        <div style={{ marginBottom: 22 }}>
+          <p style={{ fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: C.gold, marginBottom: 6, letterSpacing: "0.06em" }}>
+            QUEST
+          </p>
+          <h1 style={{ fontFamily: "var(--font-paperlogy)", fontSize: 26, fontWeight: 700, color: C.text, margin: "0 0 5px", letterSpacing: "-0.02em" }}>
+            퀘스트
+          </h1>
+          <p style={{ fontSize: 14, fontWeight: 300, color: C.text2, margin: 0 }}>
+            미션을 완수하고 포인트를 모아보세요
+          </p>
+        </div>
+
         {/* ── 진행 현황 카드 ── */}
         <div style={{
           background: C.card, borderRadius: 20, padding: "18px 22px",
@@ -504,7 +517,7 @@ export default function QuestsPage() {
                       {/* 버튼 또는 완료 표시 */}
                       {quest.comingSoon ? (
                         <div style={{ width: 60, flexShrink: 0 }} />
-                      ) : isDone && quest.type === "once" ? (
+                      ) : isDone ? (
                         <div style={{
                           width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
                           background: C.gold, display: "flex", alignItems: "center", justifyContent: "center",
@@ -517,13 +530,13 @@ export default function QuestsPage() {
                           style={{
                             flexShrink: 0, padding: "7px 12px", borderRadius: 10,
                             fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
-                            border: `0.5px solid ${isDone ? "rgba(255,255,255,0.08)" : "rgba(250,202,62,0.3)"}`,
-                            background: isDone ? "rgba(255,255,255,0.04)" : "rgba(250,202,62,0.08)",
-                            color: isDone ? C.text2 : C.gold,
+                            border: "0.5px solid rgba(250,202,62,0.3)",
+                            background: "rgba(250,202,62,0.08)",
+                            color: C.gold,
                             cursor: "pointer", whiteSpace: "nowrap",
                           }}
                         >
-                          {isDone ? "확인" : "하러 가기"}
+                          하러 가기
                         </button>
                       ) : (
                         <div style={{ width: 32, flexShrink: 0 }} />

@@ -54,7 +54,7 @@ function AttendanceToast({ toast, onDismiss }: { toast: NonNullable<ToastState>;
           fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
         }}
       >
-        <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 24, lineHeight: 1 }}>🌟</span>
+        <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 24, lineHeight: 1 }}>⭐</span>
         <div>
           <p style={{ fontSize: 14, fontWeight: 600, color: "#e8e0d0", margin: 0, lineHeight: 1.3 }}>
             출석 완료!&ensp;
