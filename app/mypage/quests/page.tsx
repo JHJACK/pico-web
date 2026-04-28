@@ -43,7 +43,7 @@ const QUEST_SECTIONS: { label: string; emoji: string; quests: Quest[] }[] = [
     label: "데일리 퀘스트",
     emoji: "📅",
     quests: [
-      { id: "daily_attend", title: "일일 출석 체크", desc: "매일 출석 체크하기", points: 50, type: "daily", href: "/" },
+      { id: "daily_attend", title: "일일 출석 체크", desc: "매일 자동 출석 체크", points: 50, type: "daily", href: "/mypage/attendance" },
       { id: "daily_battle", title: "오늘의 선택", desc: "주가 상승/하락 예측하기", points: 100, type: "daily", href: "/" },
       { id: "daily_news", title: "뉴스 읽기", desc: "경제 뉴스 읽기 (1일 최대 3회)", points: 10, pointSuffix: "×3", type: "daily", href: "/", comingSoon: true },
     ],
@@ -125,6 +125,10 @@ export default function QuestsPage() {
     const calcStreak = (ds: string[]) => {
       if (!ds.length) return 0;
       const sorted = [...ds].sort((a, b) => b.localeCompare(a));
+      const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+      const yd = new Date(); yd.setDate(yd.getDate() - 1);
+      const yesterday = yd.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+      if (sorted[0] !== today && sorted[0] !== yesterday) return 0;
       let s = 1;
       for (let i = 0; i < sorted.length - 1; i++) {
         const diff = (new Date(sorted[i]).getTime() - new Date(sorted[i + 1]).getTime()) / 86_400_000;
