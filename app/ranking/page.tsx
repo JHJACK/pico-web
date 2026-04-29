@@ -146,13 +146,13 @@ export default function RankingPage() {
   // 주간 날짜 범위 (월요일 ~ 일요일)
   const weekRange = (() => {
     if (!weekStart) return "";
-    const KO_DAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+    const KO_DAY = ["일", "월", "화", "수", "목", "금", "토"];
     const mon = new Date(weekStart + "T00:00:00");
     const sun = new Date(mon);
     sun.setDate(mon.getDate() + 6);
     const fmt = (d: Date) =>
-      `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${KO_DAYS[d.getDay()]}`;
-    return `${fmt(mon)} ~ ${sun.getMonth() + 1}월 ${sun.getDate()}일 ${KO_DAYS[sun.getDay()]}`;
+      `${d.getMonth() + 1}월 ${d.getDate()}일(${KO_DAY[d.getDay()]})`;
+    return `${fmt(mon)} ~ ${fmt(sun)}`;
   })();
 
   const top3   = rankings.slice(0, 3);
@@ -198,32 +198,15 @@ export default function RankingPage() {
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 52px" }}>
 
-        {/* 페이지 타이틀 + 주간/TOTAL 토글 */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 22, gap: 12 }}>
+        {/* 페이지 타이틀 + 주간/TOTAL 토글 — 한 줄 */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
           <div>
-            <p style={{ fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: C.gold, marginBottom: 6, letterSpacing: "0.06em" }}>
+            <p style={{ fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: C.gold, marginBottom: 4, letterSpacing: "0.06em" }}>
               RANKING
             </p>
-            <h1 style={{ fontFamily: "var(--font-paperlogy)", fontSize: 26, fontWeight: 700, color: C.text, margin: "0 0 5px", letterSpacing: "-0.02em" }}>
+            <h1 style={{ fontFamily: "var(--font-paperlogy)", fontSize: 26, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.02em" }}>
               {period === "weekly" ? "주간 랭킹" : "전체 랭킹"}
             </h1>
-            <p style={{ fontSize: 14, fontWeight: 300, color: C.text2, margin: "0 0 6px" }}>
-              {period === "weekly"
-                ? "이번 주 수익률로 결정되는 진짜 실력 대결"
-                : "전체 기간 누적 수익률 순위"}
-            </p>
-            {period === "weekly" && weekRange && (
-              <span style={{
-                display: "inline-block",
-                fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
-                color: C.gold,
-                background: "rgba(250,202,62,0.12)",
-                border: "0.5px solid rgba(250,202,62,0.25)",
-                borderRadius: 7, padding: "3px 10px",
-              }}>
-                {weekRange}
-              </span>
-            )}
           </div>
 
           {/* 주간 / TOTAL 토글 */}
@@ -232,7 +215,6 @@ export default function RankingPage() {
             background: "rgba(255,255,255,0.05)",
             border: `0.5px solid ${C.border}`,
             borderRadius: 12, padding: 3, gap: 2,
-            alignSelf: "flex-start", marginTop: 4,
           }}>
             {(["weekly", "total"] as Period[]).map(p => (
               <button
@@ -253,6 +235,28 @@ export default function RankingPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* 서브텍스트 + 날짜 — 각각 한 줄 */}
+        <div style={{ marginBottom: 22 }}>
+          <p style={{ fontSize: 14, fontWeight: 300, color: C.text2, margin: "0 0 8px", whiteSpace: "nowrap" }}>
+            {period === "weekly"
+              ? "이번 주 수익률로 결정되는 실력 대결"
+              : "전체 기간 누적 수익률 순위"}
+          </p>
+          {period === "weekly" && weekRange && (
+            <span style={{
+              display: "inline-block",
+              fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700,
+              color: C.gold,
+              background: "rgba(250,202,62,0.12)",
+              border: "0.5px solid rgba(250,202,62,0.25)",
+              borderRadius: 7, padding: "3px 10px",
+              whiteSpace: "nowrap",
+            }}>
+              {weekRange}
+            </span>
+          )}
         </div>
 
         {/* TOTAL: 준비 중 */}
