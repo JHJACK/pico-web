@@ -10,6 +10,7 @@ import { supabase, type MockInvestmentRow } from "@/app/lib/supabase";
 import { isKrMarketOpen, isUSMarketOpen, getClosedText, getMarketClosedTooltip } from "@/app/lib/marketStatus";
 import { useStockCache } from "@/app/lib/stockCacheContext";
 import StockChart from "@/app/components/StockChart";
+import { BackIcon } from "@/app/components/BackIcon";
 
 type OrderTab = "buy" | "sell";
 
@@ -379,7 +380,7 @@ export default function StockChartPage() {
   }
 
   async function executeSellAmount(amount: number) {
-    if (sellingAmt || !marketOpen || amount < 100) return;
+    if (sellingAmt || !marketOpen || amount < 1) return;
     setSellingAmt(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -631,28 +632,28 @@ export default function StockChartPage() {
 
                 {/* 매도 버튼 */}
                 <button
-                  disabled={sellKeypadAmt < 100 || sellingAmt || !marketOpen}
+                  disabled={sellKeypadAmt < 1 || sellingAmt || !marketOpen}
                   onClick={() => executeSellAmount(sellKeypadAmt)}
                   title={!marketOpen ? closedTooltip : undefined}
                   style={{
                     width: "100%",
                     background: !marketOpen
                       ? "#1e1e1e"
-                      : sellKeypadAmt >= 100 && !sellingAmt ? "rgba(240,120,120,0.85)" : "#1e1e1e",
+                      : sellKeypadAmt >= 1 && !sellingAmt ? "rgba(240,120,120,0.85)" : "#1e1e1e",
                     color: !marketOpen
                       ? "#555"
-                      : sellKeypadAmt >= 100 && !sellingAmt ? "#fff" : C.text2,
+                      : sellKeypadAmt >= 1 && !sellingAmt ? "#fff" : C.text2,
                     fontSize: 15, fontWeight: 700,
                     padding: "16px 0", borderRadius: 14,
                     border: !marketOpen ? "0.5px solid rgba(255,255,255,0.06)" : "none",
-                    cursor: (!marketOpen || sellKeypadAmt < 100 || sellingAmt) ? "not-allowed" : "pointer",
+                    cursor: (!marketOpen || sellKeypadAmt < 1 || sellingAmt) ? "not-allowed" : "pointer",
                     transition: "background 0.15s, color 0.15s",
                   }}
                 >
                   {!marketOpen
                     ? "지금은 휴장 시간이에요 🌙"
                     : sellingAmt ? "처리 중..."
-                    : sellKeypadAmt < 100 ? "100P 이상 입력해 주세요"
+                    : sellKeypadAmt < 1 ? "판매할 금액을 입력해 주세요"
                     : `${sellKeypadAmt.toLocaleString("ko-KR")}P 판매하기`}
                 </button>
 
@@ -694,18 +695,36 @@ export default function StockChartPage() {
               const plColor = isProfit ? "#7ed4a0" : "#f07878";
               return (
                 <div key={h.id} style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  background: C.inner, borderRadius: 10, padding: "10px 12px",
+                  background: C.inner, borderRadius: 12, padding: "11px 13px",
                   border: "0.5px solid rgba(255,255,255,0.05)",
                 }}>
-                  <div>
-                    <div className="lbl" style={{ color: C.text2 }}>보유 중</div>
-                    <div style={{ ...NUM_MONO, fontSize: 14, color: C.text }}>{h.invested_points.toLocaleString()}P</div>
+                  {/* 상단: 로고 + 종목명 + 시장 뱃지 */}
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                    {logo
+                      ? <TickerLogo src={logo} ticker={ticker} size={24} />
+                      : <div style={{ width:24, height:24, borderRadius:"50%", background:"#2a2a2a",
+                          flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
+                          fontSize:11, fontWeight:600, color:C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
+                    }
+                    <span style={{ fontSize:13, fontWeight:500, color:C.text }}>{meta?.name ?? ticker}</span>
+                    <span style={{
+                      fontFamily:"var(--font-mona12-emoji)", fontSize:11,
+                      background: kr ? "rgba(126,212,160,0.1)" : "rgba(116,185,255,0.1)",
+                      border:`0.5px solid ${kr ? "rgba(126,212,160,0.2)" : "rgba(116,185,255,0.2)"}`,
+                      borderRadius:5, padding:"1px 6px", flexShrink:0,
+                    }}>{kr ? "🇰🇷 한국" : "🌎 해외"}</span>
                   </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ ...NUM_MONO, fontSize: 14, color: plColor }}>{h.currentValue.toLocaleString()}P</div>
-                    <div className="lbl" style={{ color: plColor }}>
-                      {isProfit ? "+" : ""}{h.profitLoss.toLocaleString()}P ({(h.profitRate ?? 0) >= 0 ? "+" : ""}{(h.profitRate ?? 0).toFixed(1)}%)
+                  {/* 하단: 투자금 / 평가금+손익 */}
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <div>
+                      <div className="lbl" style={{ color: C.text2 }}>보유 중</div>
+                      <div style={{ ...NUM_MONO, fontSize: 14, color: C.text }}>{h.invested_points.toLocaleString()}P</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ ...NUM_MONO, fontSize: 14, color: plColor }}>{h.currentValue.toLocaleString()}P</div>
+                      <div className="lbl" style={{ color: plColor }}>
+                        {isProfit ? "+" : ""}{h.profitLoss.toLocaleString()}P ({(h.profitRate ?? 0) >= 0 ? "+" : ""}{(h.profitRate ?? 0).toFixed(1)}%)
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -928,10 +947,9 @@ export default function StockChartPage() {
         padding: "0 16px",
         height: 56, display: "flex", alignItems: "center", gap: 12,
       }}>
-        <button onClick={() => router.back()} style={{
-          background: "none", border: "none", cursor: "pointer",
-          padding: "6px 8px 6px 4px", color: C.text2, fontSize: 20, lineHeight: 1, flexShrink: 0,
-        }}>&lt;</button>
+        <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <BackIcon />
+        </button>
       </div>
 
       {/* ── 바디 ──────────────────────────────────────────────────────────── */}
