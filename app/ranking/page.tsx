@@ -328,46 +328,6 @@ export default function RankingPage() {
               </div>
             )}
 
-            {/* 라이벌 */}
-            {user && myRank && myRank.rank_position > 1 && (() => {
-              const above = rankings.find(r => r.rank_position === myRank.rank_position - 1);
-              const below = rankings.find(r => r.rank_position === myRank.rank_position + 1);
-              if (!above && !below) return null;
-              return (
-                <div style={{ marginBottom: 24 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 2 }}>
-                    <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 17 }}>⚔️</span>
-                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: C.text2 }}>내 라이벌</span>
-                  </div>
-                  <div style={{ background: C.card, borderRadius: 18, border: `0.5px solid ${C.border}`, overflow: "hidden" }}>
-                    {above && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
-                        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 10, color: C.gold, fontWeight: 700, width: 16 }}>▲</span>
-                        <TierBadge tier={getTier(above.return_rate)} size={26} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{above.nickname}</div>
-                          <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: C.text2 }}>#{above.rank_position}</div>
-                        </div>
-                        <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 14, fontWeight: 700, color: above.return_rate >= 0 ? C.green : C.red }}>{formatRate(above.return_rate)}</span>
-                      </div>
-                    )}
-                    {above && below && <div style={{ height: "0.5px", background: "rgba(255,255,255,0.05)", marginInline: 16 }} />}
-                    {below && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
-                        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 10, color: C.red, fontWeight: 700, width: 16 }}>▼</span>
-                        <TierBadge tier={getTier(below.return_rate)} size={26} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{below.nickname}</div>
-                          <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: C.text2 }}>#{below.rank_position}</div>
-                        </div>
-                        <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 14, fontWeight: 700, color: below.return_rate >= 0 ? C.green : C.red }}>{formatRate(below.return_rate)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-
             {/* ── TOP 3 왕좌 (3명 이상일 때) ── */}
             {top3.length >= 3 && (
               <div style={{ marginBottom: 28 }}>
