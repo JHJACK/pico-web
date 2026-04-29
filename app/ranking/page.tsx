@@ -169,12 +169,18 @@ export default function RankingPage() {
         .rank-row-nick { font-size: 14px; }
         .rank-row-subtitle { font-size: 11px; }
         .rank-row-rate { font-size: 14px; }
+        .rank-row-avatar { width: 34px; height: 34px; }
+        .rank-tier-wrap span { font-size: 23px; }
+        .rank-me-badge { font-size: 9px; }
         @media (min-width: 768px) {
           .rank-row-item { padding: 18px 22px; }
-          .rank-row-pos { font-size: 15px; }
-          .rank-row-nick { font-size: 16px; }
+          .rank-row-pos { font-size: 18px; }
+          .rank-row-nick { font-size: 19px; }
           .rank-row-subtitle { font-size: 13px; }
           .rank-row-rate { font-size: 16px; }
+          .rank-row-avatar { width: 37px !important; height: 37px !important; }
+          .rank-tier-wrap span { font-size: 26px !important; }
+          .rank-me-badge { font-size: 10px; }
         }
       `}</style>
 
@@ -296,7 +302,7 @@ export default function RankingPage() {
                     <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 30, fontWeight: 700, color: C.gold, letterSpacing: "-0.03em" }}>
                       #{myRank.rank_position}
                     </span>
-                    <span style={{ fontFamily: "var(--font-mona12)", fontSize: 18, fontWeight: 700, color: myRank.return_rate >= 0 ? C.green : C.red }}>
+                    <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 18, fontWeight: 700, color: myRank.return_rate >= 0 ? C.green : C.red }}>
                       {formatRate(myRank.return_rate)}
                     </span>
                   </div>
@@ -342,7 +348,7 @@ export default function RankingPage() {
                           <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{above.nickname}</div>
                           <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: C.text2 }}>#{above.rank_position}</div>
                         </div>
-                        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: above.return_rate >= 0 ? C.green : C.red }}>{formatRate(above.return_rate)}</span>
+                        <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 14, fontWeight: 700, color: above.return_rate >= 0 ? C.green : C.red }}>{formatRate(above.return_rate)}</span>
                       </div>
                     )}
                     {above && below && <div style={{ height: "0.5px", background: "rgba(255,255,255,0.05)", marginInline: 16 }} />}
@@ -354,7 +360,7 @@ export default function RankingPage() {
                           <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{below.nickname}</div>
                           <div style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: C.text2 }}>#{below.rank_position}</div>
                         </div>
-                        <span style={{ fontFamily: "var(--font-mona12)", fontSize: 14, fontWeight: 700, color: below.return_rate >= 0 ? C.green : C.red }}>{formatRate(below.return_rate)}</span>
+                        <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 14, fontWeight: 700, color: below.return_rate >= 0 ? C.green : C.red }}>{formatRate(below.return_rate)}</span>
                       </div>
                     )}
                   </div>
@@ -505,7 +511,7 @@ function ThroneSeat({ rank, position, isMe }: { rank: RankRow; position: 1 | 2 |
 
       {/* 수익률 */}
       <div style={{
-        fontFamily: "var(--font-mona12)", fontSize: isFirst ? 16 : 14, fontWeight: 700,
+        fontFamily: "var(--font-paperlogy)", fontSize: isFirst ? 16 : 14, fontWeight: 700,
         color: rank.return_rate >= 0 ? C.green : C.red,
       }}>
         {formatRate(rank.return_rate)}
@@ -547,17 +553,19 @@ function RankRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
       </div>
 
       {/* 티어 배지 */}
-      <TierBadge tier={tier} size={28} />
+      <div className="rank-tier-wrap">
+        <TierBadge tier={tier} size={28} />
+      </div>
 
       {/* 아바타 */}
       {row.avatar_url ? (
-        <img src={row.avatar_url} alt={row.nickname} style={{
-          width: 34, height: 34, borderRadius: "50%", objectFit: "cover",
+        <img src={row.avatar_url} alt={row.nickname} className="rank-row-avatar" style={{
+          borderRadius: "50%", objectFit: "cover",
           flexShrink: 0, border: `1.5px solid ${cfg.color}45`,
         }} />
       ) : (
-        <div style={{
-          width: 34, height: 34, borderRadius: "50%", background: "#1a1a1a",
+        <div className="rank-row-avatar" style={{
+          borderRadius: "50%", background: "#1a1a1a",
           border: `1.5px solid ${cfg.color}45`,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 13, color: "#c8bfb0", flexShrink: 0,
@@ -585,19 +593,19 @@ function RankRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
             {cfg.label} · {row.trade_count}회 거래
           </div>
         )}
-        {/* 닉네임 + 나 배지 */}
+        {/* 닉네임 + 나 배지 — inline-flex so 나 is always adjacent */}
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           <span className="rank-row-nick" style={{
             fontFamily: "var(--font-paperlogy)",
             fontWeight: isMe ? 600 : 400,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            color: C.text, flex: 1, minWidth: 0,
+            color: C.text, flex: "0 1 auto", minWidth: 0,
           }}>
             {row.nickname}
           </span>
           {isMe && (
-            <span style={{
-              fontFamily: "var(--font-mona12)", fontSize: 9,
+            <span className="rank-me-badge" style={{
+              fontFamily: "var(--font-mona12)",
               background: C.gold, color: "#0d0d0d",
               borderRadius: 4, padding: "1px 5px", fontWeight: 700, flexShrink: 0,
             }}>나</span>
@@ -613,7 +621,7 @@ function RankRow({ row, isMe }: { row: RankRow; isMe: boolean }) {
         borderRadius: 8, padding: "4px 10px",
       }}>
         <span className="rank-row-rate" style={{
-          fontFamily: "var(--font-mona12)", fontWeight: 700,
+          fontFamily: "var(--font-paperlogy)", fontWeight: 700,
           color: isProfit ? C.green : C.red,
         }}>
           {formatRate(row.return_rate)}
