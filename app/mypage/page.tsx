@@ -135,88 +135,130 @@ export default function MyPage() {
         <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "#FACA3E", marginLeft: 16 }}>PICO</span>
       </nav>
 
-      {/* 수정 모달 */}
-      {editOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
-          <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 border"
-            style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)" }}>
-            <div className="flex items-center justify-between mb-6">
-              <p style={{ fontSize: 18, fontWeight: 500, color: "#e8e0d0" }}>프로필 수정</p>
-              {(() => {
-                const provider = user.app_metadata?.provider;
-                if (provider === "kakao") return (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full" style={{ background: "#FEE500" }}>
-                    <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#FEE500", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <svg width="12" height="12" viewBox="0 0 18 18"><path fill="#191600" d="M9 1.5C4.86 1.5 1.5 4.17 1.5 7.5c0 2.13 1.38 4.01 3.47 5.09l-.88 3.27a.19.19 0 0 0 .28.21L8.1 13.7a9.4 9.4 0 0 0 .9.05c4.14 0 7.5-2.67 7.5-6S13.14 1.5 9 1.5z"/></svg>
-                    </div>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "#191600", whiteSpace: "nowrap" }}>카카오 계정 로그인 중</span>
-                  </div>
-                );
-                if (provider === "google") return (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full" style={{ background: "#fff" }}>
-                    <svg width="14" height="14" viewBox="0 0 48 48" style={{ flexShrink: 0 }}>
-                      <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 7 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
-                      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 7 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
-                      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.3C29.4 35.5 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.7 39.7 16.3 44 24 44z"/>
-                      <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.2 5.3c-.4.4 6.8-5 6.8-14.8 0-1.3-.1-2.7-.4-3.9z"/>
-                    </svg>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "#3c3c3c", whiteSpace: "nowrap" }}>구글 계정 로그인 중</span>
-                  </div>
-                );
-                return null;
-              })()}
-            </div>
-
-            <div className="flex justify-center mb-6">
-              <button onClick={() => fileInputRef.current?.click()} className="pico-btn relative" style={{ background: "none", border: "none" }}>
-                {avatarSrc ? (
-                  <img src={avatarSrc} alt="프로필" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(250,202,62,0.4)" }} />
-                ) : (
-                  <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#242424", border: "2px dashed rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "#c8bfb0" }}>
-                    {userRow.nickname[0]?.toUpperCase() ?? "?"}
-                  </div>
-                )}
-                <div style={{ position: "absolute", bottom: 0, right: 0, width: 24, height: 24, borderRadius: "50%", background: "#FACA3E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#0d0d0d" }}>✎</div>
-              </button>
-              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
-            </div>
-            <p style={{ fontSize: 13, color: "#c8bfb0", textAlign: "center", marginTop: -12, marginBottom: 16 }}>이미지는 2MB 이하만 업로드 가능해요</p>
-
-            {/* 이메일 (소셜 로그인이 아닐 때만 표시) */}
-            {!["kakao", "google"].includes(user.app_metadata?.provider ?? "") && (
-              <>
-                <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 4 }}>로그인 이메일</p>
-                <p style={{ fontSize: 16, color: "#e8e0d0", marginBottom: 16 }}>{user.email}</p>
-              </>
-            )}
-            <div style={{ height: "0.5px", background: "rgba(255,255,255,0.07)", marginBottom: 16 }} />
-
-            <p style={{ fontSize: 14, color: "#e8e0d0", marginBottom: 8 }}>닉네임</p>
-            <input
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="w-full rounded-xl px-4 py-3 outline-none mb-4"
-              style={{ background: "#1c1c1c", border: "0.5px solid rgba(250,202,62,0.35)", color: "#e8e0d0", fontSize: 16, fontWeight: 300 }}
+      {/* 프로필 수정 모달 */}
+      {editOpen && (() => {
+        const MAX_NICK = 15;
+        const hasChanged = nickname.trim() !== userRow.nickname || !!pendingFile;
+        const canSave = nickname.trim().length > 0 && nickname.trim().length <= MAX_NICK && hasChanged;
+        const provider = user.app_metadata?.provider;
+        return (
+          <>
+            <div
+              className="fixed inset-0 z-50"
+              style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(20px)" }}
+              onClick={() => { setEditOpen(false); setPendingFile(null); setPreviewUrl(null); }}
             />
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+              <div
+                className="w-full fade-up"
+                style={{ maxWidth: 400, background: "#141414", border: "0.5px solid rgba(250,202,62,0.22)", borderRadius: 28, padding: "0 0 28px", position: "relative", boxShadow: "0 0 80px rgba(250,202,62,0.08), 0 24px 60px rgba(0,0,0,0.7)", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* 닫기 버튼 */}
+                <button
+                  onClick={() => { setEditOpen(false); setPendingFile(null); setPreviewUrl(null); }}
+                  className="pico-btn flex items-center justify-center"
+                  style={{ position: "absolute", top: 16, right: 16, width: 32, height: 32, borderRadius: 10, background: "#1e1e1e", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 14, zIndex: 1 }}
+                >✕</button>
 
-            {saveError && (
-              <p style={{ fontSize: 14, color: "#f07878", marginBottom: 10 }}>{saveError}</p>
-            )}
+                {/* 아바타 업로드 영역 (상단 강조) */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 32, marginBottom: 20 }}>
+                  <button onClick={() => fileInputRef.current?.click()} className="pico-btn" style={{ background: "none", border: "none", position: "relative", marginBottom: 10 }}>
+                    {avatarSrc ? (
+                      <img src={avatarSrc} alt="프로필" style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", border: "2.5px solid rgba(250,202,62,0.45)" }} />
+                    ) : (
+                      <div style={{ width: 88, height: 88, borderRadius: "50%", background: "#1c1c1c", border: "2px dashed rgba(250,202,62,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, color: "#c8bfb0" }}>
+                        {userRow.nickname[0]?.toUpperCase() ?? "?"}
+                      </div>
+                    )}
+                    <div style={{ position: "absolute", bottom: 2, right: 2, width: 28, height: 28, borderRadius: "50%", background: "#FACA3E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#0d0d0d", boxShadow: "0 2px 8px rgba(0,0,0,0.4)" }}>✎</div>
+                  </button>
+                  <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+                  <p style={{ fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 400, color: "rgba(200,191,176,0.55)", letterSpacing: "0.02em" }}>
+                    {pendingFile ? "✓ 새 사진 선택됨" : "탭해서 사진 변경 · 2MB 이하"}
+                  </p>
+                </div>
 
-            <div className="flex gap-3">
-              <button onClick={handleSave} disabled={saving} className="pico-btn flex-1 py-3 rounded-xl"
-                style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 15, fontWeight: 500 }}>
-                {saving ? (uploadLoading ? "업로드 중..." : "저장 중...") : "저장"}
-              </button>
-              <button onClick={() => { setEditOpen(false); setPendingFile(null); setPreviewUrl(null); }} className="pico-btn px-5 py-3 rounded-xl"
-                style={{ background: "#1c1c1c", color: "#e8e0d0", fontSize: 15, border: "0.5px solid rgba(255,255,255,0.1)" }}>
-                취소
-              </button>
+                <div style={{ padding: "0 28px" }}>
+                  {/* 소셜 계정 배지 */}
+                  {provider === "kakao" && (
+                    <div className="flex items-center gap-1.5" style={{ marginBottom: 16, padding: "8px 14px", background: "rgba(254,229,0,0.07)", border: "0.5px solid rgba(254,229,0,0.2)", borderRadius: 10, display: "inline-flex" }}>
+                      <svg width="12" height="12" viewBox="0 0 18 18"><path fill="#FEE500" d="M9 1.5C4.86 1.5 1.5 4.17 1.5 7.5c0 2.13 1.38 4.01 3.47 5.09l-.88 3.27a.19.19 0 0 0 .28.21L8.1 13.7a9.4 9.4 0 0 0 .9.05c4.14 0 7.5-2.67 7.5-6S13.14 1.5 9 1.5z"/></svg>
+                      <span style={{ fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700, color: "#c8bfb0" }}>카카오로 로그인 중</span>
+                    </div>
+                  )}
+                  {provider === "google" && (
+                    <div className="flex items-center gap-1.5" style={{ marginBottom: 16, padding: "8px 14px", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10, display: "inline-flex" }}>
+                      <svg width="12" height="12" viewBox="0 0 48 48">
+                        <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 7 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
+                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 7 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                        <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.3C29.4 35.5 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.7 39.7 16.3 44 24 44z"/>
+                        <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.2 5.3c-.4.4 6.8-5 6.8-14.8 0-1.3-.1-2.7-.4-3.9z"/>
+                      </svg>
+                      <span style={{ fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700, color: "#c8bfb0" }}>구글로 로그인 중</span>
+                    </div>
+                  )}
+
+                  {/* 이메일 (소셜 아닌 경우) */}
+                  {!["kakao", "google"].includes(provider ?? "") && (
+                    <div style={{ marginBottom: 16, padding: "12px 16px", background: "#1a1a1a", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.07)" }}>
+                      <p style={{ fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700, color: "rgba(200,191,176,0.5)", marginBottom: 4, letterSpacing: "0.04em" }}>LOGIN EMAIL</p>
+                      <p style={{ fontSize: 14, color: "#e8e0d0", fontWeight: 300, margin: 0 }}>{user.email}</p>
+                    </div>
+                  )}
+
+                  {/* 닉네임 */}
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <p style={{ fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700, color: "#c8bfb0", letterSpacing: "0.04em" }}>NICKNAME</p>
+                      <span style={{ fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 400, color: nickname.trim().length > MAX_NICK ? "#f07878" : "rgba(200,191,176,0.45)" }}>
+                        {nickname.trim().length}/{MAX_NICK}
+                      </span>
+                    </div>
+                    <input
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      maxLength={MAX_NICK}
+                      className="w-full outline-none"
+                      style={{ display: "block", width: "100%", background: "#1e1e1e", border: `1px solid ${nickname.trim().length > MAX_NICK ? "rgba(240,120,120,0.5)" : "rgba(250,202,62,0.3)"}`, borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 15, fontWeight: 300, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}
+                      onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.6)")}
+                      onBlur={(e)  => (e.target.style.borderColor = nickname.trim().length > MAX_NICK ? "rgba(240,120,120,0.5)" : "rgba(250,202,62,0.3)")}
+                    />
+                  </div>
+
+                  {/* 변경사항 감지 뱃지 */}
+                  {hasChanged && !saveError && (
+                    <p style={{ fontFamily: "var(--font-mona12)", fontSize: 11, fontWeight: 700, color: "#FACA3E", marginBottom: 16, letterSpacing: "0.02em" }}>
+                      ● 저장되지 않은 변경사항이 있어요
+                    </p>
+                  )}
+                  {!hasChanged && <div style={{ marginBottom: 16 }} />}
+
+                  {saveError && (
+                    <p style={{ fontSize: 12, color: "#f07878", marginBottom: 16 }}>{saveError}</p>
+                  )}
+
+                  <button onClick={handleSave} disabled={saving || !canSave} className="pico-btn w-full"
+                    style={{ width: "100%", padding: "14px 0", borderRadius: 14, fontSize: 15, fontWeight: 500, border: "none", marginBottom: 8, transition: "all 0.15s",
+                      background: canSave ? "#FACA3E" : "rgba(255,255,255,0.05)",
+                      color:      canSave ? "#0d0d0d"  : "rgba(200,191,176,0.35)",
+                      cursor:     canSave ? "pointer"  : "not-allowed",
+                    }}>
+                    {saving ? (uploadLoading ? "업로드 중..." : "저장 중...") : "저장하기"}
+                  </button>
+                  <button
+                    onClick={() => { setEditOpen(false); setPendingFile(null); setPreviewUrl(null); }}
+                    className="pico-btn w-full"
+                    style={{ display: "block", width: "100%", padding: "10px 0", background: "transparent", color: "#c8bfb0", fontSize: 13, fontWeight: 300, border: "none" }}
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        );
+      })()}
 
       <div
         className="page-container mx-auto py-8"
