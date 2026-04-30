@@ -537,11 +537,14 @@ function GameDashboardPanel({
         padding: "18px 18px 16px",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: "#c8bfb0" }}>
-            🏆 이번 주 랭킹
-          </p>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontFamily:"var(--font-mona12-emoji)", fontSize:15 }}>🏆</span>
+            <p style={{ fontFamily:"var(--font-mona12)", fontSize: 13, fontWeight: 700, color: "#e8e0d0", letterSpacing: "0.04em", margin: 0 }}>
+              이번 주 랭킹
+            </p>
+          </div>
           <Link href="/ranking"
-            style={{ fontSize: 15, color: "#c8bfb0", textDecoration: "none" }}>
+            style={{ fontFamily:"var(--font-mona12)", fontSize: 12, color: "#c8bfb0", textDecoration: "none" }}>
             전체 보기
           </Link>
         </div>
@@ -553,28 +556,29 @@ function GameDashboardPanel({
         ) : top3.length === 0 ? (
           <p style={{ fontSize: 15, color: "#c8bfb0", fontWeight: 300 }}>아직 랭킹 데이터가 없어요</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
             {top3.map((r, i) => {
               const st     = RANK_STYLE[i];
               const isPos  = r.return_rate >= 0;
               return (
                 <div key={r.rank_position} style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  padding: "3px 0",
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 0",
+                  borderBottom: i < top3.length - 1 ? "0.5px solid rgba(255,255,255,0.05)" : "none",
                 }}>
-                  <span style={{ fontSize: 17, flexShrink: 0 }}>{st.medal}</span>
+                  <span style={{ fontFamily:"var(--font-mona12-emoji)", fontSize: 18, flexShrink: 0 }}>{st.medal}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {r.equipped_title && TITLE_META[r.equipped_title] && (
-                      <div style={{ fontSize: 12, color: TITLE_META[r.equipped_title].color, fontWeight: 300 }}>
+                      <div style={{ fontSize: 11, color: TITLE_META[r.equipped_title].color, fontWeight: 300, marginBottom: 1 }}>
                         {TITLE_META[r.equipped_title].emoji} {TITLE_META[r.equipped_title].label}
                       </div>
                     )}
-                    <div style={{ fontSize: 15, fontWeight: 500, color: "#e8e0d0",
+                    <div style={{ fontFamily:"var(--font-paperlogy)", fontSize: 15, fontWeight: 500, color: "#e8e0d0",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {r.nickname}
                     </div>
                   </div>
-                  <span style={{ ...NUM_MONO, fontSize: 15, color: isPos ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
+                  <span style={{ ...NUM_MONO, fontSize: 14, fontWeight: 600, color: isPos ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
                     {isPos ? "+" : ""}{r.return_rate.toFixed(1)}%
                   </span>
                 </div>
@@ -584,15 +588,16 @@ function GameDashboardPanel({
             {/* 내 순위 고정 표시 */}
             {myRank && user && (
               <div style={{
-                display: "flex", alignItems: "center", gap: 8,
-                padding: "3px 0", marginTop: 2,
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 0 4px", marginTop: 4,
+                borderTop: "0.5px solid rgba(255,255,255,0.06)",
               }}>
-                <span style={{ ...NUM_MONO, fontSize: 15, color: "#FACA3E",
-                  fontWeight: 600, flexShrink: 0, minWidth: 28 }}>
+                <span style={{ ...NUM_MONO, fontSize: 14, color: "#FACA3E",
+                  fontWeight: 700, flexShrink: 0, minWidth: 28 }}>
                   #{myRank.rank_position}
                 </span>
-                <div style={{ flex: 1, fontSize: 15, color: "#c8bfb0" }}>나의 순위</div>
-                <span style={{ ...NUM_MONO, fontSize: 15,
+                <div style={{ flex: 1, fontFamily:"var(--font-paperlogy)", fontSize: 14, color: "#c8bfb0" }}>나의 순위</div>
+                <span style={{ ...NUM_MONO, fontSize: 14, fontWeight: 600,
                   color: myRank.return_rate >= 0 ? "#7ed4a0" : "#f07878", flexShrink: 0 }}>
                   {myRank.return_rate >= 0 ? "+" : ""}{myRank.return_rate.toFixed(1)}%
                 </span>
@@ -1419,16 +1424,16 @@ export default function Home() {
                     </span>
                   </div>
                 ))}
-                {/* 달러 환율 콜아웃 */}
+                {/* 달러 환율 */}
                 <div style={{
                   display:"flex", alignItems:"center", gap:7,
-                  background:"rgba(250,202,62,0.06)",
-                  border:"0.5px solid rgba(250,202,62,0.18)",
+                  background: "rgba(255,255,255,0.04)",
+                  border:"0.5px solid rgba(255,255,255,0.08)",
                   borderRadius:10, padding:"7px 13px",
                 }}>
                   <span style={{ fontFamily:"var(--font-mona12-emoji)", fontSize:15 }}>💱</span>
-                  <span style={{ fontFamily:"var(--font-mona12)", fontSize:12, fontWeight:700, color:"#c8bfb0" }}>USD/KRW</span>
-                  <span style={{ fontFamily:"var(--font-mona12)", fontSize:13, fontWeight:700, color:"#FACA3E" }}>
+                  <span style={{ fontFamily:"var(--font-paperlogy)", fontSize:13, fontWeight:600, color:"#c8bfb0" }}>USD/KRW</span>
+                  <span style={{ fontFamily:"var(--font-paperlogy)", fontSize:15, fontWeight:700, color:"#e8e0d0" }}>
                     {usdKrw > 0 ? `${usdKrw.toLocaleString("ko-KR")}` : "—"}
                   </span>
                 </div>
@@ -1782,48 +1787,55 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* ③ 실시간 랭킹 카드 */}
-                    <div style={{ background:"#1c1c1c", borderRadius:20, padding:"18px 20px",
-                      marginBottom:16, border:"0.5px solid rgba(255,255,255,0.08)" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                    {/* ③ 이번 주 랭킹 카드 */}
+                    <div style={{ background:"#141414", borderRadius:20, overflow:"hidden",
+                      marginBottom:16, border:"0.5px solid rgba(250,202,62,0.12)" }}>
+                      {/* 헤더 */}
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                        padding:"16px 20px 14px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                           <span style={{ fontFamily:"var(--font-mona12-emoji)", fontSize:15 }}>🏆</span>
-                          <span style={{ fontFamily:"var(--font-mona12)", fontSize:13, fontWeight:700, color:"#e8e0d0" }}>이번 주 랭킹</span>
+                          <span style={{ fontFamily:"var(--font-mona12)", fontSize:13, fontWeight:700,
+                            color:"#e8e0d0", letterSpacing:"0.04em" }}>이번 주 랭킹</span>
                         </div>
                         <Link href="/ranking" style={{ fontFamily:"var(--font-mona12)", fontSize:12, color:"#c8bfb0", textDecoration:"none" }}>
                           전체 보기
                         </Link>
                       </div>
+
                       {dashLoading ? (
-                        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                          {[1,2,3].map((i) => <Skeleton key={i} w="100%" h={44}/>)}
+                        <div style={{ display:"flex", flexDirection:"column", gap:8, padding:"0 20px 16px" }}>
+                          {[1,2,3].map((i) => <Skeleton key={i} w="100%" h={48}/>)}
                         </div>
                       ) : dashTop3.length === 0 ? (
-                        <p style={{ fontSize:14, color:"#5c5448", fontWeight:300,
-                          fontFamily:"var(--font-paperlogy)" }}>아직 랭킹 데이터가 없어요</p>
+                        <p style={{ fontSize:14, color:"#c8bfb0", fontWeight:300,
+                          fontFamily:"var(--font-paperlogy)", padding:"0 20px 20px", margin:0 }}>
+                          아직 랭킹 데이터가 없어요
+                        </p>
                       ) : (
-                        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        <div style={{ display:"flex", flexDirection:"column" }}>
                           {[
-                            { medal:"🥇", color:"#FACA3E" },
-                            { medal:"🥈", color:"#c8c8c8" },
-                            { medal:"🥉", color:"#d4956a" },
+                            { medal:"🥇" },
+                            { medal:"🥈" },
+                            { medal:"🥉" },
                           ].map((st, i) => {
                             const r = dashTop3[i];
                             if (!r) return null;
                             const pos = r.return_rate >= 0;
                             return (
                               <div key={r.rank_position}
-                                style={{ display:"flex", alignItems:"center", gap:10, padding:"4px 0" }}>
-                                <span style={{ fontSize:20, flexShrink:0 }}>{st.medal}</span>
+                                style={{ display:"flex", alignItems:"center", gap:12,
+                                  padding:"12px 20px",
+                                  borderTop: i > 0 ? "0.5px solid rgba(255,255,255,0.04)" : "0.5px solid rgba(255,255,255,0.06)" }}>
+                                <span style={{ fontFamily:"var(--font-mona12-emoji)", fontSize:20, flexShrink:0 }}>{st.medal}</span>
                                 <div style={{ flex:1, minWidth:0 }}>
                                   {r.equipped_title && TITLE_META[r.equipped_title] && (
                                     <div style={{ fontSize:11, color:TITLE_META[r.equipped_title].color,
-                                      fontWeight:300, marginBottom:1 }}>
+                                      fontWeight:300, marginBottom:2 }}>
                                       {TITLE_META[r.equipped_title].emoji} {TITLE_META[r.equipped_title].label}
                                     </div>
                                   )}
-                                  <div style={{ fontSize:15, fontWeight:500, color:"#e8e0d0",
-                                    fontFamily:"var(--font-paperlogy)",
+                                  <div style={{ fontFamily:"var(--font-paperlogy)", fontSize:15, fontWeight:500, color:"#e8e0d0",
                                     overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                                     {r.nickname}
                                   </div>
@@ -1836,16 +1848,16 @@ export default function Home() {
                             );
                           })}
                           {dashMyRank && user && (
-                            <div style={{ display:"flex", alignItems:"center", gap:10,
-                              padding:"8px 0 4px", marginTop:4,
-                              borderTop:"0.5px solid rgba(255,255,255,0.06)" }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:12,
+                              padding:"12px 20px",
+                              borderTop:"0.5px solid rgba(250,202,62,0.15)",
+                              background:"rgba(250,202,62,0.03)" }}>
                               <span style={{ ...NUM_MONO, fontSize:15, color:"#FACA3E",
                                 fontWeight:700, flexShrink:0, minWidth:28 }}>
                                 #{dashMyRank.rank_position}
                               </span>
-                              <div style={{ flex:1, fontSize:14, color:"#c8bfb0",
-                                fontFamily:"var(--font-paperlogy)" }}>나의 순위</div>
-                              <span style={{ ...NUM_MONO, fontSize:15, flexShrink:0,
+                              <div style={{ flex:1, fontFamily:"var(--font-paperlogy)", fontSize:14, color:"#c8bfb0" }}>나의 순위</div>
+                              <span style={{ ...NUM_MONO, fontSize:15, fontWeight:600, flexShrink:0,
                                 color: dashMyRank.return_rate >= 0 ? "#7ed4a0" : "#f07878" }}>
                                 {dashMyRank.return_rate >= 0 ? "+" : ""}{dashMyRank.return_rate.toFixed(1)}%
                               </span>

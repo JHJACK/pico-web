@@ -1311,25 +1311,25 @@ export default function StockChartPage() {
             </div>
 
             <button
-              disabled={sellKeypadAmt < 100 || sellingAmt || totalHoldingPoints === 0 || !marketOpen}
+              disabled={sellKeypadAmt < 1 || sellingAmt || totalHoldingPoints === 0 || !marketOpen}
               onClick={() => executeSellAmount(sellKeypadAmt)}
               style={{
                 width: "100%", padding: "15px 0", borderRadius: 14, border: "none", flexShrink: 0,
                 background: !marketOpen
                   ? "#1e1e1e"
-                  : sellKeypadAmt >= 100 && !sellingAmt ? "rgba(240,120,120,0.85)" : "#1e1e1e",
+                  : sellKeypadAmt >= 1 && !sellingAmt ? "rgba(240,120,120,0.85)" : "#1e1e1e",
                 color: !marketOpen
                   ? "#555"
-                  : sellKeypadAmt >= 100 && !sellingAmt ? "#fff" : C.text2,
+                  : sellKeypadAmt >= 1 && !sellingAmt ? "#fff" : C.text2,
                 fontSize: 16, fontWeight: 700,
-                cursor: (!marketOpen || sellKeypadAmt < 100 || sellingAmt) ? "not-allowed" : "pointer",
+                cursor: (!marketOpen || sellKeypadAmt < 1 || sellingAmt) ? "not-allowed" : "pointer",
                 transition: "background 0.15s, color 0.15s",
               }}
             >
               {!marketOpen
                 ? "지금은 휴장 시간이에요 🌙"
                 : sellingAmt ? "처리 중..."
-                : sellKeypadAmt < 100 ? "100P 이상 입력해 주세요"
+                : sellKeypadAmt < 1 ? "판매 금액을 입력해 주세요"
                 : `${sellKeypadAmt.toLocaleString("ko-KR")}P 판매하기`}
             </button>
           </div>
