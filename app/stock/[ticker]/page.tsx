@@ -707,12 +707,7 @@ export default function StockChartPage() {
                           fontSize:11, fontWeight:600, color:C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
                     }
                     <span style={{ fontSize:13, fontWeight:500, color:C.text }}>{meta?.name ?? ticker}</span>
-                    <span style={{
-                      fontFamily:"var(--font-mona12-emoji)", fontSize:11,
-                      background: kr ? "rgba(126,212,160,0.1)" : "rgba(116,185,255,0.1)",
-                      border:`0.5px solid ${kr ? "rgba(126,212,160,0.2)" : "rgba(116,185,255,0.2)"}`,
-                      borderRadius:5, padding:"1px 6px", flexShrink:0,
-                    }}>{kr ? "🇰🇷 한국" : "🌎 해외"}</span>
+                    <span style={{ fontFamily:"var(--font-mona12-emoji)", fontSize:14, flexShrink:0 }}>{kr ? "🇰🇷" : "🌎"}</span>
                   </div>
                   {/* 하단: 투자금 / 평가금+손익 */}
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>

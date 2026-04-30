@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { ticker, amount } = body as { ticker: string; amount: number };
 
-    if (!ticker || !amount || amount < 100) {
+    if (!ticker || !amount || amount < 1) {
       return NextResponse.json({ error: "잘못된 요청이에요" }, { status: 400 });
     }
 

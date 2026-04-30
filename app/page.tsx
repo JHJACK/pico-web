@@ -223,24 +223,24 @@ function StockRow({ ticker, stocks, stocksLoading, onClick }: {
         }
         {/* 종목명 + 서브라벨 — 최대 너비 제한으로 웹에서도 밀착 */}
         <div style={{ flex:1, minWidth:0, maxWidth:220, textAlign:"left" }}>
-          <div style={{ fontSize:16, fontWeight:500, color:"#e8e0d0", marginBottom:2,
+          <div className="stock-row-name" style={{ fontSize:16, fontWeight:500, color:"#e8e0d0", marginBottom:2,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{meta?.name ?? ticker}</div>
-          <div style={{ fontSize:14, color:"#c8bfb0", fontWeight:300 }}>{subLabel}</div>
+          <div className="stock-row-sub" style={{ fontSize:14, color:"#c8bfb0", fontWeight:300 }}>{subLabel}</div>
         </div>
         {/* 현재가 — 고정 너비 */}
-        <div style={{ textAlign:"right", flexShrink:0, width:110 }}>
+        <div className="stock-row-price-col" style={{ textAlign:"right", flexShrink:0, width:110 }}>
           {stocksLoading
             ? <Skeleton w={88} h={15}/>
-            : <div style={{ ...NUM_MONO, fontSize:16, color:"#e8e0d0" }}>
+            : <div className="stock-row-price-val" style={{ ...NUM_MONO, fontSize:16, color:"#e8e0d0" }}>
                 {kr ? (data?.formattedPrice ?? "—") : (data?.formattedKRW ?? "—")}
               </div>
           }
         </div>
         {/* 등락률 — 고정 너비 */}
-        <div style={{ textAlign:"right", flexShrink:0, width:80 }}>
+        <div className="stock-row-change-col" style={{ textAlign:"right", flexShrink:0, width:80 }}>
           {stocksLoading
             ? <Skeleton w={56} h={15}/>
-            : <div style={{ ...NUM_MONO, fontSize:15, color: up?"#7ed4a0":"#f07878" }}>
+            : <div className="stock-row-change-val" style={{ ...NUM_MONO, fontSize:15, color: up?"#7ed4a0":"#f07878" }}>
                 {up?"▲":"▼"} {data?.formattedChange ?? "—"}
               </div>
           }
@@ -482,13 +482,7 @@ function GameDashboardPanel({
                               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               {meta?.name ?? h.ticker}
                             </span>
-                            <span style={{
-                              fontFamily:"var(--font-mona12)", fontSize:9, fontWeight:700,
-                              color: kr ? "#7ed4a0" : "#74b9ff",
-                              background: kr ? "rgba(126,212,160,0.12)" : "rgba(116,185,255,0.12)",
-                              border: `0.5px solid ${kr ? "rgba(126,212,160,0.25)" : "rgba(116,185,255,0.25)"}`,
-                              borderRadius:4, padding:"1px 5px", flexShrink:0,
-                            }}>
+                            <span style={{ fontFamily:"var(--font-mona12-emoji)", fontSize:14, flexShrink:0 }}>
                               {kr ? "🇰🇷" : "🌎"}
                             </span>
                           </div>
@@ -1542,10 +1536,12 @@ export default function Home() {
                         <div style={{ position:"relative", flexShrink:0 }}>
                           <button onClick={() => setSortOpen(v => !v)} className="pico-btn"
                             style={{ fontFamily:"var(--font-mona12)", fontSize:12, fontWeight:700,
-                              padding:"5px 12px", borderRadius:20, display:"flex", alignItems:"center", gap:5,
-                              background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.1)",
-                              color:"#c8bfb0", cursor:"pointer", whiteSpace:"nowrap" }}>
-                            <span>⇅</span>
+                              padding:"5px 12px", borderRadius:8, display:"flex", alignItems:"center", gap:5,
+                              background: playSort !== "기본" ? "rgba(250,202,62,0.12)" : "rgba(255,255,255,0.06)",
+                              border: playSort !== "기본" ? "1px solid rgba(250,202,62,0.45)" : "1px solid rgba(200,191,176,0.22)",
+                              color: playSort !== "기본" ? "#FACA3E" : "#e8e0d0",
+                              cursor:"pointer", whiteSpace:"nowrap" }}>
+                            <span style={{ fontSize:13 }}>⇅</span>
                             <span>{playSort === "기본" ? "정렬" : playSort}</span>
                           </button>
                           {sortOpen && (
@@ -1756,12 +1752,7 @@ export default function Home() {
                                             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                                             {meta?.name ?? h.ticker}
                                           </span>
-                                          <span style={{
-                                            fontFamily:"var(--font-mona12-emoji)", fontSize:11, flexShrink:0,
-                                            background: kr ? "rgba(126,212,160,0.1)" : "rgba(116,185,255,0.1)",
-                                            border:`0.5px solid ${kr ? "rgba(126,212,160,0.2)" : "rgba(116,185,255,0.2)"}`,
-                                            borderRadius:5, padding:"1px 5px",
-                                          }}>{kr ? "🇰🇷" : "🌎"}</span>
+                                          <span style={{ fontFamily:"var(--font-mona12-emoji)", fontSize:14, flexShrink:0 }}>{kr ? "🇰🇷" : "🌎"}</span>
                                         </div>
                                         <span style={{ fontFamily:"var(--font-inter)", fontSize:12, color:"#c8bfb0", whiteSpace:"nowrap" }}>
                                           {h.invested_points.toLocaleString()}P 투자
@@ -1907,10 +1898,12 @@ export default function Home() {
                       <div style={{ position:"relative", flexShrink:0 }}>
                         <button onClick={() => setSortOpen(v => !v)} className="pico-btn"
                           style={{ fontFamily:"var(--font-mona12)", fontSize:12, fontWeight:700,
-                            padding:"5px 10px", borderRadius:20, display:"flex", alignItems:"center", gap:4,
-                            background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.1)",
-                            color:"#c8bfb0", cursor:"pointer", whiteSpace:"nowrap" }}>
-                          <span>⇅</span>
+                            padding:"5px 10px", borderRadius:8, display:"flex", alignItems:"center", gap:4,
+                            background: playSort !== "기본" ? "rgba(250,202,62,0.12)" : "rgba(255,255,255,0.06)",
+                            border: playSort !== "기본" ? "1px solid rgba(250,202,62,0.45)" : "1px solid rgba(200,191,176,0.22)",
+                            color: playSort !== "기본" ? "#FACA3E" : "#e8e0d0",
+                            cursor:"pointer", whiteSpace:"nowrap" }}>
+                          <span style={{ fontSize:13 }}>⇅</span>
                           <span>{playSort === "기본" ? "정렬" : playSort}</span>
                         </button>
                         {sortOpen && (
@@ -1944,16 +1937,16 @@ export default function Home() {
                       const hh  = String(kst.getUTCHours()).padStart(2,"0");
                       const mm  = String(kst.getUTCMinutes()).padStart(2,"0");
                       return (
-                        <div style={{ display:"flex", alignItems:"center", gap:12,
+                        <div style={{ display:"flex", alignItems:"center", gap:8,
                           padding:"8px 0 5px", borderBottom:"0.5px solid rgba(255,255,255,0.08)" }}>
                           <div style={{ width:40, flexShrink:0 }}/>
-                          <div style={{ flex:1, minWidth:0 }}>
-                            <span style={{ fontFamily:"var(--font-mona12)", fontSize:11, color:"#c8bfb0" }}>
+                          <div style={{ flex:1, minWidth:0, overflow:"hidden" }}>
+                            <span style={{ fontFamily:"var(--font-mona12)", fontSize:11, color:"#c8bfb0", whiteSpace:"nowrap" }}>
                               {hh}:{mm} KST · 15분 지연
                             </span>
                           </div>
-                          <div style={{ width:100, textAlign:"right", fontFamily:"var(--font-mona12)", fontSize:11, color:"#c8bfb0" }}>현재가</div>
-                          <div style={{ width:72, textAlign:"right", fontFamily:"var(--font-mona12)", fontSize:11, color:"#c8bfb0" }}>등락률</div>
+                          <div style={{ width:88, textAlign:"right", fontFamily:"var(--font-mona12)", fontSize:11, color:"#c8bfb0", flexShrink:0 }}>현재가</div>
+                          <div style={{ width:68, textAlign:"right", fontFamily:"var(--font-mona12)", fontSize:11, color:"#c8bfb0", flexShrink:0 }}>등락률</div>
                         </div>
                       );
                     })()}
