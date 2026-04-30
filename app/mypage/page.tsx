@@ -341,6 +341,21 @@ export default function MyPage() {
           </div>
         </button>
 
+        {/* ── 전리품 창고 카드 ── */}
+        <button
+          className="pico-btn border w-full mb-[10px]"
+          style={{ background: "linear-gradient(135deg, rgba(250,202,62,0.06) 0%, #141414 100%)", borderColor: "rgba(250,202,62,0.25)", borderRadius: 16, padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, textAlign: "left" }}
+          onClick={() => router.push("/mypage/store")}
+        >
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: FS.cardLabel, fontWeight: 500, color: "#c8bfb0", marginBottom: 4 }}>포인트로 교환</p>
+            <p style={{ fontSize: FS.cardBody, fontWeight: 500, color: "#e8e0d0" }}>피코 전리품 창고 🎁</p>
+          </div>
+          <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>
+          </div>
+        </button>
+
         {/* ── 랭킹 + 뱃지 도감 ── */}
         <div className="grid grid-cols-2 gap-[10px] mb-[10px]">
           <button
