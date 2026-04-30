@@ -14,6 +14,7 @@ import dynamic from "next/dynamic";
 import RankingTab from "@/app/components/RankingTab";
 import LearnTab from "@/app/components/LearnTab";
 import GlobeCanvas from "@/app/components/GlobeCanvas";
+import PicoFooter from "@/app/components/PicoFooter";
 
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
@@ -2397,6 +2398,11 @@ export default function Home() {
           <LearnTab />
         </div>
       )}
+
+      {/* ════ 푸터 ════ */}
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 clamp(16px,4vw,40px)" }}>
+        <PicoFooter />
+      </div>
     </div>
   );
 }

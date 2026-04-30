@@ -7,6 +7,7 @@ import { useAuth } from "@/app/lib/authContext";
 import { supabase, uploadAvatar } from "@/app/lib/supabase";
 import { INVESTOR_TYPES, type TypeKey } from "@/app/lib/quizTypes";
 import { BackIcon } from "@/app/components/BackIcon";
+import PicoFooter from "@/app/components/PicoFooter";
 
 
 export default function MyPage() {
@@ -446,6 +447,8 @@ export default function MyPage() {
             </div>
           </div>
         )}
+
+        <PicoFooter />
       </div>
     </main>
   );
