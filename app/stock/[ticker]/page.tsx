@@ -587,11 +587,16 @@ export default function StockChartPage() {
     </>
   );
 
-  // ── 변동금액 표시 ──
+  // ── 변동금액 표시 (해외: KRW 우선 + USD 병기) ──
   const changeAmt = data
     ? kr
       ? `${data.change >= 0 ? "+" : ""}${data.change.toLocaleString("ko-KR")}원`
-      : `${data.change >= 0 ? "+" : "-"}$${Math.abs(data.change).toFixed(2)}`
+      : (() => {
+          const krwChange = Math.round(data.change * exchangeRate);
+          const sign    = data.change >= 0 ? "+" : "";
+          const usdSign = data.change >= 0 ? "+" : "-";
+          return `${sign}${krwChange.toLocaleString("ko-KR")}원 (${usdSign}$${Math.abs(data.change).toFixed(2)})`;
+        })()
     : "—";
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -611,8 +616,8 @@ export default function StockChartPage() {
         .card-val { font-size: 13px; }
         .order-tab { font-size: 14px; transition: background 0.15s, color 0.15s; }
         .quick-btn { transition: background 0.12s; }
-        .hero-usd   { font-size: 14px; }
         .hero-delay { font-size: 12px; }
+        .community-stat { font-size: 12px; }
 
         /* 모바일 탭 */
         .page-tabs { display: flex; padding: 0 14px; border-bottom: 0.5px solid rgba(255,255,255,0.07); background: ${C.bg}; position: sticky; top: 56px; z-index: 30; }
@@ -632,8 +637,8 @@ export default function StockChartPage() {
           .sec-hd     { font-size: 14px; }
           .card-lbl   { font-size: 14px; }
           .card-val   { font-size: 14px; }
-          .hero-usd   { font-size: 18px; }
           .hero-delay { font-size: 14px; }
+          .community-stat { font-size: 14px; }
           .period-btn { font-size: 14px; }
           .hdr-stock-info { display: none; }
           .hdr-price      { display: none; }
@@ -761,11 +766,6 @@ export default function StockChartPage() {
                   </span>
                 </div>
                 <span style={{ ...NUM_MONO, fontSize: 13, color: C.text2 }}>{changeAmt}</span>
-                {!kr && (
-                  <span className="hero-usd" style={{ ...NUM_MONO, color: C.text2 }}>
-                    {data?.formattedPrice ?? ""}
-                  </span>
-                )}
                 {!marketOpen && (
                   <span className="lbl" style={{ color: C.text2 }}>
                     🌙 {closedInfo.main.replace("🌙", "").trim()}
@@ -778,10 +778,15 @@ export default function StockChartPage() {
 
               {/* 피코 커뮤니티 통계 */}
               {communityStats && communityStats.holders > 0 && (
-                <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 13 }}>👥</span>
-                  <span style={{ fontSize: 12, color: C.text2 }}>
-                    피코 투자자 <span style={{ color: C.text, fontWeight: 500 }}>{communityStats.holders}명</span> 보유 중
+                <div style={{
+                  marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "0.5px solid rgba(255,255,255,0.1)",
+                  borderRadius: 10, padding: "7px 12px",
+                }}>
+                  <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 14 }}>👥</span>
+                  <span className="community-stat" style={{ color: C.text2 }}>
+                    피코인 <span style={{ color: C.text, fontWeight: 600 }}>{communityStats.holders}명</span>이 이 종목을 보유 중이에요
                   </span>
                 </div>
               )}
