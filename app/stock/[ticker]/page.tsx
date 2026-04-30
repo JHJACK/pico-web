@@ -616,8 +616,10 @@ export default function StockChartPage() {
         .card-val { font-size: 13px; }
         .order-tab { font-size: 14px; transition: background 0.15s, color 0.15s; }
         .quick-btn { transition: background 0.12s; }
-        .hero-delay { font-size: 12px; }
-        .community-stat { font-size: 12px; }
+        .hero-delay      { font-size: 12px; }
+        .hero-label      { font-size: 12px; }
+        .hero-change-amt { font-size: 13px; }
+        .community-stat  { font-size: 12px; }
 
         /* 모바일 탭 */
         .page-tabs { display: flex; padding: 0 14px; border-bottom: 0.5px solid rgba(255,255,255,0.07); background: ${C.bg}; position: sticky; top: 56px; z-index: 30; }
@@ -637,9 +639,12 @@ export default function StockChartPage() {
           .sec-hd     { font-size: 14px; }
           .card-lbl   { font-size: 14px; }
           .card-val   { font-size: 14px; }
-          .hero-delay { font-size: 14px; }
-          .community-stat { font-size: 14px; }
+          .hero-delay      { font-size: 14px; }
+          .hero-label      { font-size: 14px; }
+          .hero-change-amt { font-size: 15px; }
+          .community-stat  { font-size: 14px; }
           .period-btn { font-size: 14px; }
+          .page-tab   { font-size: 14px; }
           .hdr-stock-info { display: none; }
           .hdr-price      { display: none; }
           /* 데스크탑: 탭바 숨김, 모든 패널 표시 */
@@ -757,24 +762,25 @@ export default function StockChartPage() {
                 {kr ? data?.formattedPrice : data?.formattedKRW ?? "—"}
               </div>
 
-              {/* 변동 정보 */}
+              {/* 변동 정보 — 한 줄: 전일 대비 | % 뱃지 | 변동액 | 갱신 카운트다운 */}
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontSize: 10, color: C.text2, letterSpacing: "0.02em" }}>전일 대비</span>
-                  <span style={{ ...NUM_MONO, fontSize: 14, color: accentColor, background: accentBg, padding: "4px 12px", borderRadius: 20, fontWeight: 500 }}>
-                    {up ? "▲" : "▼"} {data?.formattedChange ?? "—"}
-                  </span>
-                </div>
-                <span style={{ ...NUM_MONO, fontSize: 13, color: C.text2 }}>{changeAmt}</span>
-                {!marketOpen && (
-                  <span className="lbl" style={{ color: C.text2 }}>
-                    🌙 {closedInfo.main.replace("🌙", "").trim()}
-                  </span>
-                )}
+                <span className="hero-label" style={{ color: C.text2 }}>전일 대비</span>
+                <span style={{ ...NUM_MONO, fontSize: 14, color: accentColor, background: accentBg, padding: "4px 12px", borderRadius: 20, fontWeight: 500 }}>
+                  {up ? "▲" : "▼"} {data?.formattedChange ?? "—"}
+                </span>
+                <span className="hero-change-amt" style={{ ...NUM_MONO, color: C.text2 }}>{changeAmt}</span>
                 <span className="hero-delay" style={{ color: C.text2, marginLeft: "auto", fontVariantNumeric: "tabular-nums", fontFamily: "var(--font-inter)" }}>
                   {`${String(Math.floor(cacheTimeLeft / 60)).padStart(2, "0")}:${String(cacheTimeLeft % 60).padStart(2, "0")} 후 갱신`}
                 </span>
               </div>
+              {/* 휴장 안내 — 별도 줄 */}
+              {!marketOpen && (
+                <div style={{ marginTop: 6 }}>
+                  <span className="hero-label" style={{ color: C.text2 }}>
+                    🌙 {closedInfo.main.replace("🌙", "").trim()} · {closedInfo.sub}
+                  </span>
+                </div>
+              )}
 
               {/* 피코 커뮤니티 통계 */}
               {communityStats && communityStats.holders > 0 && (
