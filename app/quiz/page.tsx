@@ -87,6 +87,11 @@ export default function QuizPage() {
   }, []);
 
   useEffect(() => {
+    document.body.style.overflow = authMode ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [authMode]);
+
+  useEffect(() => {
     if (!user) return;
     const raw = localStorage.getItem("pico_quiz_pending");
     if (!raw) return;
@@ -259,9 +264,9 @@ export default function QuizPage() {
 
       {/* 인라인 로그인 모달 */}
       {authMode && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 overflow-y-auto"
           style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
-          <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 border"
+          <div className="w-full max-w-sm rounded-2xl p-6 border"
             style={{ background: "#141414", borderColor: "rgba(255,255,255,0.1)" }}>
             <div className="flex items-center justify-between mb-5">
               <p style={{ fontSize: 17, fontWeight: 600, color: "#e8e0d0" }}>

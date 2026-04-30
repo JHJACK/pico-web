@@ -68,6 +68,11 @@ export default function CategoryPage() {
     setActiveCard(null);
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = activeCard ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [activeCard]);
+
   const handleFlip = useCallback(() => {
     if (!flipped) setFlipped(true);
   }, [flipped]);
@@ -246,6 +251,7 @@ export default function CategoryPage() {
             background: "rgba(0,0,0,0.78)", backdropFilter: "blur(8px)",
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "20px 16px",
+            overflowY: "auto",
             animation: "overlayIn 0.2s ease",
           }}
         >

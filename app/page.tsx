@@ -655,6 +655,7 @@ export default function Home() {
   const battlePopupChecked  = useRef(false);
   const profileSetupChecked = useRef(false);
   const setupFileRef        = useRef<HTMLInputElement>(null);
+  const tabInitRef          = useRef(false);
 
   // 출석/보너스 토스트
   const [toast, setToast] = useState<string | null>(null);
@@ -662,16 +663,29 @@ export default function Home() {
   const [mainTab, setMainTab] = useState<MainTab>("event");
   const [prevTab, setPrevTab] = useState<MainTab>("event");
 
-  // URL ?tab=play 로 복원 (stock 상세에서 뒤로가기 시)
   // URL ?openLogin=1 로 로그인 모달 자동 오픈 (비로그인 상태로 보호된 페이지 접근 시)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("tab") === "play") setMainTab("play");
     if (params.get("openLogin") === "1") {
       openLogin();
       router.replace("/");
     }
   }, []);
+
+  // 탭 초기화: 비로그인은 항상 홈, 로그인 후 30분 이내 재방문만 URL 탭 복원
+  useEffect(() => {
+    if (loading || tabInitRef.current) return;
+    tabInitRef.current = true;
+    if (!user) return; // 비로그인: 기본값 "event" 유지
+    const INACTIVITY_MS = 30 * 60 * 1000;
+    const lastVisit = localStorage.getItem("pico_last_tab_visit");
+    const isRecent = !!lastVisit && (Date.now() - parseInt(lastVisit, 10)) < INACTIVITY_MS;
+    if (isRecent) {
+      const urlTab = new URLSearchParams(window.location.search).get("tab");
+      if (urlTab === "play") setMainTab("play");
+    }
+    localStorage.setItem("pico_last_tab_visit", Date.now().toString());
+  }, [user, loading]);
 
   const [justVoted,      setJustVoted]      = useState<"UP"|"DOWN"|null>(null);
   const [showParticlesA, setShowParticlesA] = useState(false);
@@ -804,6 +818,13 @@ export default function Home() {
     });
   }, [user]);
 
+  // 팝업 열릴 때 body 스크롤 잠금
+  useEffect(() => {
+    const isOpen = modal !== null || popupType !== null;
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [modal, popupType]);
+
   useEffect(() => {
     if (!mounted) return;
     setNewsLoading(true);
@@ -867,6 +888,7 @@ export default function Home() {
     if (tab !== "event" && !user) openLogin();
     if (tab === "play") router.replace("/?tab=play");
     else if (tab === "event") router.replace("/");
+    localStorage.setItem("pico_last_tab_visit", Date.now().toString());
   }
   const tabAnim = mainTab === "play"
     ? (prevTab === "event" ? "tab-enter" : "tab-enter-left")
@@ -2033,7 +2055,7 @@ export default function Home() {
         return (
           <>
             <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.78)", backdropFilter: "blur(8px)" }} onClick={() => { if (popupBattleDone) setModal(null); }} />
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 overflow-y-auto">
               <div className="w-full max-w-sm rounded-2xl p-5 fade-up" style={{ background: "#141414", border: "0.5px solid rgba(250,202,62,0.25)" }} onClick={(e) => e.stopPropagation()}>
 
                 {!popupBattleDone ? (
@@ -2149,7 +2171,7 @@ export default function Home() {
                         letterSpacing: "-0.01em",
                       }}
                     >
-                      {popupBattleVote ? "출석체크하고 선택하기 →" : "출석체크하고 선택하기"}
+                      출석체크하고 선택하기
                     </button>
                     <p style={{ textAlign: "center", fontSize: 12, color: "#3a3a3a", marginBottom: 10 }}>
                       투표 마감 · 내일 오전 결과 발표
@@ -2514,8 +2536,8 @@ export default function Home() {
         return (
           <>
             <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }} onClick={() => setPopupType(null)} />
-            <div className="fixed inset-x-0 bottom-0 sm:inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
-              <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl border overflow-y-auto fade-up"
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 overflow-y-auto">
+              <div className="w-full max-w-md rounded-2xl border overflow-y-auto fade-up"
                 style={{ background: "#141414", borderColor: `${color}40`, maxHeight: "88vh" }}>
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
