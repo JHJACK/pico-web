@@ -69,8 +69,17 @@ export default function CategoryPage() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = activeCard ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (activeCard) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
   }, [activeCard]);
 
   const handleFlip = useCallback(() => {
@@ -251,7 +260,8 @@ export default function CategoryPage() {
             background: "rgba(0,0,0,0.78)", backdropFilter: "blur(8px)",
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "20px 16px",
-            overflowY: "auto",
+            touchAction: "none",
+            overscrollBehavior: "none",
             animation: "overlayIn 0.2s ease",
           }}
         >

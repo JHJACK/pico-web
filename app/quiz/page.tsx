@@ -88,7 +88,11 @@ export default function QuizPage() {
 
   useEffect(() => {
     document.body.style.overflow = authMode ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    document.documentElement.style.overflow = authMode ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
   }, [authMode]);
 
   useEffect(() => {

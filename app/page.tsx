@@ -818,11 +818,15 @@ export default function Home() {
     });
   }, [user]);
 
-  // 팝업 열릴 때 body 스크롤 잠금
+  // 팝업 열릴 때 body/html 스크롤 잠금
   useEffect(() => {
     const isOpen = modal !== null || popupType !== null;
     document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    document.documentElement.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
   }, [modal, popupType]);
 
   useEffect(() => {
@@ -887,7 +891,7 @@ export default function Home() {
     setMainTab(tab);
     if (tab !== "event" && !user) openLogin();
     if (tab === "play") router.replace("/?tab=play");
-    else if (tab === "event") router.replace("/");
+    else if (tab === "event") { router.replace("/"); window.scrollTo(0, 0); }
     localStorage.setItem("pico_last_tab_visit", Date.now().toString());
   }
   const tabAnim = mainTab === "play"
