@@ -2201,6 +2201,14 @@ export default function Home() {
         <>
           <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(16px)" }} onClick={() => setModal(null)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ overflowY: "auto", paddingTop: 20, paddingBottom: 20 }}>
+            <style>{`
+              .pico-auth-input:-webkit-autofill,
+              .pico-auth-input:-webkit-autofill:hover,
+              .pico-auth-input:-webkit-autofill:focus {
+                -webkit-box-shadow: 0 0 0 30px #1e1e1e inset !important;
+                -webkit-text-fill-color: #e8e0d0 !important;
+              }
+            `}</style>
             <div className="w-full fade-up" style={{ maxWidth: 400, background: "#141414", border: "0.5px solid rgba(250,202,62,0.2)", borderRadius: 28, padding: "0 0 28px", position: "relative", boxShadow: "0 0 80px rgba(250,202,62,0.07), 0 24px 60px rgba(0,0,0,0.7)", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }} onClick={(e) => e.stopPropagation()}>
 
               {/* 닫기 버튼 */}
@@ -2209,8 +2217,7 @@ export default function Home() {
 
               {/* 브랜딩 헤더 */}
               <div style={{ padding: "32px 28px 0", textAlign: "center", marginBottom: 24 }}>
-                <p style={{ fontFamily: "var(--font-serif)", fontSize: 34, fontWeight: 400, color: "#FACA3E", letterSpacing: "-0.02em", lineHeight: 1, marginBottom: 8 }}>PICO</p>
-                <p style={{ fontFamily: "var(--font-mona12)", fontSize: 12, fontWeight: 400, color: "#c8bfb0", letterSpacing: "0.06em" }}>투자는 게임이다</p>
+                <p style={{ fontFamily: "var(--font-serif)", fontSize: 34, fontWeight: 400, color: "#FACA3E", letterSpacing: "-0.02em", lineHeight: 1 }}>PICO</p>
               </div>
 
               {/* 탭 스위처 */}
@@ -2245,7 +2252,7 @@ export default function Home() {
                     ) : (
                       <>
                         <input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="가입한 이메일 주소"
-                          className="w-full outline-none"
+                          className="w-full outline-none pico-auth-input"
                           style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
                           onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                           onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
@@ -2266,14 +2273,14 @@ export default function Home() {
                   /* ── 로그인 ── */
                   <>
                     <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="이메일"
-                      className="w-full outline-none"
+                      className="w-full outline-none pico-auth-input"
                       style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                       onKeyDown={(e) => e.key === "Enter" && handleAuth()}
                     />
                     <input type="password" value={authPw} onChange={(e) => setAuthPw(e.target.value)} placeholder="비밀번호"
-                      className="w-full outline-none"
+                      className="w-full outline-none pico-auth-input"
                       style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 12 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
@@ -2325,19 +2332,19 @@ export default function Home() {
                   /* ── 회원가입 ── */
                   <>
                     <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="이메일"
-                      className="w-full outline-none"
+                      className="w-full outline-none pico-auth-input"
                       style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                     />
                     <input type="password" value={authPw} onChange={(e) => setAuthPw(e.target.value)} placeholder="비밀번호 (6자 이상)"
-                      className="w-full outline-none"
+                      className="w-full outline-none pico-auth-input"
                       style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                     />
                     <input type="password" value={authPwConfirm} onChange={(e) => setAuthPwConfirm(e.target.value)} placeholder="비밀번호 확인"
-                      className="w-full outline-none"
+                      className="w-full outline-none pico-auth-input"
                       style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 16 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
@@ -2350,7 +2357,7 @@ export default function Home() {
                     </button>
                     <div className="flex items-center gap-3" style={{ marginBottom: 14 }}>
                       <div style={{ flex: 1, height: "0.5px", background: "rgba(255,255,255,0.07)" }} />
-                      <span style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: "#c8bfb0", fontWeight: 400, letterSpacing: "0.04em", opacity: 0.5 }}>또는 소셜로 시작하기</span>
+                      <span style={{ fontFamily: "var(--font-mona12)", fontSize: 11, color: "#c8bfb0", fontWeight: 400, letterSpacing: "0.04em", opacity: 0.5 }}>또는</span>
                       <div style={{ flex: 1, height: "0.5px", background: "rgba(255,255,255,0.07)" }} />
                     </div>
                     {/* 구글 */}
@@ -2391,7 +2398,6 @@ export default function Home() {
               <div style={{ textAlign: "center", marginBottom: 28 }}>
                 <span style={{ fontSize: 48, display: "block", marginBottom: 14 }}>🏆</span>
                 <p style={{ fontFamily: "var(--font-mona12)", fontSize: 12, fontWeight: 700, color: "#FACA3E", marginBottom: 8, letterSpacing: "0.1em" }}>WELCOME TO PICO</p>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: "#e8e0d0", margin: "0 0 6px", letterSpacing: "-0.02em" }}>투자 전사 이름을 정해요</h2>
                 <p style={{ fontSize: 13, fontWeight: 300, color: "#c8bfb0", margin: 0, lineHeight: 1.65 }}>나만의 닉네임으로 PICO 여정을 시작해보세요</p>
               </div>
 
