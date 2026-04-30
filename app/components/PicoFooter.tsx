@@ -26,7 +26,7 @@ export default function PicoFooter() {
         <Link
           href="/terms"
           style={{
-            fontFamily:  "var(--font-mona12)",
+            fontFamily:  "var(--font-paperlogy)",
             fontSize:    12,
             fontWeight:  700,
             color:       "#c8bfb0",
@@ -38,7 +38,7 @@ export default function PicoFooter() {
         <Link
           href="/privacy"
           style={{
-            fontFamily:  "var(--font-mona12)",
+            fontFamily:  "var(--font-paperlogy)",
             fontSize:    12,
             fontWeight:  700,
             color:       "#FACA3E",
@@ -56,7 +56,7 @@ export default function PicoFooter() {
       >
         <p
           style={{
-            fontFamily:  "var(--font-mona12)",
+            fontFamily:  "var(--font-paperlogy)",
             fontSize:    11,
             fontWeight:  400,
             color:       "rgba(200,191,176,0.45)",
@@ -73,7 +73,7 @@ export default function PicoFooter() {
       {/* 카피라이트 */}
       <p
         style={{
-          fontFamily:  "var(--font-mona12)",
+          fontFamily:  "var(--font-paperlogy)",
           fontSize:    11,
           fontWeight:  400,
           color:       "rgba(200,191,176,0.3)",
