@@ -785,14 +785,18 @@ export default function StockChartPage() {
               {/* 피코 커뮤니티 통계 */}
               {communityStats && communityStats.holders > 0 && (
                 <div style={{
-                  marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "0.5px solid rgba(255,255,255,0.1)",
-                  borderRadius: 10, padding: "7px 12px",
+                  marginTop: 10, display: "inline-flex", alignItems: "center", gap: 7,
+                  background: "rgba(250,202,62,0.07)",
+                  border: "0.5px solid rgba(250,202,62,0.35)",
+                  borderRadius: 10, padding: "7px 13px",
                 }}>
-                  <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 14 }}>👥</span>
-                  <span className="community-stat" style={{ color: C.text2 }}>
-                    피코인 <span style={{ color: C.text, fontWeight: 600 }}>{communityStats.holders}명</span>이 이 종목을 보유 중이에요
+                  <span style={{ fontFamily: "var(--font-mona12-emoji)", fontSize: 17, lineHeight: 1 }}>🫂</span>
+                  <span className="community-stat" style={{
+                    fontFamily: "var(--font-mona12), var(--font-noto), sans-serif",
+                    fontWeight: 700,
+                    color: C.text2,
+                  }}>
+                    피코인 <span style={{ color: "#FACA3E" }}>{communityStats.holders}명</span>이 이 종목을 보유 중이에요
                   </span>
                 </div>
               )}
