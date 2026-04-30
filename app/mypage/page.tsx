@@ -289,10 +289,13 @@ export default function MyPage() {
             onClick={() => router.push("/mypage/points")}
           >
             <div style={{ flex: 1, textAlign: "left" }}>
-              <p style={{ fontSize: FS.cardLabel, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>누적 포인트</p>
-              <p className="num" style={{ fontFamily: "var(--font-inter)", fontSize: FS.pointVal, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.02em" }}>
-                {userRow.total_points.toLocaleString()}P
-              </p>
+              <p style={{ fontSize: FS.cardLabel, fontWeight: 500, color: "#c8bfb0", marginBottom: 6 }}>보유 포인트</p>
+              <div className="num" style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
+                <span style={{ fontFamily: "var(--font-inter)", fontSize: FS.pointVal, fontWeight: 700, color: "#FACA3E", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                  {userRow.total_points.toLocaleString()}
+                </span>
+                <span style={{ fontFamily: "var(--font-mona12)", fontSize: FS.cardLabel, fontWeight: 700, color: "#FACA3E" }}>P</span>
+              </div>
             </div>
             <div className="arrow-btn" style={{ width: 36, height: 36, background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.07)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ fontSize: 16, color: "#FACA3E" }}>›</span>

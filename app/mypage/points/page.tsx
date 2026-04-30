@@ -52,10 +52,13 @@ export default function PointsPage() {
           <p style={{ fontSize: 13, fontWeight: 400, color: "#c8bfb0", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             포인트 내역
           </p>
-          <p style={{ fontFamily: "var(--font-inter)", fontSize: 36, fontWeight: 500, color: "#FACA3E", letterSpacing: "-0.03em", lineHeight: 1 }}>
-            {userRow.total_points.toLocaleString()}P
-          </p>
-          <p style={{ fontSize: 13, fontWeight: 300, color: "#c8bfb0", marginTop: 6 }}>누적 포인트</p>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
+            <span style={{ fontFamily: "var(--font-inter)", fontSize: 36, fontWeight: 700, color: "#FACA3E", letterSpacing: "-0.03em", lineHeight: 1 }}>
+              {userRow.total_points.toLocaleString()}
+            </span>
+            <span style={{ fontFamily: "var(--font-mona12)", fontSize: 17, fontWeight: 700, color: "#FACA3E" }}>P</span>
+          </div>
+          <p style={{ fontSize: 13, fontWeight: 300, color: "#c8bfb0", marginTop: 6 }}>보유 포인트</p>
         </div>
 
         {/* ── 내역 리스트 ── */}
