@@ -140,6 +140,12 @@ export default function StockChartPage() {
   const [orderTab, setOrderTab]     = useState<OrderTab>(() =>
     searchParams?.get("tab") === "sell" ? "sell" : "buy"
   );
+  const from = searchParams?.get("from");
+  const backPath = from === "investments" ? "/mypage/investments"
+                 : from === "mypage"      ? "/mypage"
+                 : from === "ranking"     ? "/ranking"
+                 : "/";
+
   const [orderAmt, setOrderAmt]     = useState(0);
   const [exchangeRate, setExchangeRate] = useState(1470);
   const [marketOpen, setMarketOpen] = useState(() => kr ? isKrMarketOpen() : isUSMarketOpen());
@@ -727,7 +733,7 @@ export default function StockChartPage() {
 
       {/* ── 헤더 ─────────────────────────────────────────────────────────── */}
       <div style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(13,13,13,0.94)", backdropFilter: "blur(14px)", borderBottom: "0.5px solid rgba(255,255,255,0.07)", padding: "0 16px", height: 56, display: "flex", alignItems: "center", gap: 12 }}>
-        <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+        <button onClick={() => router.push(backPath)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
           <BackIcon />
         </button>
       </div>

@@ -2,7 +2,9 @@
 
 import { useState, useEffect, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
+import { BackIcon } from "@/app/components/BackIcon";
 import { supabase } from "@/app/lib/supabase";
 import { STOCK_META, KR_STOCK_META, isKrTicker } from "@/app/lib/stockNames";
 import { fetchStocks, type StocksMap } from "@/app/lib/stocks";
@@ -117,12 +119,7 @@ export default function InvestmentsPage() {
       <nav className="sticky top-0 z-30 border-b flex items-center gap-4 px-5"
         style={{ height: 56, background: "rgba(13,13,13,0.96)",
           backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
-        <button
-          onClick={() => router.back()}
-          style={{ fontSize: 22, color: "#c8bfb0", background: "none", border: "none",
-            cursor: "pointer", lineHeight: 1, padding: "4px 4px 4px 0" }}>
-          ‹
-        </button>
+        <Link href="/mypage" style={{ lineHeight: 0 }}><BackIcon /></Link>
         <span style={{ fontFamily: "var(--font-paperlogy)", fontSize: 17, fontWeight: 600, color: "#e8e0d0" }}>
           내 투자 현황
         </span>

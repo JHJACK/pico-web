@@ -225,9 +225,7 @@ export default function DnaPage() {
 
       <nav className="sticky top-0 z-30 border-b flex items-center px-5"
         style={{ height: 56, background: "rgba(13,13,13,0.96)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.06)" }}>
-        <button onClick={() => router.back()} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-          <BackIcon />
-        </button>
+        <Link href="/mypage" style={{ lineHeight: 0 }}><BackIcon /></Link>
         <span style={{ fontFamily: "var(--font-mona12)", fontSize: 15, fontWeight: 700, color: "#FACA3E", marginLeft: 16, letterSpacing: "0.06em" }}>PICO</span>
         <button onClick={share} className="pico-btn ml-auto px-4 py-2 rounded-xl"
           style={{ background: "rgba(250,202,62,0.1)", border: "0.5px solid rgba(250,202,62,0.25)", color: "#FACA3E", fontSize: 14, fontWeight: 600 }}>

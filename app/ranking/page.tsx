@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import AuthGuard from "@/app/components/AuthGuard";
 import { BackIcon } from "@/app/components/BackIcon";
@@ -114,7 +114,6 @@ type Period = "weekly" | "total";
 
 export default function RankingPage() {
   const { user } = useAuth();
-  const router   = useRouter();
 
   const [rankings,    setRankings]    = useState<RankRow[]>([]);
   const [myRank,      setMyRank]      = useState<MyRank>(null);
@@ -191,9 +190,7 @@ export default function RankingPage() {
         borderBottom: `0.5px solid ${C.border}`,
         display: "flex", alignItems: "center", padding: "0 20px",
       }}>
-        <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer" }}>
-          <BackIcon />
-        </button>
+        <Link href="/" style={{ lineHeight: 0 }}><BackIcon /></Link>
       </nav>
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px clamp(16px,4vw,24px) 52px" }}>
