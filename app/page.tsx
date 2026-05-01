@@ -461,7 +461,7 @@ function GameDashboardPanel({
                     const logo = !kr ? `https://financialmodelingprep.com/image-stock/${h.ticker}.png` : null;
                     return (
                       <button key={h.ticker} className={`pico-btn ${up ? "flash-green" : "flash-red"}`}
-                        onClick={() => router.push(`/stock/${h.ticker}?tab=sell`)}
+                        onClick={() => router.push(`/stock/${h.ticker}?tab=sell&from=play`)}
                         style={{ display: "flex", alignItems: "center", gap: 8,
                           padding: "7px 8px", width: "100%", background: "none", border: "none",
                           cursor: "pointer", borderRadius: 8, textAlign: "left",
@@ -1189,7 +1189,7 @@ export default function Home() {
                 playSearchResults.map((r) => (
                   <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks}
                     stocksLoading={stocksLoading}
-                    onClick={() => { setMobileSearchOpen(false); setPlaySearch(""); setPlaySearchResults([]); router.push(`/stock/${r.symbol}`); }}/>
+                    onClick={() => { setMobileSearchOpen(false); setPlaySearch(""); setPlaySearchResults([]); router.push(`/stock/${r.symbol}?from=play`); }}/>
                 ))
               ) : (
                 <p style={{ fontSize:15, color:"#5c5448", fontWeight:300, padding:"28px 0",
@@ -1558,7 +1558,7 @@ export default function Home() {
                         <div style={{ display:"flex", gap:10 }}>
                           {WEB_FOREIGN_TICKERS.map((t, i) => (
                             <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                              idx={i} large onClick={() => router.push(`/stock/${t}`)}/>
+                              idx={i} large onClick={() => router.push(`/stock/${t}?from=play`)}/>
                           ))}
                         </div>
                       </div>
@@ -1570,7 +1570,7 @@ export default function Home() {
                         <div style={{ display:"flex", gap:10 }}>
                           {WEB_DOMESTIC_TICKERS.map((t, i) => (
                             <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                              idx={i+4} large onClick={() => router.push(`/stock/${t}`)}/>
+                              idx={i+4} large onClick={() => router.push(`/stock/${t}?from=play`)}/>
                           ))}
                         </div>
                       </div>
@@ -1592,7 +1592,7 @@ export default function Home() {
                           ? playSearchResults.map((r, i) => (
                               <StockRow key={r.symbol} ticker={r.symbol} stocks={stocks}
                                 stocksLoading={stocksLoading} idx={i}
-                                onClick={() => router.push(`/stock/${r.symbol}`)}/>))
+                                onClick={() => router.push(`/stock/${r.symbol}?from=play`)}/>))
                           : <p style={{ fontSize:13, color:"#5c5448", fontWeight:300, padding:"20px 0" }}>검색 결과가 없어요</p>
                       }
                     </div>
@@ -1677,7 +1677,7 @@ export default function Home() {
                         {filteredTickers.map((ticker, i) => (
                           <StockRow key={ticker} ticker={ticker} stocks={stocks}
                             stocksLoading={stocksLoading} idx={i}
-                            onClick={() => router.push(`/stock/${ticker}`)}/>
+                            onClick={() => router.push(`/stock/${ticker}?from=play`)}/>
                         ))}
                       </div>
                     </>
@@ -1812,7 +1812,7 @@ export default function Home() {
                                 const logo = !kr ? `https://financialmodelingprep.com/image-stock/${h.ticker}.png` : null;
                                 return (
                                   <button key={h.ticker}
-                                    onClick={() => router.push(`/stock/${h.ticker}`)}
+                                    onClick={() => router.push(`/stock/${h.ticker}?from=play`)}
                                     className={`pico-btn w-full ${up ? "flash-green" : "flash-red"}`}
                                     style={{ background:"none", border:"none", cursor:"pointer",
                                       padding:"11px 0",
@@ -1955,7 +1955,7 @@ export default function Home() {
                       <div className="scroll-x" style={{ display:"flex", gap:8, paddingBottom:4 }}>
                         {FEATURED_TICKERS.map((t, i) => (
                           <FeaturedCard key={t} ticker={t} stocks={stocks} stocksLoading={stocksLoading}
-                            idx={i} onClick={() => router.push(`/stock/${t}`)}/>
+                            idx={i} onClick={() => router.push(`/stock/${t}?from=play`)}/>
                         ))}
                       </div>
                     </div>
@@ -2038,7 +2038,7 @@ export default function Home() {
                       {filteredTickers.map((ticker, i) => (
                         <StockRow key={ticker} ticker={ticker} stocks={stocks}
                           stocksLoading={stocksLoading} idx={i}
-                          onClick={() => router.push(`/stock/${ticker}`)}/>
+                          onClick={() => router.push(`/stock/${ticker}?from=play`)}/>
                       ))}
                     </div>
               </div>

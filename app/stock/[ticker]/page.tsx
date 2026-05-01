@@ -141,7 +141,8 @@ export default function StockChartPage() {
     searchParams?.get("tab") === "sell" ? "sell" : "buy"
   );
   const from = searchParams?.get("from");
-  const backPath = from === "investments" ? "/mypage/investments"
+  const backPath = from === "play"        ? "/?tab=play"
+                 : from === "investments" ? "/mypage/investments"
                  : from === "mypage"      ? "/mypage"
                  : from === "ranking"     ? "/ranking"
                  : "/";
@@ -171,6 +172,8 @@ export default function StockChartPage() {
   const [showSellSheet, setShowSellSheet] = useState(false);
   const [keypadStr,     setKeypadStr]     = useState("");
   const [sellKeypadStr, setSellKeypadStr] = useState("");
+  const [confirmBuy,    setConfirmBuy]    = useState<{ amt: number } | null>(null);
+  const [confirmSell,   setConfirmSell]   = useState<{ amt: number } | null>(null);
   const [sellingAmt,    setSellingAmt]    = useState(false);
 
   // ── 신규 상태 ──
@@ -499,7 +502,7 @@ export default function StockChartPage() {
             <div style={{ position: "relative" }}>
               <button
                 disabled={orderAmt < 100 || buying || !userRow || !marketOpen}
-                onClick={handleBuy}
+                onClick={() => setConfirmBuy({ amt: orderAmt })}
                 title={!marketOpen ? closedTooltip : undefined}
                 style={{
                   width: "100%",
@@ -569,7 +572,7 @@ export default function StockChartPage() {
                 />
                 <button
                   disabled={sellKeypadAmt < 1 || sellingAmt || !marketOpen}
-                  onClick={() => executeSellAmount(sellKeypadAmt)}
+                  onClick={() => setConfirmSell({ amt: sellKeypadAmt })}
                   title={!marketOpen ? closedTooltip : undefined}
                   style={{
                     width: "100%",
@@ -692,6 +695,92 @@ export default function StockChartPage() {
         </div>
       )}
 
+      {/* ── 구매 확인 팝업 ───────────────────────────────────────────────── */}
+      {confirmBuy && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 10002, background: "rgba(0,0,0,0.88)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 28px" }}>
+          <div style={{ background: "#141414", border: "0.5px solid rgba(250,202,62,0.3)", borderRadius: 24, padding: "28px 24px", width: "100%", maxWidth: 320, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif", animation: "popIn 0.3s ease" }}>
+            <div style={{ fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: "#FACA3E", marginBottom: 20, letterSpacing: "0.07em" }}>구매 확인</div>
+
+            {/* 종목 + 현재가 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: "14px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 14, border: "0.5px solid rgba(255,255,255,0.07)" }}>
+              {logo
+                ? <img src={logo} alt={ticker} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "contain", background: "#1e1e1e" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                : <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#242424", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 600, color: C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
+              }
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "#e8e0d0", marginBottom: 3 }}>{meta?.name ?? ticker}</div>
+                <div style={{ fontSize: 13, color: "#c8bfb0" }}>
+                  {loading ? "—" : kr ? data?.formattedPrice : data?.formattedKRW}
+                  {!kr && !loading && data?.formattedPrice && (
+                    <span style={{ color: "#5c5448", marginLeft: 6 }}>({data.formattedPrice})</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 투자 포인트 */}
+            <div style={{ background: "rgba(250,202,62,0.06)", border: "0.5px solid rgba(250,202,62,0.2)", borderRadius: 14, padding: "14px 18px", marginBottom: 22, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13, color: "#c8bfb0" }}>투자 포인트</span>
+              <span style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 700, color: "#FACA3E", letterSpacing: "-0.02em" }}>{confirmBuy.amt.toLocaleString()}P</span>
+            </div>
+
+            {/* 버튼 */}
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setConfirmBuy(null)} style={{ flex: 1, padding: "13px 0", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.1)", background: "none", color: "#c8bfb0", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>취소</button>
+              <button
+                onClick={() => { executeBuy(confirmBuy.amt); setConfirmBuy(null); }}
+                disabled={buying}
+                style={{ flex: 2, padding: "13px 0", borderRadius: 12, border: "none", background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 700, cursor: buying ? "not-allowed" : "pointer", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
+                {buying ? "처리 중..." : `${confirmBuy.amt.toLocaleString()}P 구매하기`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 판매 확인 팝업 ───────────────────────────────────────────────── */}
+      {confirmSell && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 10002, background: "rgba(0,0,0,0.88)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 28px" }}>
+          <div style={{ background: "#141414", border: "0.5px solid rgba(240,120,120,0.3)", borderRadius: 24, padding: "28px 24px", width: "100%", maxWidth: 320, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif", animation: "popIn 0.3s ease" }}>
+            <div style={{ fontFamily: "var(--font-mona12)", fontSize: 13, fontWeight: 700, color: "#f07878", marginBottom: 20, letterSpacing: "0.07em" }}>판매 확인</div>
+
+            {/* 종목 + 현재가 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: "14px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 14, border: "0.5px solid rgba(255,255,255,0.07)" }}>
+              {logo
+                ? <img src={logo} alt={ticker} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "contain", background: "#1e1e1e" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                : <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#242424", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 600, color: C.text2 }}>{(meta?.name ?? ticker)[0]}</div>
+              }
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "#e8e0d0", marginBottom: 3 }}>{meta?.name ?? ticker}</div>
+                <div style={{ fontSize: 13, color: "#c8bfb0" }}>
+                  {loading ? "—" : kr ? data?.formattedPrice : data?.formattedKRW}
+                  {!kr && !loading && data?.formattedPrice && (
+                    <span style={{ color: "#5c5448", marginLeft: 6 }}>({data.formattedPrice})</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 판매 포인트 */}
+            <div style={{ background: "rgba(240,120,120,0.06)", border: "0.5px solid rgba(240,120,120,0.2)", borderRadius: 14, padding: "14px 18px", marginBottom: 22, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13, color: "#c8bfb0" }}>판매 포인트</span>
+              <span style={{ fontFamily: "var(--font-inter)", fontSize: 22, fontWeight: 700, color: "#f07878", letterSpacing: "-0.02em" }}>{confirmSell.amt.toLocaleString()}P</span>
+            </div>
+
+            {/* 버튼 */}
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setConfirmSell(null)} style={{ flex: 1, padding: "13px 0", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.1)", background: "none", color: "#c8bfb0", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>취소</button>
+              <button
+                onClick={() => { executeSellAmount(confirmSell.amt); setConfirmSell(null); }}
+                disabled={sellingAmt}
+                style={{ flex: 2, padding: "13px 0", borderRadius: 12, border: "none", background: "rgba(240,120,120,0.85)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: sellingAmt ? "not-allowed" : "pointer", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>
+                {sellingAmt ? "처리 중..." : `${confirmSell.amt.toLocaleString()}P 판매하기`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── 매도 결과 팝업 ───────────────────────────────────────────────── */}
       {sellResultPopup && (
         <>
@@ -704,14 +793,14 @@ export default function StockChartPage() {
                   <div style={{ fontSize: 20, fontWeight: 600, color: C.text, marginBottom: 8 }}>축하해요!</div>
                   <div style={{ fontSize: 36, fontWeight: 800, color: "#7ed4a0", marginBottom: 4, letterSpacing: "-0.02em" }}>+{sellResultPopup.profitLoss.toLocaleString()}P</div>
                   <div style={{ fontSize: 14, fontWeight: 300, color: C.text2, marginBottom: 28 }}>총 {sellResultPopup.finalPoints.toLocaleString()}P 수령</div>
-                  <button onClick={() => setSellResultPopup(null)} style={{ width: "100%", padding: "14px 0", borderRadius: 14, border: "none", background: "#7ed4a0", color: "#0d0d0d", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>확인</button>
+                  <button onClick={() => { setSellResultPopup(null); router.push(backPath); }} style={{ width: "100%", padding: "14px 0", borderRadius: 14, border: "none", background: "#7ed4a0", color: "#0d0d0d", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>확인</button>
                 </>
               ) : (
                 <>
                   <div style={{ fontSize: 14, fontWeight: 300, color: C.text2, marginBottom: 10 }}>판매 완료</div>
                   <div style={{ fontSize: 28, fontWeight: 600, color: C.text, marginBottom: 6, letterSpacing: "-0.02em" }}>{sellResultPopup.finalPoints.toLocaleString()}P 수령</div>
                   <div style={{ fontSize: 14, fontWeight: 300, color: "#f07878", marginBottom: 28 }}>{sellResultPopup.profitLoss.toLocaleString()}P</div>
-                  <button onClick={() => setSellResultPopup(null)} style={{ width: "100%", padding: "14px 0", borderRadius: 14, border: "none", background: "rgba(255,255,255,0.09)", color: C.text, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>확인</button>
+                  <button onClick={() => { setSellResultPopup(null); router.push(backPath); }} style={{ width: "100%", padding: "14px 0", borderRadius: 14, border: "none", background: "rgba(255,255,255,0.09)", color: C.text, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}>확인</button>
                 </>
               )}
             </div>
@@ -977,7 +1066,7 @@ export default function StockChartPage() {
             </div>
             <button
               disabled={keypadAmt < 100 || buying || !userRow || !marketOpen}
-              onClick={() => executeBuy(keypadAmt)}
+              onClick={() => setConfirmBuy({ amt: keypadAmt })}
               style={{
                 width: "100%", padding: "15px 0", borderRadius: 14, border: "none", flexShrink: 0,
                 background: !marketOpen ? "#1e1e1e" : keypadAmt >= 100 && !buying ? "#FACA3E" : "#1e1e1e",
@@ -1038,7 +1127,7 @@ export default function StockChartPage() {
             </div>
             <button
               disabled={sellKeypadAmt < 1 || sellingAmt || totalHoldingPoints === 0 || !marketOpen}
-              onClick={() => executeSellAmount(sellKeypadAmt)}
+              onClick={() => setConfirmSell({ amt: sellKeypadAmt })}
               style={{
                 width: "100%", padding: "15px 0", borderRadius: 14, border: "none", flexShrink: 0,
                 background: !marketOpen ? "#1e1e1e" : sellKeypadAmt >= 1 && !sellingAmt ? "rgba(240,120,120,0.85)" : "#1e1e1e",
