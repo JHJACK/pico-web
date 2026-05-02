@@ -301,7 +301,6 @@ export default function StockChartPage() {
       });
       const json = await res.json();
       if (!res.ok || !json.ok) { showToast(json.error ?? "구매에 실패했어요", false); return; }
-      showToast(`${amt.toLocaleString("ko-KR")}P 구매 완료!`, true);
       if (json.isFirstInvestment) setTimeout(() => showQuestPopup("첫 모의투자 퀘스트 완료!", 200), 500);
       setOrderAmt(0); setKeypadStr(""); setShowBuySheet(false);
       await fetchHoldings();
