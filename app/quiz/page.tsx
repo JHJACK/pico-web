@@ -541,14 +541,23 @@ export default function QuizPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {currentQ.options.map((opt, idx) => (
                   <button
-                    key={idx}
-                    onClick={() => handleAnswer(opt.score)}
+                    key={`${step}-${idx}`}
+                    onClick={(e) => {
+                      const el = e.currentTarget;
+                      el.style.transform = "none";
+                      el.style.borderColor = "rgba(255,255,255,0.08)";
+                      el.style.background = "#141414";
+                      el.style.boxShadow = "none";
+                      handleAnswer(opt.score);
+                    }}
                     className="pico-btn"
                     style={{
                       background: "#141414",
                       border: "0.5px solid rgba(255,255,255,0.08)",
                       borderRadius: 18, padding: "16px 16px",
                       textAlign: "left", cursor: "pointer",
+                      outline: "none",
+                      WebkitTapHighlightColor: "transparent",
                       transition: "transform 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s",
                       display: "flex", alignItems: "flex-start", gap: 14,
                       width: "100%",
@@ -560,6 +569,12 @@ export default function QuizPage() {
                       e.currentTarget.style.boxShadow = `0 6px 20px rgba(0,0,0,0.35)`;
                     }}
                     onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "none";
+                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                      e.currentTarget.style.background = "#141414";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                    onTouchEnd={(e) => {
                       e.currentTarget.style.transform = "none";
                       e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
                       e.currentTarget.style.background = "#141414";
