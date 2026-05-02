@@ -1529,7 +1529,7 @@ export default function Home() {
                       placeholder="종목 검색   삼성전자, NVDA, 테슬라..."
                       className="w-full rounded-xl outline-none"
                       style={{ background:"#1c1c1c", border:"0.5px solid rgba(255,255,255,0.08)",
-                        color:"#e8e0d0", fontSize:14, fontWeight:300, padding:"12px 38px 12px 40px" }}
+                        color:"#e8e0d0", fontSize:16, fontWeight:300, padding:"12px 38px 12px 40px" }}
                       onFocus={(e) => (e.target.style.borderColor="rgba(250,202,62,0.35)")}
                       onBlur={(e)  => (e.target.style.borderColor="rgba(255,255,255,0.08)")}
                     />
@@ -2280,7 +2280,7 @@ export default function Home() {
                       <>
                         <input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="가입한 이메일 주소"
                           className="w-full outline-none pico-auth-input"
-                          style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
+                          style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 16, fontWeight: 300, marginBottom: 10 }}
                           onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                           onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                         />
@@ -2301,14 +2301,14 @@ export default function Home() {
                   <>
                     <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="이메일"
                       className="w-full outline-none pico-auth-input"
-                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
+                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 16, fontWeight: 300, marginBottom: 10 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                       onKeyDown={(e) => e.key === "Enter" && handleAuth()}
                     />
                     <input type="password" value={authPw} onChange={(e) => setAuthPw(e.target.value)} placeholder="비밀번호"
                       className="w-full outline-none pico-auth-input"
-                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 12 }}
+                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 16, fontWeight: 300, marginBottom: 12 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                       onKeyDown={(e) => e.key === "Enter" && handleAuth()}
@@ -2388,19 +2388,19 @@ export default function Home() {
                   <>
                     <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="이메일"
                       className="w-full outline-none pico-auth-input"
-                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
+                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 16, fontWeight: 300, marginBottom: 10 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                     />
                     <input type="password" value={authPw} onChange={(e) => setAuthPw(e.target.value)} placeholder="비밀번호 (6자 이상)"
                       className="w-full outline-none pico-auth-input"
-                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 10 }}
+                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 16, fontWeight: 300, marginBottom: 10 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                     />
                     <input type="password" value={authPwConfirm} onChange={(e) => setAuthPwConfirm(e.target.value)} placeholder="비밀번호 확인"
                       className="w-full outline-none pico-auth-input"
-                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 14, fontWeight: 300, marginBottom: 16 }}
+                      style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 16, fontWeight: 300, marginBottom: 16 }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
                       onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                       onKeyDown={(e) => e.key === "Enter" && handleSignUp()}
@@ -2502,7 +2502,7 @@ export default function Home() {
                   onChange={(e) => setSetupNickname(e.target.value)}
                   placeholder="닉네임을 입력해 주세요"
                   className="w-full outline-none"
-                  style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(250,202,62,0.35)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 15, fontWeight: 300 }}
+                  style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(250,202,62,0.35)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 16, fontWeight: 300 }}
                   onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.65)")}
                   onBlur={(e)  => (e.target.style.borderColor = "rgba(250,202,62,0.35)")}
                   onKeyDown={(e) => e.key === "Enter" && handleSaveSetup()}

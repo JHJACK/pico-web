@@ -567,7 +567,7 @@ export default function StockChartPage() {
                     const v = parseInt(e.target.value || "0", 10);
                     setSellKeypadStr(isNaN(v) ? "" : String(Math.min(v, totalHoldingPoints)));
                   }}
-                  style={{ width: "100%", background: C.inner, border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 14px", color: C.text, fontSize: 15, outline: "none", boxSizing: "border-box" }}
+                  style={{ width: "100%", background: C.inner, border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 14px", color: C.text, fontSize: 16, outline: "none", boxSizing: "border-box" }}
                 />
                 <button
                   disabled={sellKeypadAmt < 1 || sellingAmt || !marketOpen}

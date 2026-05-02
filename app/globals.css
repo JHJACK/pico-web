@@ -31,6 +31,11 @@ h1, h2, h3, h4, h5 {
 }
 
 
+/* ── 모바일 input 자동 확대 방지 (iOS Safari: font-size < 16px 시 확대됨) ── */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
 /* ── 로그인 입력창 다크 강제 (autofill 포함) ── */
 input.pico-input {
   background-color: #1e1e1e !important;

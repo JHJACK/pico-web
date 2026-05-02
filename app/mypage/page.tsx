@@ -220,7 +220,7 @@ export default function MyPage() {
                       onChange={(e) => setNickname(e.target.value)}
                       maxLength={MAX_NICK}
                       className="w-full outline-none"
-                      style={{ display: "block", width: "100%", background: "#1e1e1e", border: `1px solid ${nickname.trim().length > MAX_NICK ? "rgba(240,120,120,0.5)" : "rgba(250,202,62,0.3)"}`, borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 15, fontWeight: 300, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}
+                      style={{ display: "block", width: "100%", background: "#1e1e1e", border: `1px solid ${nickname.trim().length > MAX_NICK ? "rgba(240,120,120,0.5)" : "rgba(250,202,62,0.3)"}`, borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 16, fontWeight: 300, fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }}
                       onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.6)")}
                       onBlur={(e)  => (e.target.style.borderColor = nickname.trim().length > MAX_NICK ? "rgba(240,120,120,0.5)" : "rgba(250,202,62,0.3)")}
                     />

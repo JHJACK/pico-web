@@ -289,12 +289,12 @@ export default function QuizPage() {
             <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)}
               placeholder="이메일" type="email"
               className="w-full rounded-xl px-4 py-3 outline-none mb-3"
-              style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)", color: "#e8e0d0", fontSize: 14 }} />
+              style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)", color: "#e8e0d0", fontSize: 16 }} />
             <input value={authPw} onChange={(e) => setAuthPw(e.target.value)}
               placeholder="비밀번호" type="password"
               onKeyDown={(e) => e.key === "Enter" && handleAuth()}
               className="w-full rounded-xl px-4 py-3 outline-none mb-3"
-              style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)", color: "#e8e0d0", fontSize: 14 }} />
+              style={{ background: "#1c1c1c", border: "0.5px solid rgba(255,255,255,0.1)", color: "#e8e0d0", fontSize: 16 }} />
             {authError && <p style={{ fontSize: 14, color: "#f07878", marginBottom: 8 }}>{authError}</p>}
             <button onClick={handleAuth} disabled={authLoading} className="pico-btn w-full py-3 rounded-xl"
               style={{ background: "#FACA3E", color: "#0d0d0d", fontSize: 14, fontWeight: 600, border: "none" }}>
