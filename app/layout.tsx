@@ -87,12 +87,21 @@ export const metadata: Metadata = {
     title: "PICO — 금융은 어렵다? 아니다, 재밌다",
     description:
       "피코플레이(모의투자)로 실전 투자 감각을 키우고, 수익률 랭킹에 도전하고, 포인트로 피코 전리품 창고에서 선물을 교환해보세요.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "PICO — 금융은 어렵다? 아니다, 재밌다",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "PICO — 금융은 어렵다? 아니다, 재밌다",
     description:
       "피코플레이(모의투자)로 실전 투자 감각을 키우고, 수익률 랭킹에 도전하고, 포인트로 피코 전리품 창고에서 선물을 교환해보세요.",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
