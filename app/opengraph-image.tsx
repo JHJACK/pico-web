@@ -5,9 +5,27 @@ import { join } from "path";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+// twemoji CDN — 트위터 공개 픽셀 이모지 (Satori는 컬러 폰트 미지원 → img 태그 방식)
+const TWEMOJI = "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72";
+const EMOJI_CODES = ["1f4ca", "1f60a", "1f4a1", "1f604", "1f916", "1f60d", "26a1", "1f61c"];
+
+async function emojiBase64(code: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${TWEMOJI}/${code}.png`);
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    return `data:image/png;base64,${Buffer.from(buf).toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 export default async function OgImage() {
-  const fontRegular = readFileSync(join(process.cwd(), "public/fonts/MonaS12.ttf"));
-  const fontBold    = readFileSync(join(process.cwd(), "public/fonts/MonaS12-Bold.ttf"));
+  const [fontRegular, fontBold, ...emojiUris] = await Promise.all([
+    Promise.resolve(readFileSync(join(process.cwd(), "public/fonts/MonaS12.ttf"))),
+    Promise.resolve(readFileSync(join(process.cwd(), "public/fonts/MonaS12-Bold.ttf"))),
+    ...EMOJI_CODES.map(emojiBase64),
+  ]);
 
   return new ImageResponse(
     (
@@ -21,16 +39,28 @@ export default async function OgImage() {
           alignItems: "flex-start",
           justifyContent: "center",
           padding: "0 120px",
+          position: "relative",
         }}
       >
-        {/* "금융은 어렵다" — strikethrough */}
+        {/* PICO 로고 — 상단 우측 크게 */}
         <div
           style={{
-            position: "relative",
+            position: "absolute",
+            top: 56,
+            right: 120,
+            fontSize: 42,
+            color: "#FACA3E",
+            fontFamily: "Mona12",
+            fontWeight: 700,
+            letterSpacing: "10px",
             display: "flex",
-            alignItems: "center",
           }}
         >
+          PICO
+        </div>
+
+        {/* "금융은 어렵다" — 취소선 */}
+        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
           <span
             style={{
               fontSize: 86,
@@ -42,7 +72,6 @@ export default async function OgImage() {
           >
             금융은 어렵다
           </span>
-          {/* 취소선 수동 구현 (Satori 호환) */}
           <div
             style={{
               position: "absolute",
@@ -56,7 +85,7 @@ export default async function OgImage() {
           />
         </div>
 
-        {/* "아니다. 재밌다" — yellow bold */}
+        {/* "아니다. 재밌다" — 노란 굵은 텍스트 */}
         <div
           style={{
             fontSize: 112,
@@ -71,41 +100,30 @@ export default async function OgImage() {
           아니다. 재밌다
         </div>
 
-        {/* 이모지 열 */}
+        {/* 이모지 열 — twemoji PNG img */}
         <div
           style={{
-            fontSize: 58,
-            marginTop: 48,
-            letterSpacing: "6px",
             display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 18,
+            marginTop: 52,
           }}
         >
-          📊 😊 💡 😄 🤖 😍 ⚡ 😜
-        </div>
-
-        {/* PICO 로고 우하단 */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 64,
-            right: 120,
-            fontSize: 30,
-            color: "#FACA3E",
-            fontFamily: "Mona12",
-            fontWeight: 700,
-            letterSpacing: "8px",
-            display: "flex",
-          }}
-        >
-          PICO
+          {emojiUris.map((uri, i) =>
+            uri ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={uri} width={58} height={58} alt="" />
+            ) : null
+          )}
         </div>
       </div>
     ),
     {
       ...size,
       fonts: [
-        { name: "Mona12", data: fontRegular, weight: 400 },
-        { name: "Mona12", data: fontBold,    weight: 700 },
+        { name: "Mona12", data: fontRegular as Buffer, weight: 400 },
+        { name: "Mona12", data: fontBold as Buffer,    weight: 700 },
       ],
     }
   );

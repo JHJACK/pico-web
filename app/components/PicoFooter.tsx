@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ShareButton from "@/app/components/ShareButton";
 
 export default function PicoFooter() {
   return (
@@ -13,6 +14,11 @@ export default function PicoFooter() {
         fontFamily:   "var(--font-paperlogy), var(--font-noto), sans-serif",
       }}
     >
+      {/* 공유 버튼 */}
+      <div style={{ marginBottom: 20 }}>
+        <ShareButton />
+      </div>
+
       {/* 법적 링크 */}
       <div
         style={{
