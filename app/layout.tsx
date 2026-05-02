@@ -63,9 +63,41 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const BASE_URL = "https://pico-web-one.vercel.app";
+
 export const metadata: Metadata = {
-  title: "PICO — 투자, 흐름을 읽어",
-  description: "VS 배틀로 매일 예측하고, 투자 DNA 퀴즈로 나를 알아가는 투자 입문 서비스",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "PICO — 금융은 어렵다? 아니다, 재밌다",
+    template: "%s — PICO",
+  },
+  description:
+    "피코플레이(모의투자)로 실전 투자 감각을 키우고, 수익률 랭킹에 도전하고, 포인트로 피코 전리품 창고에서 선물을 교환해보세요.",
+  keywords: [
+    "모의투자", "주식", "주린이", "해외 주식", "한국 주식",
+    "투자 입문", "투자 공부", "투자 성향", "투자 DNA", "주식 게임",
+    "수익률 랭킹", "투자 퀴즈", "주식 용어", "PICO", "피코",
+  ],
+  authors: [{ name: "PICO" }],
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: BASE_URL,
+    siteName: "PICO",
+    title: "PICO — 금융은 어렵다? 아니다, 재밌다",
+    description:
+      "피코플레이(모의투자)로 실전 투자 감각을 키우고, 수익률 랭킹에 도전하고, 포인트로 피코 전리품 창고에서 선물을 교환해보세요.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PICO — 금융은 어렵다? 아니다, 재밌다",
+    description:
+      "피코플레이(모의투자)로 실전 투자 감각을 키우고, 수익률 랭킹에 도전하고, 포인트로 피코 전리품 창고에서 선물을 교환해보세요.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
