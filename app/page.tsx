@@ -1005,10 +1005,13 @@ export default function Home() {
     const { data, error } = await supabase.auth.signUp({ email: authEmail, password: authPw });
     setAuthLoading(false);
     if (error) {
+      const msg = error.message.toLowerCase();
+      const code = (error as any).code ?? "";
       setAuthError(
-        error.message.includes("already") ? "이미 가입된 이메일이에요." :
-        error.message.includes("email")   ? "유효한 이메일을 입력해 주세요." :
-        "가입에 실패했어요. 다시 시도해 주세요."
+        (msg.includes("already") || code === "user_already_exists") ? "이미 가입된 이메일이에요." :
+        (msg.includes("rate limit") || code.includes("rate_limit")) ? "잠시 후 다시 시도해 주세요." :
+        (msg.includes("invalid") && msg.includes("email")) || code === "email_address_invalid" ? "유효한 이메일을 입력해 주세요." :
+        `가입에 실패했어요. (${error.message})`
       );
       return;
     }
