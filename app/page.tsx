@@ -2528,7 +2528,7 @@ export default function Home() {
                 pattern="[0-9]*"
                 maxLength={6}
                 value={emailVerifyCode}
-                onChange={(e) => setEmailVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                onChange={(e) => setEmailVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="인증 코드 6자리"
                 className="w-full outline-none pico-auth-input"
                 style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 20, fontWeight: 700, marginBottom: 10, textAlign: "center", letterSpacing: "0.2em", fontFamily: "var(--font-inter)" }}
@@ -2539,8 +2539,8 @@ export default function Home() {
 
               {emailVerifyError && <p style={{ fontSize: 12, color: "#f07878", marginBottom: 10, textAlign: "center" }}>{emailVerifyError}</p>}
 
-              <button onClick={handleVerifyEmail} disabled={emailVerifyLoading || emailVerifyCode.length !== 8} className="pico-btn w-full"
-                style={{ display: "block", background: emailVerifyCode.length === 8 ? "#FACA3E" : "rgba(255,255,255,0.06)", color: emailVerifyCode.length === 8 ? "#0d0d0d" : "#c8bfb0", fontSize: 15, fontWeight: 500, borderRadius: 12, padding: "14px 0", marginBottom: 16, border: "none", transition: "all 0.15s" }}>
+              <button onClick={handleVerifyEmail} disabled={emailVerifyLoading || emailVerifyCode.length !== 6} className="pico-btn w-full"
+                style={{ display: "block", background: emailVerifyCode.length === 6 ? "#FACA3E" : "rgba(255,255,255,0.06)", color: emailVerifyCode.length === 6 ? "#0d0d0d" : "#c8bfb0", fontSize: 15, fontWeight: 500, borderRadius: 12, padding: "14px 0", marginBottom: 16, border: "none", transition: "all 0.15s" }}>
                 {emailVerifyLoading ? "인증 중..." : "인증하기"}
               </button>
 
