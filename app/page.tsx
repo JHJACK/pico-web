@@ -19,7 +19,7 @@ import PicoFooter from "@/app/components/PicoFooter";
 // ═══════════════════════════════════════════════
 // 상수 & 데이터
 // ═══════════════════════════════════════════════
-type ModalType = "login" | "vs_battle" | "setup_profile" | null;
+type ModalType = "login" | "vs_battle" | "setup_profile" | "email_verify" | null;
 type MainTab   = "event" | "play" | "learn";
 
 const ANIMAL_NAMES: Record<string, { emoji: string; modifier: string; name: string }> = {
@@ -638,6 +638,11 @@ export default function Home() {
   const [mounted,   setMounted]  = useState(false);
   const [loginTab,       setLoginTab]       = useState<"login" | "signup">("login");
   const [authPwConfirm,  setAuthPwConfirm]  = useState("");
+  const [emailVerifyEmail,    setEmailVerifyEmail]    = useState("");
+  const [emailVerifyCode,     setEmailVerifyCode]     = useState("");
+  const [emailVerifyLoading,  setEmailVerifyLoading]  = useState(false);
+  const [emailVerifyError,    setEmailVerifyError]    = useState("");
+  const [emailVerifyResending,setEmailVerifyResending]= useState(false);
   const [setupNickname,  setSetupNickname]  = useState("");
   const [setupSaving,    setSetupSaving]    = useState(false);
   const [setupPendingFile, setSetupPendingFile] = useState<File | null>(null);
@@ -919,7 +924,7 @@ export default function Home() {
         if (bonusPoints > 0) {
           showToast(`🎉 ${bonusDays}일 연속 출석! +${bonusPoints}P 추가 지급`);
         } else {
-          showToast("✅ 출석 완료 +50P");
+          showToast("✅ 출석 완료 +100P");
         }
       });
 
@@ -951,7 +956,7 @@ export default function Home() {
     if (bonusPoints > 0) {
       showToast(`🎉 ${bonusDays}일 연속 출석! +${bonusPoints}P 추가 지급`);
     } else {
-      showToast("✅ 출석 완료 +50P");
+      showToast("✅ 출석 완료 +100P");
     }
     setPopupBattleDone(true);
     // 오늘 팝업 완료 → localStorage에 기록 (중복 방지)
@@ -1007,9 +1012,48 @@ export default function Home() {
       );
       return;
     }
-    if (data.user) localStorage.setItem("pico_just_signed_up", "true");
+    const email = authEmail;
     setAuthEmail(""); setAuthPw(""); setAuthPwConfirm("");
+    // 이메일 인증이 필요한 경우(data.session === null) → 인증 단계로
+    if (!data.session) {
+      setEmailVerifyEmail(email);
+      setEmailVerifyCode("");
+      setEmailVerifyError("");
+      setModal("email_verify");
+    } else {
+      // Supabase에서 이메일 인증 미활성화 시 즉시 가입 완료
+      if (data.user) localStorage.setItem("pico_just_signed_up", "true");
+      setModal(null);
+    }
+  }
+
+  async function handleVerifyEmail() {
+    if (emailVerifyCode.length !== 6) { setEmailVerifyError("6자리 인증 코드를 입력해 주세요."); return; }
+    setEmailVerifyLoading(true); setEmailVerifyError("");
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: emailVerifyEmail,
+      token: emailVerifyCode,
+      type:  "signup",
+    });
+    setEmailVerifyLoading(false);
+    if (error) {
+      setEmailVerifyError("인증 코드가 올바르지 않아요. 다시 확인해 주세요.");
+      return;
+    }
+    if (data.user) {
+      localStorage.setItem("pico_just_signed_up", "true");
+      localStorage.setItem("pico_last_login_provider", "email");
+    }
     setModal(null);
+    setEmailVerifyCode("");
+    setEmailVerifyEmail("");
+  }
+
+  async function handleResendVerify() {
+    setEmailVerifyResending(true);
+    await supabase.auth.resend({ type: "signup", email: emailVerifyEmail });
+    setEmailVerifyResending(false);
+    showToast("인증 코드를 재전송했어요. 이메일을 확인해 주세요.");
   }
 
   async function handleSaveSetup() {
@@ -2454,6 +2498,57 @@ export default function Home() {
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ════════ 이메일 인증 모달 (이메일 가입 후) ════════ */}
+      {modal === "email_verify" && (
+        <>
+          <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)" }} onClick={() => setModal(null)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <div className="w-full fade-up" style={{ maxWidth: 400, background: "#141414", border: "0.5px solid rgba(250,202,62,0.2)", borderRadius: 28, padding: "36px 28px 28px", position: "relative", boxShadow: "0 0 80px rgba(250,202,62,0.07), 0 24px 60px rgba(0,0,0,0.7)", fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif" }} onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setModal(null)} className="pico-btn flex items-center justify-center"
+                style={{ position: "absolute", top: 16, right: 16, width: 32, height: 32, borderRadius: 10, background: "#1e1e1e", color: "#c8bfb0", border: "0.5px solid rgba(255,255,255,0.08)", fontSize: 14, zIndex: 1 }}>✕</button>
+
+              <div style={{ textAlign: "center", marginBottom: 28 }}>
+                <span style={{ fontSize: 44, display: "block", marginBottom: 10 }}>📧</span>
+                <p style={{ fontFamily: "var(--font-mona12)", fontSize: 12, fontWeight: 700, color: "#FACA3E", letterSpacing: "0.1em", marginBottom: 10 }}>EMAIL VERIFY</p>
+                <p style={{ fontSize: 18, fontWeight: 700, color: "#e8e0d0", marginBottom: 8, letterSpacing: "-0.02em" }}>이메일을 확인해 주세요</p>
+                <p style={{ fontSize: 13, fontWeight: 300, color: "#c8bfb0", lineHeight: 1.7, margin: 0 }}>
+                  <span style={{ color: "#e8e0d0" }}>{emailVerifyEmail}</span>로<br />6자리 인증 코드를 보냈어요
+                </p>
+              </div>
+
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={emailVerifyCode}
+                onChange={(e) => setEmailVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="인증 코드 6자리"
+                className="w-full outline-none pico-auth-input"
+                style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 22, fontWeight: 700, marginBottom: 10, textAlign: "center", letterSpacing: "0.25em", fontFamily: "var(--font-inter)" }}
+                onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
+                onBlur={(e)  => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                onKeyDown={(e) => e.key === "Enter" && handleVerifyEmail()}
+              />
+
+              {emailVerifyError && <p style={{ fontSize: 12, color: "#f07878", marginBottom: 10, textAlign: "center" }}>{emailVerifyError}</p>}
+
+              <button onClick={handleVerifyEmail} disabled={emailVerifyLoading || emailVerifyCode.length !== 6} className="pico-btn w-full"
+                style={{ display: "block", background: emailVerifyCode.length === 6 ? "#FACA3E" : "rgba(255,255,255,0.06)", color: emailVerifyCode.length === 6 ? "#0d0d0d" : "#c8bfb0", fontSize: 15, fontWeight: 500, borderRadius: 12, padding: "14px 0", marginBottom: 16, border: "none", transition: "all 0.15s" }}>
+                {emailVerifyLoading ? "인증 중..." : "인증하기"}
+              </button>
+
+              <div style={{ textAlign: "center" }}>
+                <button onClick={handleResendVerify} disabled={emailVerifyResending} className="pico-btn"
+                  style={{ fontSize: 13, color: "#c8bfb0", fontWeight: 300, background: "transparent", border: "none", textDecoration: "underline", textUnderlineOffset: 3 }}>
+                  {emailVerifyResending ? "재전송 중..." : "코드를 받지 못하셨나요? 재전송"}
+                </button>
               </div>
             </div>
           </div>

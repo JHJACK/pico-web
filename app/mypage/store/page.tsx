@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
+import { checkDailyExchange } from "@/app/lib/supabase";
 import { BackIcon } from "@/app/components/BackIcon";
 
 const C = {
@@ -25,6 +26,7 @@ interface StoreItem {
   badge: string;
   badgeColor: string;
   available: boolean;
+  dailyLimit?: boolean;
 }
 
 const ITEMS: StoreItem[] = [
@@ -37,6 +39,7 @@ const ITEMS: StoreItem[] = [
     badge:      "OPEN",
     badgeColor: "#FACA3E",
     available:  true,
+    dailyLimit: true,
   },
   {
     id:         "cu_5000",
@@ -74,13 +77,35 @@ function ItemCard({
   item,
   userPoints,
   onExchange,
+  soldOut,
 }: {
   item: StoreItem;
   userPoints: number;
   onExchange: (item: StoreItem) => void;
+  soldOut?: boolean | null;
 }) {
-  const canExchange = item.available && userPoints >= item.points;
-  const shortfall   = item.available && !canExchange ? item.points - userPoints : 0;
+  const isSoldOut  = item.dailyLimit && soldOut === true;
+  const canExchange = item.available && !isSoldOut && userPoints >= item.points;
+  const shortfall   = item.available && !isSoldOut && !canExchange ? item.points - userPoints : 0;
+
+  const cardStyle = item.available
+    ? isSoldOut
+      ? {
+          background:     "linear-gradient(135deg, rgba(240,120,120,0.06) 0%, rgba(240,120,120,0.02) 100%)",
+          border:         "1px solid rgba(240,120,120,0.25)",
+          boxShadow:      "0 8px 32px rgba(240,120,120,0.06)",
+          backdropFilter: "blur(20px)",
+        }
+      : {
+          background:     "linear-gradient(135deg, rgba(250,202,62,0.08) 0%, rgba(250,202,62,0.02) 100%)",
+          border:         "1px solid rgba(250,202,62,0.35)",
+          boxShadow:      "0 8px 32px rgba(250,202,62,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
+          backdropFilter: "blur(20px)",
+        }
+    : {
+        background: C.card,
+        border:     `0.5px solid ${C.border}`,
+      };
 
   return (
     <div
@@ -88,19 +113,7 @@ function ItemCard({
         marginBottom: 12,
         borderRadius: 20,
         opacity: item.available ? 1 : 0.45,
-        ...(item.available
-          ? {
-              background:
-                "linear-gradient(135deg, rgba(250,202,62,0.08) 0%, rgba(250,202,62,0.02) 100%)",
-              border:     "1px solid rgba(250,202,62,0.35)",
-              boxShadow:
-                "0 8px 32px rgba(250,202,62,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
-              backdropFilter: "blur(20px)",
-            }
-          : {
-              background: C.card,
-              border:     `0.5px solid ${C.border}`,
-            }),
+        ...cardStyle,
       }}
     >
       <div style={{ padding: "20px 20px 0" }}>
@@ -120,18 +133,25 @@ function ItemCard({
               fontWeight:    700,
               padding:       "3px 8px",
               borderRadius:  6,
-              background:    item.available
+              background:    isSoldOut
+                ? "rgba(240,120,120,0.15)"
+                : item.available
                 ? "rgba(250,202,62,0.15)"
                 : "rgba(255,255,255,0.07)",
-              color:         item.badgeColor,
+              color:         isSoldOut ? "#f07878" : item.badgeColor,
               letterSpacing: "0.08em",
             }}
           >
-            {item.badge}
+            {isSoldOut ? "SOLD OUT" : item.badge}
           </span>
-          {item.available && (
+          {item.available && !isSoldOut && (
             <span style={{ fontSize: 11, fontWeight: 300, color: C.text2 }}>
-              1회 교환 가능
+              하루 1잔 · 선착순
+            </span>
+          )}
+          {isSoldOut && (
+            <span style={{ fontSize: 11, fontWeight: 300, color: "#f07878" }}>
+              내일 00시 다시 열려요 🌅
             </span>
           )}
         </div>
@@ -148,10 +168,14 @@ function ItemCard({
               alignItems:     "center",
               justifyContent: "center",
               fontSize:       30,
-              background:     item.available
+              background:     isSoldOut
+                ? "rgba(240,120,120,0.08)"
+                : item.available
                 ? "rgba(250,202,62,0.1)"
                 : "rgba(255,255,255,0.04)",
-              border:         item.available
+              border:         isSoldOut
+                ? "1px solid rgba(240,120,120,0.18)"
+                : item.available
                 ? "1px solid rgba(250,202,62,0.2)"
                 : `0.5px solid ${C.border}`,
             }}
@@ -164,7 +188,7 @@ function ItemCard({
                 fontFamily:    "var(--font-mona12)",
                 fontSize:      11,
                 fontWeight:    700,
-                color:         item.available ? C.gold : C.text2,
+                color:         isSoldOut ? "#f07878" : item.available ? C.gold : C.text2,
                 marginBottom:  3,
                 letterSpacing: "0.06em",
               }}
@@ -187,7 +211,7 @@ function ItemCard({
                 fontFamily:    "var(--font-inter)",
                 fontSize:      20,
                 fontWeight:    700,
-                color:         item.available ? C.gold : C.text2,
+                color:         isSoldOut ? "#f07878" : item.available ? C.gold : C.text2,
                 letterSpacing: "-0.02em",
               }}
             >
@@ -210,6 +234,24 @@ function ItemCard({
             {shortfall.toLocaleString()}P가 더 필요해요
           </p>
         )}
+
+        {/* SOLD OUT 안내 */}
+        {isSoldOut && (
+          <div
+            style={{
+              marginBottom: 14,
+              padding:      "10px 14px",
+              borderRadius: 10,
+              background:   "rgba(240,120,120,0.07)",
+              border:       "0.5px solid rgba(240,120,120,0.2)",
+            }}
+          >
+            <p style={{ fontSize: 13, fontWeight: 300, color: "#f07878", lineHeight: 1.6, margin: 0 }}>
+              오늘 선착순 교환이 완료됐어요.<br />
+              내일 자정에 다시 오픈돼요!
+            </p>
+          </div>
+        )}
       </div>
 
       {/* 교환 버튼 */}
@@ -217,7 +259,7 @@ function ItemCard({
         <div style={{ padding: "0 20px 20px" }}>
           <button
             className="pico-btn"
-            onClick={() => onExchange(item)}
+            onClick={() => !isSoldOut && onExchange(item)}
             disabled={!canExchange}
             style={{
               width:        "100%",
@@ -233,6 +275,13 @@ function ItemCard({
                     color:      "#0d0d0d",
                     border:     "none",
                   }
+                : isSoldOut
+                ? {
+                    background: "rgba(240,120,120,0.08)",
+                    color:      "#f07878",
+                    border:     "0.5px solid rgba(240,120,120,0.2)",
+                    cursor:     "not-allowed",
+                  }
                 : {
                     background: "rgba(255,255,255,0.04)",
                     color:      C.text2,
@@ -241,7 +290,7 @@ function ItemCard({
                   }),
             }}
           >
-            {canExchange ? "교환하기" : "포인트 부족"}
+            {isSoldOut ? "오늘은 마감됐어요 😴" : canExchange ? "교환하기" : "포인트 부족"}
           </button>
         </div>
       )}
@@ -253,12 +302,18 @@ export default function StorePage() {
   const router              = useRouter();
   const { user, userRow, loading } = useAuth();
   const [loadingItem, setLoadingItem] = useState<string | null>(null);
+  const [soldOut,     setSoldOut]     = useState<boolean | null>(null);
+
+  useEffect(() => {
+    checkDailyExchange("starbucks_americano").then(setSoldOut);
+  }, []);
 
   if (loading || !user || !userRow) return null;
 
   async function handleExchange(item: StoreItem) {
+    if (item.dailyLimit && soldOut) return;
     setLoadingItem(item.id);
-    await new Promise((r) => setTimeout(r, 900));
+    await new Promise((r) => setTimeout(r, 700));
     setLoadingItem(null);
     router.push(`/mypage/store/confirm?item=${item.id}`);
   }
@@ -423,7 +478,47 @@ export default function StorePage() {
           <span style={{ fontSize: 38, lineHeight: 1 }}>🏆</span>
         </div>
 
-        {/* 콜아웃 블록 */}
+        {/* 콜아웃 블록 - 선착순 안내 */}
+        <div
+          style={{
+            marginBottom: 14,
+            padding:      "14px 18px",
+            borderRadius: 14,
+            background:   soldOut
+              ? "rgba(240,120,120,0.05)"
+              : "rgba(250,202,62,0.05)",
+            border:       soldOut
+              ? "0.5px solid rgba(240,120,120,0.2)"
+              : "0.5px solid rgba(250,202,62,0.2)",
+          }}
+        >
+          <p
+            style={{
+              fontFamily:   "var(--font-mona12)",
+              fontSize:     13,
+              fontWeight:   700,
+              color:        soldOut ? "#f07878" : C.gold,
+              margin:       "0 0 5px",
+            }}
+          >
+            {soldOut ? "😴 오늘 선착순 마감" : "⏰ 매일 자정 선착순 1잔 한정"}
+          </p>
+          <p
+            style={{
+              fontSize:   13,
+              fontWeight: 300,
+              color:      C.text2,
+              margin:     0,
+              lineHeight: 1.65,
+            }}
+          >
+            {soldOut
+              ? "오늘의 스타벅스 교환이 완료됐어요. 내일 00시(KST)에 다시 오픈돼요!"
+              : "스타벅스 아메리카노는 매일 00시(KST) 기준 딱 1잔만 오픈해요.\n먼저 신청한 분이 가져가요."}
+          </p>
+        </div>
+
+        {/* 기본 콜아웃 블록 */}
         <div
           style={{
             marginBottom: 24,
@@ -496,6 +591,7 @@ export default function StorePage() {
             item={item}
             userPoints={userRow.total_points}
             onExchange={handleExchange}
+            soldOut={item.dailyLimit ? soldOut : undefined}
           />
         ))}
 

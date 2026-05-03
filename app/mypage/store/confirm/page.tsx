@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
+import { executeExchange } from "@/app/lib/supabase";
 import { BackIcon } from "@/app/components/BackIcon";
 
 const C = {
@@ -29,7 +30,7 @@ const NOTICES = [
   "쿠폰은 교환 후 등록된 이메일로 발송돼요.",
   "발송에는 최대 3~5 영업일이 소요될 수 있어요.",
   "쿠폰 유효기간은 발급일로부터 30일이에요.",
-  "쿠폰은 1인 1회 교환 가능해요.",
+  "스타벅스 아메리카노는 하루 1잔 선착순으로 교환 가능해요.",
 ];
 
 function Checkbox({
@@ -76,16 +77,36 @@ function Checkbox({
 function ConfirmContent() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const { user, userRow, loading } = useAuth();
+  const { user, userRow, loading, refreshUserRow } = useAuth();
 
-  const [agreed,           setAgreed]           = useState(false);
-  const [marketingAgreed,  setMarketingAgreed]  = useState(false);
-  const [showComingSoon,   setShowComingSoon]   = useState(false);
+  const [agreed,          setAgreed]          = useState(false);
+  const [marketingAgreed, setMarketingAgreed] = useState(false);
+  const [isSubmitting,    setIsSubmitting]    = useState(false);
+  const [isSuccess,       setIsSuccess]       = useState(false);
+  const [exchangeError,   setExchangeError]   = useState("");
 
   if (loading || !user || !userRow) return null;
 
   const itemId = searchParams.get("item") ?? "starbucks_americano";
   const item   = ITEM_INFO[itemId] ?? ITEM_INFO["starbucks_americano"];
+
+  async function handleExchange() {
+    if (!agreed || isSubmitting) return;
+    setIsSubmitting(true);
+    setExchangeError("");
+    const result = await executeExchange(user!.id, itemId, item.points, marketingAgreed);
+    setIsSubmitting(false);
+    if (result.soldOut) {
+      setExchangeError("아쉽게도 오늘 선착순이 마감됐어요. 내일 자정에 다시 도전해 보세요!");
+      return;
+    }
+    if (!result.success) {
+      setExchangeError("교환에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+    await refreshUserRow();
+    setIsSuccess(true);
+  }
 
   return (
     <main
@@ -96,14 +117,14 @@ function ConfirmContent() {
         fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
       }}
     >
-      {/* 준비 중 팝업 */}
-      {showComingSoon && (
+      {/* 교환 완료 팝업 */}
+      {isSuccess && (
         <div
           style={{
             position:       "fixed",
             inset:          0,
             zIndex:         100,
-            background:     "rgba(13,13,13,0.92)",
+            background:     "rgba(13,13,13,0.95)",
             backdropFilter: "blur(20px)",
             display:        "flex",
             alignItems:     "center",
@@ -117,14 +138,13 @@ function ConfirmContent() {
               maxWidth:     360,
               background:   C.card,
               borderRadius: 24,
-              padding:      "32px 28px",
-              border:       "0.5px solid rgba(250,202,62,0.25)",
+              padding:      "36px 28px 28px",
+              border:       "0.5px solid rgba(250,202,62,0.35)",
               textAlign:    "center",
+              boxShadow:    "0 0 60px rgba(250,202,62,0.1)",
             }}
           >
-            <span style={{ fontSize: 52, display: "block", marginBottom: 16 }}>
-              🛠️
-            </span>
+            <span style={{ fontSize: 56, display: "block", marginBottom: 16 }}>🎉</span>
             <p
               style={{
                 fontFamily:    "var(--font-mona12)",
@@ -135,7 +155,7 @@ function ConfirmContent() {
                 letterSpacing: "0.1em",
               }}
             >
-              COMING SOON
+              EXCHANGE COMPLETE
             </p>
             <h2
               style={{
@@ -147,7 +167,7 @@ function ConfirmContent() {
                 letterSpacing: "-0.02em",
               }}
             >
-              현재 준비 중이에요
+              교환 완료!
             </h2>
             <p
               style={{
@@ -155,12 +175,24 @@ function ConfirmContent() {
                 fontWeight:   300,
                 color:        C.text2,
                 lineHeight:   1.75,
-                marginBottom: 28,
+                marginBottom: 8,
               }}
             >
-              피코 전리품 창고는 곧 정식 오픈할 예정이에요.
+              등록된 이메일로 쿠폰이 발송될 예정이에요.
               <br />
-              조금만 더 기다려 주시면 가장 먼저 알려드릴게요! 🙏
+              3~5 영업일 이내로 확인해 주세요.
+            </p>
+            <p
+              style={{
+                fontSize:     12,
+                fontWeight:   300,
+                color:        C.text2,
+                lineHeight:   1.6,
+                marginBottom: 28,
+                opacity:      0.7,
+              }}
+            >
+              내일도 자정에 새로운 기회가 열려요 ☕
             </p>
             <button
               className="pico-btn"
@@ -248,8 +280,8 @@ function ConfirmContent() {
             padding:        "20px",
             background:
               "linear-gradient(135deg, rgba(250,202,62,0.08) 0%, rgba(250,202,62,0.02) 100%)",
-            border:     "1px solid rgba(250,202,62,0.35)",
-            boxShadow:  "0 8px 32px rgba(250,202,62,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
+            border:         "1px solid rgba(250,202,62,0.35)",
+            boxShadow:      "0 8px 32px rgba(250,202,62,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
             backdropFilter: "blur(20px)",
           }}
         >
@@ -310,11 +342,11 @@ function ConfirmContent() {
           {/* 잔여 포인트 미리보기 */}
           <div
             style={{
-              marginTop:  16,
-              paddingTop: 16,
-              borderTop:  "0.5px solid rgba(250,202,62,0.15)",
-              display:    "flex",
-              alignItems: "center",
+              marginTop:      16,
+              paddingTop:     16,
+              borderTop:      "0.5px solid rgba(250,202,62,0.15)",
+              display:        "flex",
+              alignItems:     "center",
               justifyContent: "space-between",
             }}
           >
@@ -363,9 +395,9 @@ function ConfirmContent() {
             <div
               key={i}
               style={{
-                display:    "flex",
-                alignItems: "flex-start",
-                gap:        8,
+                display:      "flex",
+                alignItems:   "flex-start",
+                gap:          8,
                 marginBottom: i < NOTICES.length - 1 ? 8 : 0,
               }}
             >
@@ -398,7 +430,7 @@ function ConfirmContent() {
         {/* 동의 영역 */}
         <div
           style={{
-            marginBottom: 24,
+            marginBottom: 16,
             background:   C.card,
             borderRadius: 16,
             border:       `0.5px solid ${C.border}`,
@@ -408,10 +440,10 @@ function ConfirmContent() {
           {/* 필수 동의 */}
           <label
             style={{
-              display:     "flex",
-              alignItems:  "flex-start",
-              gap:         12,
-              cursor:      "pointer",
+              display:      "flex",
+              alignItems:   "flex-start",
+              gap:          12,
+              cursor:       "pointer",
               marginBottom: 14,
             }}
           >
@@ -466,11 +498,28 @@ function ConfirmContent() {
           </label>
         </div>
 
+        {/* 에러 메시지 */}
+        {exchangeError && (
+          <div
+            style={{
+              marginBottom: 14,
+              padding:      "12px 16px",
+              borderRadius: 12,
+              background:   "rgba(240,120,120,0.08)",
+              border:       "0.5px solid rgba(240,120,120,0.25)",
+            }}
+          >
+            <p style={{ fontSize: 13, color: "#f07878", fontWeight: 400, margin: 0, lineHeight: 1.6 }}>
+              {exchangeError}
+            </p>
+          </div>
+        )}
+
         {/* 최종 교환 버튼 */}
         <button
           className="pico-btn"
-          onClick={() => setShowComingSoon(true)}
-          disabled={!agreed}
+          onClick={handleExchange}
+          disabled={!agreed || isSubmitting}
           style={{
             width:        "100%",
             padding:      "15px 0",
@@ -479,7 +528,7 @@ function ConfirmContent() {
             fontSize:     16,
             fontWeight:   500,
             transition:   "all 0.15s",
-            ...(agreed
+            ...(agreed && !isSubmitting
               ? {
                   background: C.gold,
                   color:      "#0d0d0d",
@@ -493,7 +542,7 @@ function ConfirmContent() {
                 }),
           }}
         >
-          {item.points.toLocaleString()}P 교환하기
+          {isSubmitting ? "교환 처리 중..." : `${item.points.toLocaleString()}P 교환하기`}
         </button>
       </div>
     </main>

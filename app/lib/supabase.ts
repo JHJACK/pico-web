@@ -325,22 +325,22 @@ export async function submitVoteAndAttendance(
       user_id: uid,
       date: today,
       attended: true,
-      points_earned: 50,
+      points_earned: 100,
     });
     console.log("3. attendance 저장 결과:", JSON.stringify(attInsErr));
 
     if (!attInsErr) {
-      // 4) 기본 출석 포인트 +50
+      // 4) 기본 출석 포인트 +100
       const { error: pointErr } = await supabase.rpc("increment_user_points", {
         uid,
-        delta: 50,
+        delta: 100,
       });
-      console.log("4. 포인트 업데이트 결과 (+50)", pointErr ?? "✅ 성공");
+      console.log("4. 포인트 업데이트 결과 (+100)", pointErr ?? "✅ 성공");
       if (pointErr) {
         console.warn("4. RPC 없음 — fallback 사용:", pointErr.message);
-        await addPoints(uid, 50);
+        await addPoints(uid, 100);
       }
-      await insertPointHistory(uid, 50, "일일 출석 체크");
+      await insertPointHistory(uid, 100, "일일 출석 체크");
     }
   } else {
     console.log("3. attendance 이미 존재 — 삽입 건너뜀");
@@ -797,6 +797,65 @@ export async function collectLearnCard(
   }
 
   return { newly_collected: true };
+}
+
+// ── 전리품 창고: 오늘 KST 기준 해당 아이템 교환 여부 확인 ────────────────────
+export async function checkDailyExchange(itemId: string): Promise<boolean> {
+  const today = todayKST();
+  const { data } = await supabase
+    .from("store_exchanges")
+    .select("id")
+    .eq("item_id", itemId)
+    .eq("kst_date", today)
+    .limit(1);
+  return (data?.length ?? 0) > 0;
+}
+
+// ── 전리품 창고: 포인트 차감 + 교환 기록 저장 ────────────────────────────────
+export async function executeExchange(
+  uid: string,
+  itemId: string,
+  points: number,
+  marketingAgreed: boolean
+): Promise<{ success: boolean; soldOut?: boolean; error?: string }> {
+  const today = todayKST();
+
+  // 재고 재확인 (confirm 페이지 진입 후 다른 유저가 선점한 경우 방어)
+  const { data: existing } = await supabase
+    .from("store_exchanges")
+    .select("id")
+    .eq("item_id", itemId)
+    .eq("kst_date", today)
+    .limit(1);
+
+  if ((existing?.length ?? 0) > 0) {
+    return { success: false, soldOut: true };
+  }
+
+  // 포인트 차감
+  await addPoints(uid, -points);
+
+  // 교환 기록 삽입
+  const { error: insErr } = await supabase.from("store_exchanges").insert({
+    user_id:          uid,
+    item_id:          itemId,
+    points_used:      points,
+    kst_date:         today,
+    marketing_agreed: marketingAgreed,
+  });
+
+  if (insErr) {
+    // 삽입 실패 시 차감한 포인트 복구
+    await addPoints(uid, points);
+    return { success: false, error: insErr.message };
+  }
+
+  const labelMap: Record<string, string> = {
+    starbucks_americano: "스타벅스 아이스 아메리카노 교환",
+  };
+  await insertPointHistory(uid, -points, labelMap[itemId] ?? `${itemId} 교환`);
+
+  return { success: true };
 }
 
 // ── 퀘스트 1회 달성 보상 (중복 방지) ────────────────────────────────────────
