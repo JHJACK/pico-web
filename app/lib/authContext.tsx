@@ -58,7 +58,7 @@ function AttendanceToast({ toast, onDismiss }: { toast: NonNullable<ToastState>;
         <div>
           <p style={{ fontSize: 14, fontWeight: 600, color: "#e8e0d0", margin: 0, lineHeight: 1.3 }}>
             출석 완료!&ensp;
-            <span style={{ fontFamily: "var(--font-mona12)", fontWeight: 700, color: "#FACA3E" }}>+50P</span>
+            <span style={{ fontFamily: "var(--font-mona12)", fontWeight: 700, color: "#FACA3E" }}>+100P</span>
           </p>
           {toast.bonus > 0 && (
             <p style={{ fontSize: 14, fontWeight: 400, color: "#FACA3E", margin: "3px 0 0", lineHeight: 1 }}>

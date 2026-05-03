@@ -148,7 +148,7 @@ export async function createUserRow(uid: string, email: string) {
   const nickname = email.split("@")[0];
   const { error } = await supabase.from("users").upsert(
     { id: uid, nickname, investor_type: null, total_points: 0 },
-    { onConflict: "id" }
+    { onConflict: "id", ignoreDuplicates: true }
   );
   if (error) console.error("[createUserRow]", error.message);
 }
