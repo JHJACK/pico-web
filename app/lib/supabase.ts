@@ -832,6 +832,17 @@ export async function executeExchange(
     return { success: false, soldOut: true };
   }
 
+  // 잔액 확인 (서버사이드 이중 검증)
+  const { data: userData } = await supabase
+    .from("users")
+    .select("total_points")
+    .eq("id", uid)
+    .single();
+
+  if ((userData?.total_points ?? 0) < points) {
+    return { success: false, error: "포인트가 부족해요." };
+  }
+
   // 포인트 차감
   await addPoints(uid, -points);
 
