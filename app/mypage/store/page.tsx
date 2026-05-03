@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
 import { checkDailyExchange } from "@/app/lib/supabase";
+
+// 교환 오픈 시 true로 변경
+const EXCHANGE_OPEN = false;
 import { BackIcon } from "@/app/components/BackIcon";
 
 const C = {
@@ -305,7 +308,11 @@ export default function StorePage() {
   const [soldOut,     setSoldOut]     = useState<boolean | null>(null);
 
   useEffect(() => {
-    checkDailyExchange("starbucks_americano").then(setSoldOut);
+    if (EXCHANGE_OPEN) {
+      checkDailyExchange("starbucks_americano").then(setSoldOut);
+    } else {
+      setSoldOut(false);
+    }
   }, []);
 
   if (loading || !user || !userRow) return null;
