@@ -1028,7 +1028,7 @@ export default function Home() {
   }
 
   async function handleVerifyEmail() {
-    if (emailVerifyCode.length !== 8) { setEmailVerifyError("8자리 인증 코드를 입력해 주세요."); return; }
+    if (emailVerifyCode.length !== 6) { setEmailVerifyError("6자리 인증 코드를 입력해 주세요."); return; }
     setEmailVerifyLoading(true); setEmailVerifyError("");
     const { data, error } = await supabase.auth.verifyOtp({
       email: emailVerifyEmail,
@@ -2529,7 +2529,7 @@ export default function Home() {
                 maxLength={6}
                 value={emailVerifyCode}
                 onChange={(e) => setEmailVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                placeholder="인증 코드 8자리"
+                placeholder="인증 코드 6자리"
                 className="w-full outline-none pico-auth-input"
                 style={{ display: "block", background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "13px 16px", color: "#e8e0d0", fontSize: 20, fontWeight: 700, marginBottom: 10, textAlign: "center", letterSpacing: "0.2em", fontFamily: "var(--font-inter)" }}
                 onFocus={(e) => (e.target.style.borderColor = "rgba(250,202,62,0.45)")}
