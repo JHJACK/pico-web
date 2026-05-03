@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/authContext";
-import { executeExchange } from "@/app/lib/supabase";
+// import { executeExchange } from "@/app/lib/supabase"; // 교환 오픈 시 주석 해제
 import { BackIcon } from "@/app/components/BackIcon";
 
 const C = {
@@ -83,6 +83,7 @@ function ConfirmContent() {
   const [marketingAgreed, setMarketingAgreed] = useState(false);
   const [isSubmitting,    setIsSubmitting]    = useState(false);
   const [isSuccess,       setIsSuccess]       = useState(false);
+  const [isPreparing,     setIsPreparing]     = useState(false);
   const [exchangeError,   setExchangeError]   = useState("");
 
   if (loading || !user || !userRow) return null;
@@ -92,20 +93,8 @@ function ConfirmContent() {
 
   async function handleExchange() {
     if (!agreed || isSubmitting) return;
-    setIsSubmitting(true);
-    setExchangeError("");
-    const result = await executeExchange(user!.id, itemId, item.points, marketingAgreed);
-    setIsSubmitting(false);
-    if (result.soldOut) {
-      setExchangeError("아쉽게도 오늘 선착순이 마감됐어요. 내일 자정에 다시 도전해 보세요!");
-      return;
-    }
-    if (!result.success) {
-      setExchangeError("교환에 실패했어요. 잠시 후 다시 시도해 주세요.");
-      return;
-    }
-    await refreshUserRow();
-    setIsSuccess(true);
+    // 교환 오픈 시: 아래 준비중 블록 제거하고 executeExchange 로직으로 교체
+    setIsPreparing(true);
   }
 
   return (
@@ -117,7 +106,91 @@ function ConfirmContent() {
         fontFamily: "var(--font-paperlogy), var(--font-noto), sans-serif",
       }}
     >
-      {/* 교환 완료 팝업 */}
+      {/* 준비 중 팝업 — 교환 오픈 시 아래 블록 전체를 교환완료 팝업으로 교체 */}
+      {isPreparing && (
+        <div
+          style={{
+            position:       "fixed",
+            inset:          0,
+            zIndex:         100,
+            background:     "rgba(13,13,13,0.95)",
+            backdropFilter: "blur(20px)",
+            display:        "flex",
+            alignItems:     "center",
+            justifyContent: "center",
+            padding:        "0 24px",
+          }}
+        >
+          <div
+            style={{
+              width:        "100%",
+              maxWidth:     360,
+              background:   C.card,
+              borderRadius: 24,
+              padding:      "36px 28px 28px",
+              border:       `0.5px solid ${C.border}`,
+              textAlign:    "center",
+            }}
+          >
+            <span style={{ fontSize: 56, display: "block", marginBottom: 16 }}>🛠️</span>
+            <p
+              style={{
+                fontFamily:    "var(--font-mona12)",
+                fontSize:      12,
+                fontWeight:    700,
+                color:         C.text2,
+                marginBottom:  10,
+                letterSpacing: "0.1em",
+              }}
+            >
+              COMING SOON
+            </p>
+            <h2
+              style={{
+                fontFamily:    "var(--font-paperlogy)",
+                fontSize:      22,
+                fontWeight:    700,
+                color:         C.text,
+                margin:        "0 0 10px",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              곧 오픈돼요!
+            </h2>
+            <p
+              style={{
+                fontSize:     14,
+                fontWeight:   300,
+                color:        C.text2,
+                lineHeight:   1.75,
+                marginBottom: 28,
+              }}
+            >
+              포인트 교환 서비스를 준비하고 있어요.
+              <br />
+              오픈되면 가장 먼저 알려드릴게요.
+            </p>
+            <button
+              className="pico-btn"
+              onClick={() => router.replace("/mypage/store")}
+              style={{
+                width:        "100%",
+                padding:      "13px 0",
+                borderRadius: 14,
+                background:   "rgba(255,255,255,0.06)",
+                color:        C.text,
+                fontSize:     15,
+                fontWeight:   500,
+                border:       `0.5px solid ${C.border}`,
+              }}
+            >
+              전리품 창고로 돌아가기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 교환 완료 팝업 — 교환 오픈 시 활성화 (isSuccess state 사용) */}
       {isSuccess && (
         <div
           style={{
