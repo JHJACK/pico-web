@@ -123,8 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u = session?.user ?? null;
       setUser(u);
       if (u) {
-        loadUserRow(u).finally(() => setLoading(false));
-        autoAttend(u);
+        loadUserRow(u).then(() => autoAttend(u)).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
@@ -133,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u) { loadUserRow(u); autoAttend(u); }
+      if (u) { loadUserRow(u).then(() => autoAttend(u)); }
       else setUserRow(null);
     });
 
